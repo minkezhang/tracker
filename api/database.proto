@@ -1,10 +1,12 @@
 // database.proto
 // Fully specifies the database spec.
+//
+// To generate this protobuf file, run
+//   protoc -I api/ --go_out=api/ --go_opt=paths=import --go_opt=module=github.com/minkezhang/tracker/api api/*proto
+syntax = "proto3";
 
-syntax = "proto3"
-
-package tracker.database
-option go_package = "tracker.database"
+package tracker.database;
+option go_package = "github.com/minkezhang/tracker/api/go/database";
 
 enum Corpus {
 	CORPUS_UNKNOWN = 0;
