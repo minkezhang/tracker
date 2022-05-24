@@ -18,6 +18,11 @@ enum Corpus {
 enum Provider {
 	PROVIDER_UNKNOWN = 0;
 	PROVIDER_CRUNCHYROLL = 1;
+	PROVIDER_NETFLIX = 2;
+}
+
+message Database {
+	repeated Entry entries = 1;
 }
 
 message Entry {
@@ -27,13 +32,31 @@ message Entry {
 	repeated Provider providers = 4;
 	bool queued = 5;
 	oneof aux_data {
-		AuxDataVideo video = 6;
+		AuxDataVideo aux_data_video = 6;
+		AuxDataBook aux_data_book = 7;
 	}
-	string comment = 10;
+	oneof tracker {
+		TrackerVideo tracker_video = 100;
+		TrackerBook tracker_book = 101;
+	}
 }
 
 message AuxDataVideo {
 	repeated string studios = 1;
-	repeated string producers = 2;
+	repeated string directors = 2;
 	repeated string writers = 3;
+}
+
+message AuxDataBook {
+	string author = 1;
+}
+
+message TrackerVideo {
+	int32 season = 1;
+	int32 episode = 2;
+}
+
+message TrackerBook {
+	int32 volume = 1;
+	int32 chapter = 2;
 }
