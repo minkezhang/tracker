@@ -1,0 +1,37 @@
+// database.proto
+// Fully specifies the database spec.
+
+syntax = "proto3"
+
+package tracker.database
+option go_package = "tracker.database"
+
+enum Corpus {
+	CORPUS_UNKNOWN = 0;
+	CORPUS_ANIME = 1;
+	CORPUS_ANIME_FILM = 2;
+	CORPUS_MANGA = 3;
+}
+
+enum Provider {
+	PROVIDER_UNKNOWN = 0;
+	PROVIDER_CRUNCHYROLL = 1;
+}
+
+message Entry {
+	Corpus corpus = 1;
+	string title = 2;
+	float score = 3;
+	repeated Provider providers = 4;
+	bool queued = 5;
+	oneof aux_data {
+		AuxDataVideo video = 6;
+	}
+	string comment = 10;
+}
+
+message AuxDataVideo {
+	repeated string studios = 1;
+	repeated string producers = 2;
+	repeated string writers = 3;
+}
