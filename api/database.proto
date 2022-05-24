@@ -48,7 +48,7 @@ message Database {
 
 message Entry {
 	Corpus corpus = 1;
-	string title = 2;
+	repeated string titles = 2;
 	float score = 3;
 	repeated Provider providers = 4;
 	bool queued = 5;

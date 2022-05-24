@@ -24,7 +24,7 @@ var (
 type E [11]string
 
 func (r E) Corpus() dpb.Corpus  { return lookup.Corpus[r[8]] }
-func (r E) Title() string       { return r[0] }
+func (r E) Titles() []string    { return []string{r[0]} }
 func (r E) Queued() bool        { return r[2] == "TRUE" }
 func (r E) Composers() []string { return r.Writers() }
 func (r E) Authors() []string   { return r.Writers() }
@@ -118,7 +118,7 @@ func (r E) TrackerVideo() *dpb.TrackerVideo {
 func (r E) ProtoBuf() *dpb.Entry {
 	e := &dpb.Entry{
 		Corpus:    r.Corpus(),
-		Title:     r.Title(),
+		Titles:    r.Titles(),
 		Queued:    r.Queued(),
 		Score:     r.Score(),
 		Providers: r.Providers(),
