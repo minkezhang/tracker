@@ -10,15 +10,36 @@ option go_package = "github.com/minkezhang/tracker/api/go/database";
 
 enum Corpus {
 	CORPUS_UNKNOWN = 0;
+
 	CORPUS_ANIME = 1;
 	CORPUS_ANIME_FILM = 2;
 	CORPUS_MANGA = 3;
+
+	CORPUS_BOOK = 4;
+	CORPUS_SHORT_STORY = 5;
+
+	CORPUS_FILM = 6;
+	CORPUS_TV = 7;
+
+	CORPUS_ALBUM = 8;
+
+	CORPUS_GAME = 9;
 }
 
 enum Provider {
 	PROVIDER_UNKNOWN = 0;
 	PROVIDER_CRUNCHYROLL = 1;
 	PROVIDER_NETFLIX = 2;
+	PROVIDER_AMAZON_STREAMING = 3;
+	PROVIDER_BATTLENET = 4;
+	PROVIDER_EPIC = 5;
+	PROVIDER_GOOGLE_PLAY = 6;
+	PROVIDER_HULU = 7;
+	PROVIDER_ORIGINS = 8;
+	PROVIDER_DISNEY_PLUS = 9;
+	PROVIDER_HBO_MAX = 10;
+	PROVIDER_FUNIMATION = 11;
+	PROVIDER_STEAM = 12;
 }
 
 message Database {
@@ -34,11 +55,19 @@ message Entry {
 	oneof aux_data {
 		AuxDataVideo aux_data_video = 6;
 		AuxDataBook aux_data_book = 7;
+		AuxDataGame aux_data_game = 8;
+		AuxDataAudio aux_data_audio = 9;
 	}
 	oneof tracker {
-		TrackerVideo tracker_video = 100;
-		TrackerBook tracker_book = 101;
+		TrackerVideo tracker_video = 10;
+		TrackerBook tracker_book = 11;
 	}
+}
+
+message AuxDataGame {
+	repeated string studios = 1;
+	repeated string directors = 2;
+	repeated string writers = 3;
 }
 
 message AuxDataVideo {
@@ -47,8 +76,12 @@ message AuxDataVideo {
 	repeated string writers = 3;
 }
 
+message AuxDataAudio {
+	repeated string composers = 1;
+}
+
 message AuxDataBook {
-	string author = 1;
+	repeated string authors = 1;
 }
 
 message TrackerVideo {
