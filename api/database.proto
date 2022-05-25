@@ -43,12 +43,10 @@ enum Provider {
 }
 
 message Database {
-	repeated Entry entries = 1;
+	map<string, Entry> entries = 1;
 }
 
 message Entry {
-	string id = 12;
-
 	Corpus corpus = 1;
 	repeated string titles = 2;
 	float score = 3;

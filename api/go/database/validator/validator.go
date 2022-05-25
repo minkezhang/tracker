@@ -16,12 +16,10 @@ var (
 	}
 )
 
-func Validate(db *dpb.Database) error {
-	for _, e := range db.GetEntries() {
-		for _, v := range validators {
-			if err := v(e); err != nil {
-				return err
-			}
+func Validate(epb *dpb.Entry) error {
+	for _, v := range validators {
+		if err := v(epb); err != nil {
+			return err
 		}
 	}
 	return nil
