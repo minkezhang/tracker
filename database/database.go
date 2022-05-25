@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/minkezhang/tracker/api/go/database/validator"
 	"github.com/minkezhang/tracker/database/ids"
@@ -13,6 +14,12 @@ import (
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
 )
+
+type E struct {
+	PB   *dpb.Entry
+	ETag []byte
+	ID   string
+}
 
 type DB struct {
 	db *dpb.Database
@@ -65,16 +72,16 @@ func (db *DB) ETag(epb *dpb.Entry) ([]byte, error) {
 	return md5.New().Sum(data), nil
 }
 
-func (db *DB) GetEntry(id string) (*dpb.Entry, []byte, error) {
+func (db *DB) GetEntry(id string) (E, error) {
 	epb, ok := db.db.GetEntries()[id]
 	if !ok {
-		return nil, nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", id)
+		return E{}, status.Errorf(codes.NotFound, "cannot find entry with id %v", id)
 	}
 	etag, err := db.ETag(epb)
 	if err != nil {
-		return nil, nil, err
+		return E{}, err
 	}
-	return epb, etag, nil
+	return E{ID: id, ETag: etag, PB: epb}, nil
 }
 
 func (db *DB) PutEntry(id string, epb *dpb.Entry, etag []byte) error {
@@ -99,4 +106,29 @@ func (db *DB) DeleteEntry(id string) error {
 	return nil
 }
 
-func (db *DB) Search(title string) []*dpb.Entry { return nil }
+type O struct {
+	Title  string
+	Corpus dpb.Corpus
+}
+
+func (db *DB) Search(opts O) []E {
+	var candidates []E
+	for eid, epb := range db.db.GetEntries() {
+		for _, t := range epb.GetTitles() {
+			if strings.Contains(t, opts.Title) && ((epb.GetCorpus() == opts.Corpus) || (epb.GetCorpus() == dpb.Corpus_CORPUS_UNKNOWN) || (opts.Corpus == dpb.Corpus_CORPUS_UNKNOWN)) {
+				etag, _ := db.ETag(epb)
+				candidates = append(candidates, E{ID: eid, ETag: etag, PB: epb})
+				continue
+			}
+		}
+	}
+	return candidates
+}
+
+func Unmarshal(data []byte) (*DB, error) {
+	pb := &dpb.Database{}
+	if err := prototext.Unmarshal(data, pb); err != nil {
+		return nil, err
+	}
+	return &DB{db: pb}, nil
+}
