@@ -1,9 +1,8 @@
 package main
 
 import (
-	"encoding/csv"
 	"flag"
-	"io"
+	"bufio"
 	"log"
 	"os"
 
@@ -27,20 +26,21 @@ func main() {
 	}
 	defer fp.Close()
 
-	scanner := csv.NewReader(fp)
-	if _, err := scanner.Read(); err != nil {
-		log.Fatalf("error while reading CSV file %v: %v", *input, err)
-	}
+	scanner := bufio.NewScanner(fp)
+	scanner.Scan()
 
 	var entries []*dpb.Entry
-	for l, err := scanner.Read(); err == nil; l, err = scanner.Read() {
-		r := (*entry.E)(l)
-		if e := r.ProtoBuf(); e.Corpus != dpb.Corpus_CORPUS_UNKNOWN {
-			entries = append(entries, e)
+	for scanner.Scan() {
+		epb := &dpb.Entry{}
+		if err := (entry.E{}).Unmarshal(scanner.Bytes(), epb); err != nil {
+			log.Fatalf("error while unmarshalling data: %v", err)
+		}
+		if epb.GetCorpus() != dpb.Corpus_CORPUS_UNKNOWN {
+			entries = append(entries, epb)
 		}
 	}
 
-	if err != nil && err != io.EOF {
+	if err := scanner.Err(); err != nil {
 		log.Fatalf("error while reading CSV file %v: %v", *input, err)
 	}
 
@@ -52,7 +52,7 @@ func main() {
 		Multiline: true,
 	}.Marshal(db)
 	if err != nil {
-		log.Fatalf("error while marshalling proto: %v")
+		log.Fatalf("error while marshalling proto: %v", err)
 	}
 
 	w, err := os.Create(*output)
