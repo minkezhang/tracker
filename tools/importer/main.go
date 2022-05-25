@@ -12,14 +12,6 @@ import (
 	entry "github.com/minkezhang/tracker/formats/minkezhang"
 )
 
-const (
-	idLen = 16
-)
-
-var (
-	letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-)
-
 var (
 	input  = flag.String("input", "/dev/stdin", "input CSV path, e.g. path/to/database.csv")
 	output = flag.String("output", "/dev/stdout", "output textproto path, e.g. path/to/database.textproto")
