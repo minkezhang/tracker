@@ -5,6 +5,8 @@ import (
 
 	"github.com/minkezhang/tracker/api/go/database/validator"
 	"github.com/minkezhang/tracker/database/ids"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/prototext"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
@@ -30,14 +32,18 @@ func New(epbs []*dpb.Entry) *DB {
 }
 
 func (db *DB) Marshal() ([]byte, error) {
-	return prototext.MarshalOptions{
+	data, err := prototext.MarshalOptions{
 		Multiline: true,
 	}.Marshal(db.db)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot marshal DB entry: %v", err)
+	}
+	return data, nil
 }
 
 func (db *DB) AddEntry(epb *dpb.Entry) error {
 	if err := validator.Validate(epb); err != nil {
-		return err
+		return status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
 	}
 
 	eid := ids.New()
