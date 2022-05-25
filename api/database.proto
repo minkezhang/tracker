@@ -47,6 +47,8 @@ message Database {
 }
 
 message Entry {
+	string id = 12;
+
 	Corpus corpus = 1;
 	repeated string titles = 2;
 	float score = 3;

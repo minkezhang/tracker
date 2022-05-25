@@ -1,14 +1,14 @@
 package entry
 
 import (
-	"encoding/csv"
 	"bytes"
+	"encoding/csv"
 
-	"google.golang.org/protobuf/proto"
 	"github.com/minkezhang/tracker/formats/minkezhang/cache"
+	"google.golang.org/protobuf/proto"
 )
 
-type E struct {}
+type E struct{}
 
 func (e E) Unmarshal(b []byte, m proto.Message) error {
 	l, err := csv.NewReader(bytes.NewReader(b)).Read()
