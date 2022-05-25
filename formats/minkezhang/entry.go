@@ -5,7 +5,7 @@ import (
 	"bytes"
 
 	"google.golang.org/protobuf/proto"
-	"github.com/minkezhang/tracker/data/formats/minkezhang/cache"
+	"github.com/minkezhang/tracker/formats/minkezhang/cache"
 )
 
 type E struct {}

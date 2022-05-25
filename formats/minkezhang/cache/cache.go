@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/minkezhang/tracker/data/formats/minkezhang/columns"
-	"github.com/minkezhang/tracker/data/formats/minkezhang/lookup"
+	"github.com/minkezhang/tracker/formats/minkezhang/columns"
+	"github.com/minkezhang/tracker/formats/minkezhang/lookup"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
 )

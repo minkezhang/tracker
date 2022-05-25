@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/encoding/prototext"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
-	entry "github.com/minkezhang/tracker/data/formats/minkezhang"
+	entry "github.com/minkezhang/tracker/formats/minkezhang"
 )
 
 var (

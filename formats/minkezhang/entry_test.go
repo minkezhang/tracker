@@ -1,7 +1,7 @@
 package entry
 
 import (
-	entry "github.com/minkezhang/tracker/data/formats"
+	entry "github.com/minkezhang/tracker/formats"
 )
 
 var (
