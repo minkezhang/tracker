@@ -44,10 +44,18 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		entries = append(entries, c.db.Search(database.O{Title: c.title, Corpus: corpus})...)
 	}
 
-	for _, epb := range entries {
-		data, _ := ce.E{}.Marshal(epb)
-		fmt.Printf("%s\n", data)
+	if len(entries) == 0 {
+		fmt.Printf("Could not find result with the given input. Please refine your search.\n")
+		return subcommands.ExitFailure
 	}
+
+	if len(entries) > 1 {
+		fmt.Printf("Too many results returned. Please refine your search.\n")
+		return subcommands.ExitFailure
+	}
+
+	data, _ := ce.E{}.Marshal(entries[0])
+	fmt.Printf("%s\n", data)
 
 	return subcommands.ExitSuccess
 }
