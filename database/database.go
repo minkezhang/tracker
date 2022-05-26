@@ -115,7 +115,7 @@ func (db *DB) Search(opts O) []E {
 	var candidates []E
 	for eid, epb := range db.db.GetEntries() {
 		for _, t := range epb.GetTitles() {
-			if strings.Contains(t, opts.Title) && ((epb.GetCorpus() == opts.Corpus) || (epb.GetCorpus() == dpb.Corpus_CORPUS_UNKNOWN) || (opts.Corpus == dpb.Corpus_CORPUS_UNKNOWN)) {
+			if strings.Contains(strings.ToLower(t), strings.ToLower(opts.Title)) && ((epb.GetCorpus() == opts.Corpus) || (epb.GetCorpus() == dpb.Corpus_CORPUS_UNKNOWN) || (opts.Corpus == dpb.Corpus_CORPUS_UNKNOWN)) {
 				etag, _ := db.ETag(epb)
 				candidates = append(candidates, E{ID: eid, ETag: etag, PB: epb})
 				continue

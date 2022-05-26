@@ -1,0 +1,100 @@
+entries:  {
+  key:  "WZKvdEANNUPkaNBO"
+  value:  {
+    corpus:  CORPUS_FILM
+    titles:  "12 Angry Men (1957)"
+    score:  9.3
+    aux_data_video:  {
+      studios:  "Orion-Nova Productions"
+      directors:  "Sidney Lumet"
+      writers:  "Reginald Rose"
+    }
+  }
+}
+entries:  {
+  key:  "CwFkDifIBuufFMoW"
+  value:  {
+    corpus:  CORPUS_ANIME
+    titles:  "Sabikui Bisco"
+    score:  6.3
+    providers:  PROVIDER_CRUNCHYROLL
+    queued:  true
+    aux_data_video:  {
+      studios:  "OZ"
+      directors:  "Atsushi Itagaki"
+      writers:  "Sadayuki Murai"
+    }
+    tracker_video:  {
+      season:  2
+      episode:  1
+    }
+  }
+}
+entries:  {
+  key:  "mEGgDvlIlmBAHAhu"
+  value:  {
+    corpus:  CORPUS_MANGA
+    titles:  "Chrono Crusade"
+    score:  5
+    aux_data_book:  {
+      authors:  "Daisuke Moriyama"
+    }
+    tracker_book:  {
+      chapter:  4
+    }
+  }
+}
+entries:  {
+  key:  "cgUsHKxNbNUWPlvH"
+  value:  {
+    corpus:  CORPUS_TV
+    titles:  "Sense8"
+    score:  5.7
+    providers:  PROVIDER_NETFLIX
+    aux_data_video:  {
+      studios:  "Anarchos Productions"
+      directors:  "Lana Wachowski"
+      directors:  "Lilly Wachowski"
+      writers:  "Lana Wachowski"
+      writers:  "Lilly Wachowski"
+    }
+    tracker_video:  {}
+  }
+}
+entries:  {
+  key:  "hTHctcuAxhxKQFDa"
+  value:  {
+    corpus:  CORPUS_ALBUM
+    titles:  "Heart of My Own"
+    aux_data_audio:  {
+      composers:  "Basia Bulat"
+    }
+  }
+}
+entries:  {
+  key:  "KetWXUDXJDUtrnry"
+  value:  {
+    corpus:  CORPUS_ANIME_FILM
+    titles:  "Akira"
+    aux_data_video:  {
+      studios:  "Tokyo Movie Shinsha"
+      directors:  "Katsuhiro Otomo"
+      writers:  "Katsuhiro Otomo"
+    }
+  }
+}
+entries:  {
+  key:  "LLmXSYGluJVOpzrc"
+  value:  {
+    corpus:  CORPUS_GAME
+    titles:  "Bastion"
+    score:  7.2
+    providers:  PROVIDER_STEAM
+    aux_data_game:  {
+      studios:  "Supergiant Games"
+      directors:  "Amir Rao"
+      writers:  "Greg Kasavin"
+    }
+  }
+}
+

@@ -4,10 +4,10 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type E interface {
-	// TODO(minkezhang): Implement the Marshal function.
-	//
-	// Marshal(m proto.Message) ([]byte, error)
-
+type Importer interface {
 	Unmarshal(b []byte, m proto.Message) error
+}
+
+type Exporter interface {
+	Marshal(m proto.Message) ([]byte, error)
 }
