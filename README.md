@@ -30,3 +30,9 @@ go run internal/importer/main.go \
 
 TUI (cli)
 Web --> gRPC service
+
+## Examples
+
+```bash
+go run github.com/minkezhang/tracker/tools/cli get --title=Sense8 --corpus=tv
+```

@@ -1,35 +1,53 @@
 package get
 
 import (
+	"context"
+	"flag"
 	"fmt"
+	"github.com/google/subcommands"
 	"github.com/minkezhang/tracker/database"
+	"strings"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
+	ce "github.com/minkezhang/tracker/formats/cli"
 )
 
-type O struct {
-	DB *database.DB
+type C struct {
+	db *database.DB
 
-	ID     string
-	Title  string
-	Corpus dpb.Corpus
+	id     string
+	title  string
+	corpus string
 }
 
-func (o O) Get() (*dpb.Entry, error) {
-	if o.DB == nil {
-		return nil, nil
+func New(db *database.DB) *C { return &C{db: db} }
+
+func (c *C) Name() string     { return "get" }
+func (c *C) Synopsis() string { return "get entry from database with matching parameters" }
+func (c *C) Usage() string    { return c.Synopsis() }
+
+func (c *C) SetFlags(f *flag.FlagSet) {
+	f.StringVar(&c.id, "id", "", "entry ID")
+	f.StringVar(&c.title, "title", "", "entry title substring")
+	f.StringVar(&c.corpus, "corpus", "unknown", "optional corpus hint for the entry")
+}
+
+func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
+	var entries []*dpb.Entry
+	if c.id != "" {
+		results, _ := c.db.GetEntry(c.id)
+		entries = append(entries, results)
+	} else {
+		corpus := dpb.Corpus(
+			dpb.Corpus_value[fmt.Sprintf("CORPUS_%v", strings.ToUpper(c.corpus))])
+
+		entries = append(entries, c.db.Search(database.O{Title: c.title, Corpus: corpus})...)
 	}
 
-	if o.ID != "" {
-		return o.DB.GetEntry(o.ID)
+	for _, epb := range entries {
+		data, _ := ce.E{}.Marshal(epb)
+		fmt.Printf("%s\n", data)
 	}
 
-	results := o.DB.Search(database.O{Title: o.Title, Corpus: o.Corpus})
-	if len(results) == 0 {
-		return nil, nil
-	}
-	if len(results) == 1 {
-		return results[0], nil
-	}
-	return nil, fmt.Errorf("multiple records found for query")
+	return subcommands.ExitSuccess
 }

@@ -1,15 +1,16 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"flag"
 	"io/ioutil"
+	"log"
 	"os"
 
+	"github.com/google/subcommands"
 	"github.com/minkezhang/tracker/database"
+	"github.com/minkezhang/tracker/tools/cli/commands/add"
 	"github.com/minkezhang/tracker/tools/cli/commands/get"
-
-	dpb "github.com/minkezhang/tracker/api/go/database"
-	ce "github.com/minkezhang/tracker/formats/cli"
 )
 
 const (
@@ -17,57 +18,32 @@ const (
 )
 
 func main() {
-	fp, _ := os.Open(fn)
+	subcommands.Register(subcommands.HelpCommand(), "")
+	subcommands.Register(subcommands.FlagsCommand(), "")
+	subcommands.Register(subcommands.CommandsCommand(), "")
+
+	fp, err := os.Open(fn)
+	if err != nil {
+		log.Fatalf("could not open file %v: %v", fp, err)
+	}
 	defer fp.Close()
 
-	data, _ := ioutil.ReadAll(fp)
-	db, _ := database.Unmarshal(data)
-
-	qs := []struct {
-		db     *database.DB
-		title  string
-		corpus dpb.Corpus
-	}{
-		{
-			db:     db,
-			title:  "12 Angry Men",
-			corpus: dpb.Corpus_CORPUS_FILM,
-		},
-		{
-			db:     db,
-			title:  "Bastion",
-			corpus: dpb.Corpus_CORPUS_GAME,
-		},
-		{
-			db:     db,
-			title:  "Akira",
-			corpus: dpb.Corpus_CORPUS_ANIME_FILM,
-		},
-		{
-			db:     db,
-			title:  "heart of my own",
-			corpus: dpb.Corpus_CORPUS_ALBUM,
-		},
-		{
-			db:     db,
-			title:  "sense8",
-			corpus: dpb.Corpus_CORPUS_TV,
-		},
-		{
-			db:     db,
-			title:  "Chrono Crusade",
-			corpus: dpb.Corpus_CORPUS_MANGA,
-		},
-		{
-			db:     db,
-			title:  "Sabikui",
-			corpus: dpb.Corpus_CORPUS_ANIME,
-		},
+	data, err := ioutil.ReadAll(fp)
+	if err != nil {
+		log.Fatalf("could not read file %v: %v", fp, err)
 	}
 
-	for _, q := range qs {
-		e, _ := get.O{DB: q.db, Title: q.title, Corpus: q.corpus}.Get()
-		d, _ := ce.E{}.Marshal(e)
-		fmt.Println(string(d))
+	db, err := database.Unmarshal(data)
+	if err != nil {
+		log.Fatalf("could not read database: %v", err)
 	}
+
+	subcommands.Register(get.New(db), "")
+	subcommands.Register(add.New(db), "")
+
+	flag.Parse()
+	ctx := context.Background()
+
+	status := subcommands.Execute(ctx)
+	os.Exit(int(status))
 }
