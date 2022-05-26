@@ -2,10 +2,13 @@ package database
 
 import (
 	"crypto/md5"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"reflect"
 	"strings"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/minkezhang/tracker/api/go/database/validator"
 	"github.com/minkezhang/tracker/database/ids"
 	"google.golang.org/grpc/codes"
@@ -14,12 +17,6 @@ import (
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
 )
-
-type E struct {
-	PB   *dpb.Entry
-	ETag []byte
-	ID   string
-}
 
 type DB struct {
 	db *dpb.Database
@@ -58,46 +55,45 @@ func (db *DB) AddEntry(epb *dpb.Entry) error {
 	eid := ids.New()
 	for ; db.db.GetEntries()[eid] != nil; eid = ids.New() {
 	}
+
+	epb.Id = eid
+	etag, err := ETag(epb)
+	if err != nil {
+		return err
+	}
+	epb.Etag = etag
+
 	db.db.GetEntries()[eid] = epb
 	return nil
 }
 
-func (db *DB) ETag(epb *dpb.Entry) ([]byte, error) {
-	if err := validator.Validate(epb); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
-	}
-
-	data, _ := prototext.Marshal(epb)
-
-	return md5.New().Sum(data), nil
-}
-
-func (db *DB) GetEntry(id string) (E, error) {
+func (db *DB) GetEntry(id string) (*dpb.Entry, error) {
 	epb, ok := db.db.GetEntries()[id]
 	if !ok {
-		return E{}, status.Errorf(codes.NotFound, "cannot find entry with id %v", id)
+		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", id)
 	}
-	etag, err := db.ETag(epb)
-	if err != nil {
-		return E{}, err
-	}
-	return E{ID: id, ETag: etag, PB: epb}, nil
+	return epb, nil
 }
 
-func (db *DB) PutEntry(id string, epb *dpb.Entry, etag []byte) error {
+func (db *DB) PutEntry(epb *dpb.Entry) error {
 	if err := validator.Validate(epb); err != nil {
 		return status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
 	}
 
-	fpb, ok := db.db.GetEntries()[id]
+	fpb, ok := db.db.GetEntries()[epb.GetId()]
 	if !ok {
-		return status.Errorf(codes.NotFound, "cannot find entry with id %v", id)
+		return status.Errorf(codes.NotFound, "cannot find entry with id %v", epb.GetId())
 	}
-	if ftag, _ := db.ETag(fpb); !reflect.DeepEqual(etag, ftag) {
-		return status.Errorf(codes.InvalidArgument, "cannot update entry with mismatching ETag values: %v != %v", etag, ftag)
+	if !reflect.DeepEqual(epb.GetEtag(), fpb.GetEtag()) {
+		return status.Errorf(codes.InvalidArgument, "cannot update entry with mismatching ETag values: %v != %v", epb.GetEtag(), fpb.GetEtag())
 	}
+	etag, err := ETag(epb)
+	if err != nil {
+		return err
+	}
+	epb.Etag = etag
 
-	db.db.GetEntries()[id] = epb
+	db.db.GetEntries()[epb.GetId()] = epb
 	return nil
 }
 
@@ -111,13 +107,12 @@ type O struct {
 	Corpus dpb.Corpus
 }
 
-func (db *DB) Search(opts O) []E {
-	var candidates []E
-	for eid, epb := range db.db.GetEntries() {
+func (db *DB) Search(opts O) []*dpb.Entry {
+	var candidates []*dpb.Entry
+	for _, epb := range db.db.GetEntries() {
 		for _, t := range epb.GetTitles() {
 			if strings.Contains(strings.ToLower(t), strings.ToLower(opts.Title)) && ((epb.GetCorpus() == opts.Corpus) || (epb.GetCorpus() == dpb.Corpus_CORPUS_UNKNOWN) || (opts.Corpus == dpb.Corpus_CORPUS_UNKNOWN)) {
-				etag, _ := db.ETag(epb)
-				candidates = append(candidates, E{ID: eid, ETag: etag, PB: epb})
+				candidates = append(candidates, epb)
 				continue
 			}
 		}
@@ -125,10 +120,39 @@ func (db *DB) Search(opts O) []E {
 	return candidates
 }
 
+func ETag(epb *dpb.Entry) ([]byte, error) {
+	fpb := proto.Clone(epb).(*dpb.Entry)
+	fpb.Id = ""
+	fpb.Etag = nil
+
+	data, err := prototext.Marshal(fpb)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot marshal input proto: %v", err)
+	}
+
+	s := md5.New()
+	io.WriteString(s, string(data))
+
+	// b64 string of the etag is easier to read.
+	return []byte(
+		base64.URLEncoding.EncodeToString(
+			s.Sum(nil),
+		),
+	), nil
+}
+
 func Unmarshal(data []byte) (*DB, error) {
 	pb := &dpb.Database{}
 	if err := prototext.Unmarshal(data, pb); err != nil {
 		return nil, err
+	}
+	for eid, epb := range pb.GetEntries() {
+		epb.Id = eid
+		etag, err := ETag(epb)
+		if err != nil {
+			return nil, err
+		}
+		epb.Etag = etag
 	}
 	return &DB{db: pb}, nil
 }

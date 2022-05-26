@@ -67,7 +67,7 @@ func main() {
 
 	for _, q := range qs {
 		e, _ := get.O{DB: q.db, Title: q.title, Corpus: q.corpus}.Get()
-		d, _ := ce.E{}.Marshal(e.PB)
+		d, _ := ce.E{}.Marshal(e)
 		fmt.Println(string(d))
 	}
 }

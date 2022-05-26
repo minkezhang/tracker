@@ -47,6 +47,10 @@ message Database {
 }
 
 message Entry {
+	// Immutable fields.
+	string id = 12;
+	bytes etag = 13;
+
 	Corpus corpus = 1;
 	repeated string titles = 2;
 	float score = 3;

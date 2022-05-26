@@ -15,9 +15,9 @@ type O struct {
 	Corpus dpb.Corpus
 }
 
-func (o O) Get() (database.E, error) {
+func (o O) Get() (*dpb.Entry, error) {
 	if o.DB == nil {
-		return database.E{}, nil
+		return nil, nil
 	}
 
 	if o.ID != "" {
@@ -26,10 +26,10 @@ func (o O) Get() (database.E, error) {
 
 	results := o.DB.Search(database.O{Title: o.Title, Corpus: o.Corpus})
 	if len(results) == 0 {
-		return database.E{}, nil
+		return nil, nil
 	}
 	if len(results) == 1 {
 		return results[0], nil
 	}
-	return database.E{}, fmt.Errorf("multiple records found for query")
+	return nil, fmt.Errorf("multiple records found for query")
 }

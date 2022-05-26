@@ -142,6 +142,9 @@ func (e E) Marshal(m proto.Message) ([]byte, error) {
 			}
 			return ""
 		}(),
+
+		fmt.Sprintf("ID: %s", epb.GetId()),
+		fmt.Sprintf("ETag: %s", epb.GetEtag()),
 	)
 
 	var data []string
@@ -150,5 +153,6 @@ func (e E) Marshal(m proto.Message) ([]byte, error) {
 			data = append(data, l)
 		}
 	}
+
 	return []byte(strings.Join(data, "\n")), nil
 }
