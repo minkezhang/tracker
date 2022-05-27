@@ -37,16 +37,6 @@ func New(epbs []*dpb.Entry) *DB {
 	return db
 }
 
-func (db *DB) Marshal() ([]byte, error) {
-	data, err := prototext.MarshalOptions{
-		Multiline: true,
-	}.Marshal(db.db)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "cannot marshal DB entry: %v", err)
-	}
-	return data, nil
-}
-
 func (db *DB) AddEntry(epb *dpb.Entry) error {
 	if err := validator.Validate(epb); err != nil {
 		return status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
@@ -139,6 +129,16 @@ func ETag(epb *dpb.Entry) ([]byte, error) {
 			s.Sum(nil),
 		),
 	), nil
+}
+
+func Marshal(db *DB) ([]byte, error) {
+	data, err := prototext.MarshalOptions{
+		Multiline: true,
+	}.Marshal(db.db)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot marshal DB entry: %v", err)
+	}
+	return data, nil
 }
 
 func Unmarshal(data []byte) (*DB, error) {

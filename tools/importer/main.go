@@ -44,7 +44,7 @@ func main() {
 		log.Fatalf("error while reading CSV file %v: %v", *input, err)
 	}
 
-	data, err := database.New(entries).Marshal()
+	data, err := database.Marshal(database.New(entries))
 	if err != nil {
 		log.Fatalf("error while marshalling proto: %v", err)
 	}
