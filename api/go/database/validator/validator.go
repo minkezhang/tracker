@@ -3,6 +3,8 @@ package validator
 import (
 	"fmt"
 
+	"github.com/minkezhang/tracker/api/go/database/utils"
+
 	dpb "github.com/minkezhang/tracker/api/go/database"
 )
 
@@ -47,45 +49,20 @@ func corpus(e *dpb.Entry) error {
 
 func aux_data(e *dpb.Entry) error {
 	c := e.GetCorpus()
-	var supported map[dpb.Corpus]bool
+	var t utils.AuxDataT
 
 	switch e.AuxData.(type) {
 	case *dpb.Entry_AuxDataGame:
-		supported = map[dpb.Corpus]bool{
-			dpb.Corpus_CORPUS_GAME: true,
-		}
+		t = utils.AuxDataGame
 	case *dpb.Entry_AuxDataBook:
-		supported = map[dpb.Corpus]bool{
-			dpb.Corpus_CORPUS_MANGA:       true,
-			dpb.Corpus_CORPUS_BOOK:        true,
-			dpb.Corpus_CORPUS_SHORT_STORY: true,
-		}
+		t = utils.AuxDataBook
 	case *dpb.Entry_AuxDataVideo:
-		supported = map[dpb.Corpus]bool{
-			dpb.Corpus_CORPUS_ANIME:      true,
-			dpb.Corpus_CORPUS_ANIME_FILM: true,
-			dpb.Corpus_CORPUS_FILM:       true,
-			dpb.Corpus_CORPUS_TV:         true,
-		}
+		t = utils.AuxDataVideo
 	case *dpb.Entry_AuxDataAudio:
-		supported = map[dpb.Corpus]bool{
-			dpb.Corpus_CORPUS_ALBUM: true,
-		}
-	default:
-		supported = map[dpb.Corpus]bool{
-			dpb.Corpus_CORPUS_ANIME:       true,
-			dpb.Corpus_CORPUS_ANIME_FILM:  true,
-			dpb.Corpus_CORPUS_MANGA:       true,
-			dpb.Corpus_CORPUS_BOOK:        true,
-			dpb.Corpus_CORPUS_SHORT_STORY: true,
-			dpb.Corpus_CORPUS_FILM:        true,
-			dpb.Corpus_CORPUS_TV:          true,
-			dpb.Corpus_CORPUS_ALBUM:       true,
-			dpb.Corpus_CORPUS_GAME:        true,
-		}
+		t = utils.AuxDataAudio
 	}
 
-	if !supported[c] {
+	if t != utils.AuxDataNone && t != utils.AuxDataL[c] {
 		return fmt.Errorf("invalid aux_data type for corpus type %v", c)
 	}
 	return nil
@@ -93,34 +70,16 @@ func aux_data(e *dpb.Entry) error {
 
 func tracker(e *dpb.Entry) error {
 	c := e.GetCorpus()
-	var supported map[dpb.Corpus]bool
+	var t utils.TrackerT
 
 	switch e.Tracker.(type) {
 	case *dpb.Entry_TrackerVideo:
-		supported = map[dpb.Corpus]bool{
-			dpb.Corpus_CORPUS_ANIME: true,
-			dpb.Corpus_CORPUS_TV:    true,
-		}
+		t = utils.TrackerVideo
 	case *dpb.Entry_TrackerBook:
-		supported = map[dpb.Corpus]bool{
-			dpb.Corpus_CORPUS_MANGA: true,
-			dpb.Corpus_CORPUS_BOOK:  true,
-		}
-	default:
-		supported = map[dpb.Corpus]bool{
-			dpb.Corpus_CORPUS_ANIME:       true,
-			dpb.Corpus_CORPUS_ANIME_FILM:  true,
-			dpb.Corpus_CORPUS_MANGA:       true,
-			dpb.Corpus_CORPUS_BOOK:        true,
-			dpb.Corpus_CORPUS_SHORT_STORY: true,
-			dpb.Corpus_CORPUS_FILM:        true,
-			dpb.Corpus_CORPUS_TV:          true,
-			dpb.Corpus_CORPUS_ALBUM:       true,
-			dpb.Corpus_CORPUS_GAME:        true,
-		}
+		t = utils.TrackerBook
 	}
 
-	if !supported[c] {
+	if t != utils.TrackerNone && t != utils.TrackerL[c] {
 		return fmt.Errorf("invalid tracker type for corpus type %v", c)
 	}
 	return nil

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/minkezhang/tracker/api/go/database/utils"
 	"google.golang.org/protobuf/proto"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
@@ -15,6 +16,7 @@ type E struct {
 
 func (e *E) Dump(m proto.Message) error {
 	epb := m.(*dpb.Entry)
+
 	lines := append([]string{},
 		func() string {
 			if len(epb.GetTitles()) > 0 {
@@ -47,22 +49,13 @@ func (e *E) Dump(m proto.Message) error {
 	lines = append(lines,
 		func() []string {
 			var data []string
-			if map[dpb.Corpus]bool{
-				dpb.Corpus_CORPUS_MANGA:       true,
-				dpb.Corpus_CORPUS_BOOK:        true,
-				dpb.Corpus_CORPUS_SHORT_STORY: true,
-			}[epb.GetCorpus()] {
+
+			switch utils.AuxDataL[epb.GetCorpus()] {
+			case utils.AuxDataBook:
 				if len(epb.GetAuxDataBook().GetAuthors()) > 0 {
 					data = append(data, fmt.Sprintf("Authors: %v", strings.Join(epb.GetAuxDataBook().GetAuthors(), ", ")))
 				}
-			}
-
-			if map[dpb.Corpus]bool{
-				dpb.Corpus_CORPUS_FILM:       true,
-				dpb.Corpus_CORPUS_ANIME_FILM: true,
-				dpb.Corpus_CORPUS_ANIME:      true,
-				dpb.Corpus_CORPUS_TV:         true,
-			}[epb.GetCorpus()] {
+			case utils.AuxDataVideo:
 				if len(epb.GetAuxDataVideo().GetDirectors()) > 0 {
 					data = append(data, fmt.Sprintf("Directors: %v", strings.Join(epb.GetAuxDataVideo().GetDirectors(), ", ")))
 				}
@@ -72,19 +65,11 @@ func (e *E) Dump(m proto.Message) error {
 				if len(epb.GetAuxDataVideo().GetStudios()) > 0 {
 					data = append(data, fmt.Sprintf("Studios: %v", strings.Join(epb.GetAuxDataVideo().GetStudios(), ", ")))
 				}
-			}
-
-			if map[dpb.Corpus]bool{
-				dpb.Corpus_CORPUS_ALBUM: true,
-			}[epb.GetCorpus()] {
+			case utils.AuxDataAudio:
 				if len(epb.GetAuxDataAudio().GetComposers()) > 0 {
 					data = append(data, fmt.Sprintf("Composers: %v", strings.Join(epb.GetAuxDataAudio().GetComposers(), ", ")))
 				}
-			}
-
-			if map[dpb.Corpus]bool{
-				dpb.Corpus_CORPUS_GAME: true,
-			}[epb.GetCorpus()] {
+			case utils.AuxDataGame:
 				if len(epb.GetAuxDataGame().GetDirectors()) > 0 {
 					data = append(data, fmt.Sprintf("Directors: %v", strings.Join(epb.GetAuxDataGame().GetDirectors(), ", ")))
 				}
@@ -105,22 +90,15 @@ func (e *E) Dump(m proto.Message) error {
 		func() []string {
 			var data []string
 
-			if map[dpb.Corpus]bool{
-				dpb.Corpus_CORPUS_ANIME: true,
-				dpb.Corpus_CORPUS_TV:    true,
-			}[epb.GetCorpus()] {
+			switch utils.TrackerL[epb.GetCorpus()] {
+			case utils.TrackerVideo:
 				if epb.GetTrackerVideo().GetSeason() != 0 {
 					data = append(data, fmt.Sprintf("Season: %v", epb.GetTrackerVideo().GetSeason()))
 				}
 				if epb.GetTrackerVideo().GetEpisode() != 0 {
 					data = append(data, fmt.Sprintf("Episode: %v", epb.GetTrackerVideo().GetEpisode()))
 				}
-			}
-
-			if map[dpb.Corpus]bool{
-				dpb.Corpus_CORPUS_MANGA: true,
-				dpb.Corpus_CORPUS_BOOK:  true,
-			}[epb.GetCorpus()] {
+			case utils.TrackerBook:
 				if epb.GetTrackerBook().GetVolume() != 0 {
 					data = append(data, fmt.Sprintf("Volume: %v", epb.GetTrackerBook().GetVolume()))
 				}

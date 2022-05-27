@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/minkezhang/tracker/api/go/database/utils"
 	"google.golang.org/protobuf/proto"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
@@ -42,12 +43,8 @@ func (e E) Load() (proto.Message, error) {
 		Score:     float32(e.Score),
 	}
 
-	if map[dpb.Corpus]bool{
-		dpb.Corpus_CORPUS_TV:         true,
-		dpb.Corpus_CORPUS_ANIME:      true,
-		dpb.Corpus_CORPUS_FILM:       true,
-		dpb.Corpus_CORPUS_ANIME_FILM: true,
-	}[corpus] {
+	switch utils.AuxDataL[corpus] {
+	case utils.AuxDataVideo:
 		epb.AuxData = &dpb.Entry_AuxDataVideo{
 			AuxDataVideo: &dpb.AuxDataVideo{
 				Studios:   e.Studios,
@@ -55,23 +52,44 @@ func (e E) Load() (proto.Message, error) {
 				Writers:   e.Writers,
 			},
 		}
+	case utils.AuxDataBook:
+		epb.AuxData = &dpb.Entry_AuxDataBook{
+			AuxDataBook: &dpb.AuxDataBook{
+				Authors: e.Writers,
+			},
+		}
+	case utils.AuxDataGame:
+		epb.AuxData = &dpb.Entry_AuxDataGame{
+			AuxDataGame: &dpb.AuxDataGame{
+				Studios:   e.Studios,
+				Directors: e.Directors,
+				Writers:   e.Writers,
+			},
+		}
+	case utils.AuxDataAudio:
+		epb.AuxData = &dpb.Entry_AuxDataAudio{
+			AuxDataAudio: &dpb.AuxDataAudio{
+				Composers: e.Writers,
+			},
+		}
 	}
 
-	if map[dpb.Corpus]bool{
-		dpb.Corpus_CORPUS_MANGA:       true,
-		dpb.Corpus_CORPUS_BOOK:        true,
-		dpb.Corpus_CORPUS_SHORT_STORY: true,
-	}[corpus] {
+	switch utils.TrackerL[corpus] {
+	case utils.TrackerVideo:
+		epb.Tracker = &dpb.Entry_TrackerVideo{
+			TrackerVideo: &dpb.TrackerVideo{
+				Season:  int32(e.Season),
+				Episode: int32(e.Episode),
+			},
+		}
+	case utils.TrackerBook:
+		epb.Tracker = &dpb.Entry_TrackerBook{
+			TrackerBook: &dpb.TrackerBook{
+				Volume:  int32(e.Season),
+				Chapter: int32(e.Episode),
+			},
+		}
 	}
 
-	if map[dpb.Corpus]bool{
-		dpb.Corpus_CORPUS_GAME: true,
-	}[corpus] {
-	}
-
-	if map[dpb.Corpus]bool{
-		dpb.Corpus_CORPUS_ALBUM: true,
-	}[corpus] {
-	}
 	return epb, nil
 }

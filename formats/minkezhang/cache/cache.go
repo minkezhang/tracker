@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/minkezhang/tracker/api/go/database/utils"
 	"github.com/minkezhang/tracker/formats/minkezhang/columns"
 	"github.com/minkezhang/tracker/formats/minkezhang/lookup"
 
@@ -111,18 +112,20 @@ func (e E) ProtoBuf() *dpb.Entry {
 		Score:     e.Score(),
 		Providers: e.Providers(),
 	}
-	switch epb.GetCorpus() {
 
-	case dpb.Corpus_CORPUS_TV:
-		fallthrough
-	case dpb.Corpus_CORPUS_ANIME:
+	switch utils.TrackerL[epb.GetCorpus()] {
+	case utils.TrackerVideo:
 		epb.Tracker = &dpb.Entry_TrackerVideo{
 			TrackerVideo: e.TrackerVideo(),
 		}
-		fallthrough
-	case dpb.Corpus_CORPUS_FILM:
-		fallthrough
-	case dpb.Corpus_CORPUS_ANIME_FILM:
+	case utils.TrackerBook:
+		epb.Tracker = &dpb.Entry_TrackerBook{
+			TrackerBook: e.TrackerBook(),
+		}
+	}
+
+	switch utils.AuxDataL[epb.GetCorpus()] {
+	case utils.AuxDataVideo:
 		epb.AuxData = &dpb.Entry_AuxDataVideo{
 			AuxDataVideo: &dpb.AuxDataVideo{
 				Studios:   e.Studios(),
@@ -130,8 +133,7 @@ func (e E) ProtoBuf() *dpb.Entry {
 				Writers:   e.Writers(),
 			},
 		}
-
-	case dpb.Corpus_CORPUS_GAME:
+	case utils.AuxDataGame:
 		epb.AuxData = &dpb.Entry_AuxDataGame{
 			AuxDataGame: &dpb.AuxDataGame{
 				Studios:   e.Studios(),
@@ -139,28 +141,19 @@ func (e E) ProtoBuf() *dpb.Entry {
 				Writers:   e.Writers(),
 			},
 		}
-
-	case dpb.Corpus_CORPUS_MANGA:
-		fallthrough
-	case dpb.Corpus_CORPUS_BOOK:
-		epb.Tracker = &dpb.Entry_TrackerBook{
-			TrackerBook: e.TrackerBook(),
-		}
-		fallthrough
-	case dpb.Corpus_CORPUS_SHORT_STORY:
+	case utils.AuxDataBook:
 		epb.AuxData = &dpb.Entry_AuxDataBook{
 			AuxDataBook: &dpb.AuxDataBook{
 				Authors: e.Writers(),
 			},
 		}
-
-	case dpb.Corpus_CORPUS_ALBUM:
+	case utils.AuxDataAudio:
 		epb.AuxData = &dpb.Entry_AuxDataAudio{
 			AuxDataAudio: &dpb.AuxDataAudio{
 				Composers: e.Writers(),
 			},
 		}
-	default:
 	}
+
 	return epb
 }

@@ -9,19 +9,20 @@ import (
 	"github.com/minkezhang/tracker/database"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
-	es "github.com/minkezhang/tracker/formats/cli/struct"
+	ce "github.com/minkezhang/tracker/formats/cli"
+	se "github.com/minkezhang/tracker/formats/cli/struct"
 )
 
 type C struct {
 	db *database.DB
 
-	e *es.E
+	e *se.E
 }
 
 func New(db *database.DB) *C {
 	return &C{
 		db: db,
-		e:  &es.E{},
+		e:  &se.E{},
 	}
 }
 
@@ -55,10 +56,15 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	if err := c.db.AddEntry(s.(*dpb.Entry)); err != nil {
+	epb := s.(*dpb.Entry)
+	if err := c.db.AddEntry(epb); err != nil {
 		fmt.Printf("Could not add data to database: %v\n", err)
 		return subcommands.ExitFailure
 	}
+
+	e := &ce.E{}
+	e.Dump(epb)
+	fmt.Printf("%s\n", e.Data)
 
 	return subcommands.ExitSuccess
 }
