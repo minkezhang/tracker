@@ -57,7 +57,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 
 	e := &ce.E{}
 	e.Dump(entries[0])
-	fmt.Printf("%s\n", e.Data)
+	fmt.Print(string(e.Data))
 
 	return subcommands.ExitSuccess
 }

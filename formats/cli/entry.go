@@ -5,135 +5,154 @@ import (
 	"strings"
 
 	"github.com/minkezhang/tracker/api/go/database/utils"
+	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
 )
 
+type FormatT int
+
+const (
+	FormatFull FormatT = iota
+	FormatShort
+)
+
 type E struct {
-	Data []byte
+	Format FormatT
+	Data   []byte
 }
 
 func (e *E) Dump(m proto.Message) error {
+	if e.Format == FormatFull {
+		data, err := prototext.MarshalOptions{Multiline: true}.Marshal(m)
+		if err != nil {
+			return err
+		}
+		e.Data = data
+		return nil
+	}
+
 	epb := m.(*dpb.Entry)
 
 	lines := append([]string{},
 		func() string {
 			if len(epb.GetTitles()) > 0 {
-				return fmt.Sprintf("Title: %v", epb.GetTitles()[0])
+				return epb.GetTitles()[0]
 			}
 			return ""
 		}(),
 
-		func() string {
-			if l := len(epb.GetTitles()); l > 1 {
-				return fmt.Sprintf("Alternate Titles: %v", strings.Join(epb.GetTitles()[1:l-1], ", "))
-			}
-			return ""
-		}(),
+		epb.GetCorpus().String(),
 
-		func() string {
-			if epb.GetCorpus() != dpb.Corpus_CORPUS_UNKNOWN {
-				return fmt.Sprintf("Category: %v", epb.GetCorpus().String())
-			}
-			return ""
-		}(),
-
+		epb.GetId(),
 		func() string {
 			if s := epb.GetScore(); s > 0 {
-				return fmt.Sprintf("Score: %.1f", s)
+				return fmt.Sprintf("%.1f", s)
 			}
 			return ""
 		}(),
 	)
-	lines = append(lines,
-		func() []string {
-			var data []string
 
-			switch utils.AuxDataL[epb.GetCorpus()] {
-			case utils.AuxDataBook:
-				if len(epb.GetAuxDataBook().GetAuthors()) > 0 {
-					data = append(data, fmt.Sprintf("Authors: %v", strings.Join(epb.GetAuxDataBook().GetAuthors(), ", ")))
-				}
-			case utils.AuxDataVideo:
-				if len(epb.GetAuxDataVideo().GetDirectors()) > 0 {
-					data = append(data, fmt.Sprintf("Directors: %v", strings.Join(epb.GetAuxDataVideo().GetDirectors(), ", ")))
-				}
-				if len(epb.GetAuxDataVideo().GetWriters()) > 0 {
-					data = append(data, fmt.Sprintf("Writers: %v", strings.Join(epb.GetAuxDataVideo().GetWriters(), ", ")))
-				}
-				if len(epb.GetAuxDataVideo().GetStudios()) > 0 {
-					data = append(data, fmt.Sprintf("Studios: %v", strings.Join(epb.GetAuxDataVideo().GetStudios(), ", ")))
-				}
-			case utils.AuxDataAudio:
-				if len(epb.GetAuxDataAudio().GetComposers()) > 0 {
-					data = append(data, fmt.Sprintf("Composers: %v", strings.Join(epb.GetAuxDataAudio().GetComposers(), ", ")))
-				}
-			case utils.AuxDataGame:
-				if len(epb.GetAuxDataGame().GetDirectors()) > 0 {
-					data = append(data, fmt.Sprintf("Directors: %v", strings.Join(epb.GetAuxDataGame().GetDirectors(), ", ")))
-				}
-				if len(epb.GetAuxDataGame().GetWriters()) > 0 {
-					data = append(data, fmt.Sprintf("Writers: %v", strings.Join(epb.GetAuxDataGame().GetWriters(), ", ")))
-				}
-				if len(epb.GetAuxDataGame().GetStudios()) > 0 {
-					data = append(data, fmt.Sprintf("Studios: %v", strings.Join(epb.GetAuxDataGame().GetStudios(), ", ")))
-				}
+	lines = append(lines,
+		func() string {
+			type D struct {
+				SeasonLabel  string
+				Season       int32
+				EpisodeLabel string
+				Episode      int32
 			}
-
-			return data
-
-		}()...,
-	)
-
-	lines = append(lines,
-		func() []string {
-			var data []string
+			var data D
 
 			switch utils.TrackerL[epb.GetCorpus()] {
 			case utils.TrackerVideo:
-				if epb.GetTrackerVideo().GetSeason() != 0 {
-					data = append(data, fmt.Sprintf("Season: %v", epb.GetTrackerVideo().GetSeason()))
-				}
-				if epb.GetTrackerVideo().GetEpisode() != 0 {
-					data = append(data, fmt.Sprintf("Episode: %v", epb.GetTrackerVideo().GetEpisode()))
+				tracker := epb.GetTrackerVideo()
+				data = D{
+					SeasonLabel:  "s",
+					Season:       tracker.GetSeason(),
+					EpisodeLabel: "e",
+					Episode:      tracker.GetEpisode(),
 				}
 			case utils.TrackerBook:
-				if epb.GetTrackerBook().GetVolume() != 0 {
-					data = append(data, fmt.Sprintf("Volume: %v", epb.GetTrackerBook().GetVolume()))
+				tracker := epb.GetTrackerBook()
+				data = D{
+					SeasonLabel:  "v",
+					Season:       tracker.GetVolume(),
+					EpisodeLabel: "c",
+					Episode:      tracker.GetChapter(),
 				}
-				if epb.GetTrackerBook().GetChapter() != 0 {
-					data = append(data, fmt.Sprintf("Chapter: %v", epb.GetTrackerBook().GetChapter()))
+			}
+			var s string
+			if data.Season > 0 {
+				s = fmt.Sprintf("%v%v", data.SeasonLabel, data.Season)
+			}
+			if data.Episode > 0 {
+				s = fmt.Sprintf("%v%v%v", s, data.EpisodeLabel, data.Episode)
+			}
+			return s
+		}(),
+	)
+
+	lines = append(lines,
+		func() []string {
+			type D struct {
+				Director string
+				Writer   string
+				Studio   string
+			}
+			data := &D{}
+
+			switch utils.AuxDataL[epb.GetCorpus()] {
+			case utils.AuxDataBook:
+				aux := epb.GetAuxDataBook()
+				if len(aux.GetAuthors()) > 0 {
+					data.Writer = aux.GetAuthors()[0]
+				}
+			case utils.AuxDataVideo:
+				aux := epb.GetAuxDataVideo()
+				if len(aux.GetDirectors()) > 0 {
+					data.Director = aux.GetDirectors()[0]
+				}
+				if len(aux.GetWriters()) > 0 {
+					data.Writer = aux.GetWriters()[0]
+				}
+				if len(aux.GetStudios()) > 0 {
+					data.Studio = aux.GetStudios()[0]
+				}
+			case utils.AuxDataAudio:
+				aux := epb.GetAuxDataAudio()
+				if len(aux.GetComposers()) > 0 {
+					data.Writer = aux.GetComposers()[0]
+				}
+			case utils.AuxDataGame:
+				aux := epb.GetAuxDataGame()
+				if len(aux.GetDirectors()) > 0 {
+					data.Director = aux.GetDirectors()[0]
+				}
+				if len(aux.GetWriters()) > 0 {
+					data.Writer = aux.GetWriters()[0]
+				}
+				if len(aux.GetStudios()) > 0 {
+					data.Studio = aux.GetStudios()[0]
 				}
 			}
 
-			return data
+			return []string{data.Director, data.Writer, data.Studio}
+
 		}()...,
 	)
 
 	lines = append(lines,
 		func() string {
 			if len(epb.GetProviders()) > 0 {
-				var providers []string
-				for _, p := range epb.GetProviders() {
-					providers = append(providers, p.String())
-				}
-				return fmt.Sprintf("Providers: %v", strings.Join(providers, ", "))
+				return epb.GetProviders()[0].String()
 			}
 			return ""
 		}(),
 
-		fmt.Sprintf("ID: %s", epb.GetId()),
-		fmt.Sprintf("ETag: %s", epb.GetEtag()),
+		string(epb.GetEtag()),
 	)
 
-	var data []string
-	for _, l := range lines {
-		if l != "" {
-			data = append(data, l)
-		}
-	}
-
-	e.Data = []byte(strings.Join(data, "\n"))
+	e.Data = []byte(fmt.Sprintf("%v\n", strings.Join(lines, "\t")))
 	return nil
 }
