@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"fmt"
+	"strings"
+
 	dpb "github.com/minkezhang/tracker/api/go/database"
 )
 
@@ -43,3 +46,7 @@ var (
 		dpb.Corpus_CORPUS_BOOK:  TrackerBook,
 	}
 )
+
+func ToEnum(prefix string, suffix string) string {
+	return fmt.Sprintf("%v_%v", prefix, strings.ReplaceAll(strings.ToUpper(suffix), " ", "_"))
+}

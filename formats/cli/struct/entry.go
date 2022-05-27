@@ -1,8 +1,7 @@
 package entry
 
 import (
-	"fmt"
-	"strings"
+	"flag"
 
 	"github.com/minkezhang/tracker/api/go/database/utils"
 	"google.golang.org/protobuf/proto"
@@ -27,12 +26,32 @@ type E struct {
 	Episode int
 }
 
-func (e E) Load() (proto.Message, error) {
-	corpus := dpb.Corpus(dpb.Corpus_value[fmt.Sprintf("CORPUS_%v", strings.ToUpper(e.Corpus))])
+func (e *E) SetFlags(f *flag.FlagSet) {
+	f.StringVar(&e.Corpus, "corpus", "unknown", "entry corpus, e.g. \"film\"")
+	f.Var(&e.Titles, "titles", "entry titles, e.g. \"12 Angry Men\"")
+	f.Var(&e.Providers, "providers", "distributors of the entry, e.g. \"google_play\"")
+
+	f.Float64Var(&e.Score, "score", 0, "user score")
+	f.BoolVar(&e.Queued, "queued", false, "indicates if the entry is on the user watchlist")
+
+	f.Var(&e.Directors, "directors", "directors of game or visual-based entries")
+	f.Var(&e.Studios, "studios", "studios of game or visual-based entries")
+	f.Var(&e.Writers, "writers", "writers of game or visual-based entries")
+	f.Var(&e.Writers, "composers", "composers for album-only entries")
+	f.Var(&e.Writers, "authors", "authors for literature-based entries")
+
+	f.IntVar(&e.Season, "season", 0, "current anime or tv show season")
+	f.IntVar(&e.Season, "volume", 0, "current manga or book volume")
+	f.IntVar(&e.Episode, "episode", 0, "current anime or tv show episode")
+	f.IntVar(&e.Episode, "chapter", 0, "current manga or book chapter")
+}
+
+func (e *E) Load() (proto.Message, error) {
+	corpus := dpb.Corpus(dpb.Corpus_value[utils.ToEnum("CORPUS", e.Corpus)])
 
 	var providers []dpb.Provider
 	for _, p := range e.Providers {
-		providers = append(providers, dpb.Provider(dpb.Provider_value[fmt.Sprintf("PROVIDER_%v", strings.ToUpper(p))]))
+		providers = append(providers, dpb.Provider(dpb.Provider_value[utils.ToEnum("PROVIDER", p)]))
 	}
 
 	epb := &dpb.Entry{

@@ -4,9 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+
 	"github.com/google/subcommands"
+	"github.com/minkezhang/tracker/api/go/database/utils"
 	"github.com/minkezhang/tracker/database"
-	"strings"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
 	ce "github.com/minkezhang/tracker/formats/cli"
@@ -39,7 +40,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		entries = append(entries, results)
 	} else {
 		corpus := dpb.Corpus(
-			dpb.Corpus_value[fmt.Sprintf("CORPUS_%v", strings.ToUpper(c.corpus))])
+			dpb.Corpus_value[utils.ToEnum("CORPUS", c.corpus)])
 
 		entries = append(entries, c.db.Search(database.O{Title: c.title, Corpus: corpus})...)
 	}
