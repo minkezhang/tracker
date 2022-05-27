@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	idLen = 16
+	idLen = 4
 )
 
 var (
