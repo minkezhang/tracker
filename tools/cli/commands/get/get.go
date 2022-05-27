@@ -54,8 +54,9 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	data, _ := ce.E{}.Marshal(entries[0])
-	fmt.Printf("%s\n", data)
+	e := &ce.E{}
+	e.Dump(entries[0])
+	fmt.Printf("%s\n", e.Data)
 
 	return subcommands.ExitSuccess
 }

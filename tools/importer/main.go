@@ -31,10 +31,11 @@ func main() {
 
 	var entries []*dpb.Entry
 	for scanner.Scan() {
-		epb := &dpb.Entry{}
-		if err := (entry.E{}).Unmarshal(scanner.Bytes(), epb); err != nil {
-			log.Fatalf("error while unmarshalling data: %v", err)
+		m, err := entry.New(scanner.Bytes()).Load()
+		if err != nil {
+			log.Fatalf("error while loading data: %v", err)
 		}
+		epb := m.(*dpb.Entry)
 		if epb.GetCorpus() != dpb.Corpus_CORPUS_UNKNOWN {
 			entries = append(entries, epb)
 		}

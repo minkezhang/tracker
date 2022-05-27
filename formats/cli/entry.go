@@ -9,9 +9,11 @@ import (
 	dpb "github.com/minkezhang/tracker/api/go/database"
 )
 
-type E struct{}
+type E struct {
+	Data []byte
+}
 
-func (e E) Marshal(m proto.Message) ([]byte, error) {
+func (e *E) Dump(m proto.Message) error {
 	epb := m.(*dpb.Entry)
 	lines := append([]string{},
 		func() string {
@@ -154,5 +156,6 @@ func (e E) Marshal(m proto.Message) ([]byte, error) {
 		}
 	}
 
-	return []byte(strings.Join(data, "\n")), nil
+	e.Data = []byte(strings.Join(data, "\n"))
+	return nil
 }

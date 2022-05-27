@@ -5,5 +5,5 @@ import (
 )
 
 var (
-	_ entry.Exporter = &E{}
+	_ entry.Importer = E{}
 )

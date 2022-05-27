@@ -7,38 +7,55 @@ import (
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/tracker/database"
-	"google.golang.org/protobuf/encoding/prototext"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
+	es "github.com/minkezhang/tracker/formats/cli/struct"
 )
 
 type C struct {
 	db *database.DB
 
-	entry []byte
+	e *es.E
 }
 
-func New(db *database.DB) *C { return &C{db: db} }
+func New(db *database.DB) *C {
+	return &C{
+		db: db,
+		e:  &es.E{},
+	}
+}
 
-func (c *C) Name() string             { return "add" }
-func (c *C) Synopsis() string         { return "add entry to database" }
-func (c *C) Usage() string            { return c.Synopsis() }
-func (c *C) SetFlags(f *flag.FlagSet) {}
+func (c *C) Name() string     { return "add" }
+func (c *C) Synopsis() string { return "add entry to database" }
+func (c *C) Usage() string    { return c.Synopsis() }
+func (c *C) SetFlags(f *flag.FlagSet) {
+	f.StringVar(&c.e.Corpus, "corpus", "unknown", "corpus for the entry")
+	f.Var(&c.e.Titles, "titles", "title of the entry")
+	f.Var(&c.e.Providers, "providers", "providers of the entry")
+
+	f.Float64Var(&c.e.Score, "score", 0, "score of the entry")
+	f.BoolVar(&c.e.Queued, "queued", false, "if the entry is on the current watchlist")
+
+	f.Var(&c.e.Directors, "directors", "directors of the entry for visual or game entries")
+	f.Var(&c.e.Studios, "studios", "producing studios of the entry for visual or game entries")
+	f.Var(&c.e.Writers, "writers", "writers of the entry for visual or game entries")
+	f.Var(&c.e.Writers, "composers", "composers of the entry for album entries")
+	f.Var(&c.e.Writers, "authors", "authors of the entry for literary entries")
+
+	f.IntVar(&c.e.Season, "season", 0, "season of the entry for visual entries")
+	f.IntVar(&c.e.Season, "volume", 0, "volume of the entry for literary entries")
+	f.IntVar(&c.e.Episode, "episode", 0, "episode of the entry for visual entries")
+	f.IntVar(&c.e.Episode, "chapter", 0, "chapter of the entry for literary entries")
+}
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
-	if len(f.Args()) != 1 {
-		fmt.Println(c.Usage())
-		return subcommands.ExitUsageError
-	}
-	c.entry = []byte(f.Args()[0])
-
-	epb := &dpb.Entry{}
-	if err := prototext.Unmarshal(c.entry, epb); err != nil {
-		fmt.Printf("Could not marshal input data: %v\n", err)
+	s, err := c.e.Load()
+	if err != nil {
+		fmt.Printf("Could not load flags into data struct: %v\n", err)
 		return subcommands.ExitFailure
 	}
 
-	if err := c.db.AddEntry(epb); err != nil {
+	if err := c.db.AddEntry(s.(*dpb.Entry)); err != nil {
 		fmt.Printf("Could not add data to database: %v\n", err)
 		return subcommands.ExitFailure
 	}

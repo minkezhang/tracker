@@ -8,16 +8,18 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type E struct{}
+type E struct {
+	data []byte
+}
 
-func (e E) Unmarshal(b []byte, m proto.Message) error {
-	l, err := csv.NewReader(bytes.NewReader(b)).Read()
+func New(data []byte) *E { return &E{data: data} }
+func (e E) Load() (proto.Message, error) {
+	l, err := csv.NewReader(bytes.NewReader(e.data)).Read()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	r := (*cache.E)(l)
 
-	proto.Merge(m, r.ProtoBuf())
-	return nil
+	return r.ProtoBuf(), nil
 }

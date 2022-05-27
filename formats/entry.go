@@ -5,9 +5,9 @@ import (
 )
 
 type Importer interface {
-	Unmarshal(b []byte, m proto.Message) error
+	Load() (proto.Message, error)
 }
 
 type Exporter interface {
-	Marshal(m proto.Message) ([]byte, error)
+	Dump(m proto.Message) error
 }
