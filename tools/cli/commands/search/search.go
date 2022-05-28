@@ -10,6 +10,7 @@ import (
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/database/search/mal"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 	ce "github.com/minkezhang/truffle/formats/cli"
@@ -59,6 +60,10 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		Title:   c.title.Title,
 		Corpus:  s.(*dpb.Entry).GetCorpus(),
 		APIs:    apis,
+
+		MAL: mal.O{
+			Cutoff: 2000,
+		},
 	})
 	if err != nil {
 		fmt.Printf("%v\n", err)
