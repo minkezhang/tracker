@@ -17,7 +17,7 @@ type S struct {
 func (s S) Search(context.Context) ([]*dpb.Entry, error) {
 	var candidates []*dpb.Entry
 	for _, epb := range s.DB.GetEntries() {
-		if len(epb.Titles) == 0 {
+		if s.Title == "" && len(epb.Titles) == 0 {
 			candidates = append(candidates, epb)
 			continue
 		}

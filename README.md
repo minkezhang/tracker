@@ -37,8 +37,8 @@ truffle get --title=Sabikui
 truffle search \
   --title=Sabikui \
   --corpus=anime \
-  --trackers=truffle\
-  --trackers=mal
+  --apis=truffle\
+  --apis=mal
 
 # Delete the entry.
 truffle delete --title=Sabikui
