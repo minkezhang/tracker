@@ -31,7 +31,7 @@ func New(db *database.DB) *C {
 
 func (c *C) Name() string     { return "add" }
 func (c *C) Synopsis() string { return "add entry to database" }
-func (c *C) Usage() string    { return c.Synopsis() }
+func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
 	c.titles.SetFlags(f)

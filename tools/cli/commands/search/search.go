@@ -35,7 +35,7 @@ func New(db *database.DB) *C {
 
 func (c *C) Name() string     { return "search" }
 func (c *C) Synopsis() string { return "search across multiple databases with matching parameters" }
-func (c *C) Usage() string    { return c.Synopsis() }
+func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
 	f.Var(&c.apis, "apis", "APIs to use in the search operation, e.g. \"tracker\"")

@@ -37,7 +37,7 @@ func New(db *database.DB) *C {
 
 func (c *C) Name() string     { return "patch" }
 func (c *C) Synopsis() string { return "patch entry with matching query parameters" }
-func (c *C) Usage() string    { return c.Synopsis() }
+func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
 	c.title.SetFlags(f)
