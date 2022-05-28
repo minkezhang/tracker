@@ -86,7 +86,7 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 		if r != nil {
 			offset = r.NextOffset
 		}
-		results, _, err := (*mal.Client)(c).Anime.List(
+		results, r, err := (*mal.Client)(c).Anime.List(
 			ctx, title,
 			mal.Fields{
 				"media_type",
