@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	cutoff = 1000
+	cutoff = 2000
 )
 
 type S struct {
@@ -31,16 +31,17 @@ func (s *S) Search() ([]*dpb.Entry, error) {
 		dpb.Corpus_CORPUS_ANIME:      true,
 		dpb.Corpus_CORPUS_ANIME_FILM: true,
 	}[s.corpus] {
-		cs, err := s.client.AnimeSearch(s.title, cutoff)
+		cs, err := s.client.AnimeSearch(s.title, s.corpus, cutoff)
 		if err != nil {
 			return nil, err
 		}
 		candidates = append(candidates, cs...)
 	}
 	if map[dpb.Corpus]bool{
+		dpb.Corpus_CORPUS_BOOK:  true,
 		dpb.Corpus_CORPUS_MANGA: true,
 	}[s.corpus] {
-		cs, err := s.client.MangaSearch(s.title, cutoff)
+		cs, err := s.client.MangaSearch(s.title, s.corpus, cutoff)
 		if err != nil {
 			return nil, err
 		}

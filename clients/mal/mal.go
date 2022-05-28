@@ -1,3 +1,6 @@
+// Package mal wraps the underlying MAL API client and return database entries.
+//
+// TODO(minkezhang): Add support for configurable NSFW searches.
 package mal
 
 import (
@@ -31,8 +34,33 @@ func New() *C {
 	return &c
 }
 
-func (c *C) AnimeSearch(title string, popularity int) ([]*dpb.Entry, error) {
-	// TODO(minkezhang): Allow for configurable NSFW searches.
+var (
+	// lookup is a reverse lookup table from MAL "media_type" to an
+	// associated dpb.Corpus value.
+	//
+	// See https://myanimelist.net/apiconfig/references/api/v2 for potential
+	// media_type valus.
+	lookup = map[string]dpb.Corpus{
+		"tv":      dpb.Corpus_CORPUS_ANIME,
+		"ova":     dpb.Corpus_CORPUS_ANIME,
+		"ona":     dpb.Corpus_CORPUS_ANIME,
+		"special": dpb.Corpus_CORPUS_ANIME,
+		"movie":   dpb.Corpus_CORPUS_ANIME_FILM,
+
+		// MAL lists the "novel" type but experimentally, this is
+		// "light_novel" instead.
+		"light_novel": dpb.Corpus_CORPUS_BOOK,
+
+		"manga":     dpb.Corpus_CORPUS_MANGA,
+		"one_shot":  dpb.Corpus_CORPUS_MANGA,
+		"doujinshi": dpb.Corpus_CORPUS_MANGA,
+		"manhua":    dpb.Corpus_CORPUS_MANGA,
+		"manhwa":    dpb.Corpus_CORPUS_MANGA,
+		"oel":       dpb.Corpus_CORPUS_MANGA,
+	}
+)
+
+func (c *C) AnimeSearch(title string, corpus dpb.Corpus, popularity int) ([]*dpb.Entry, error) {
 	results, _, err := (*mal.Client)(c).Anime.List(
 		context.Background(), title,
 		mal.Fields{
@@ -50,7 +78,10 @@ func (c *C) AnimeSearch(title string, popularity int) ([]*dpb.Entry, error) {
 	var epbs []*dpb.Entry
 	for _, r := range results {
 		// Trim obscure series.
-		if popularity > 0 && r.Popularity <= popularity {
+		if popularity >= 0 && r.Popularity >= popularity {
+			continue
+		}
+		if corpus != lookup[r.MediaType] {
 			continue
 		}
 
@@ -58,9 +89,7 @@ func (c *C) AnimeSearch(title string, popularity int) ([]*dpb.Entry, error) {
 			Id:     strconv.FormatInt(int64(r.ID), 10),
 			Titles: []string{r.Title},
 			Score:  float32(r.Mean),
-
-			// TODO(minkezhang): Set correct corpus.
-			Corpus: dpb.Corpus_CORPUS_ANIME,
+			Corpus: corpus,
 		}
 
 		var studios []string
@@ -79,8 +108,7 @@ func (c *C) AnimeSearch(title string, popularity int) ([]*dpb.Entry, error) {
 	return epbs, nil
 }
 
-func (c *C) MangaSearch(title string, popularity int) ([]*dpb.Entry, error) {
-	// TODO(minkezhang): Allow for configurable NSFW searches.
+func (c *C) MangaSearch(title string, corpus dpb.Corpus, popularity int) ([]*dpb.Entry, error) {
 	results, _, err := (*mal.Client)(c).Manga.List(
 		context.Background(), title,
 		mal.Fields{
@@ -98,7 +126,10 @@ func (c *C) MangaSearch(title string, popularity int) ([]*dpb.Entry, error) {
 	var epbs []*dpb.Entry
 	for _, r := range results {
 		// Trim obscure series.
-		if popularity > 0 && r.Popularity >= popularity {
+		if popularity >= 0 && r.Popularity >= popularity {
+			continue
+		}
+		if corpus != lookup[r.MediaType] {
 			continue
 		}
 
@@ -106,9 +137,7 @@ func (c *C) MangaSearch(title string, popularity int) ([]*dpb.Entry, error) {
 			Id:     strconv.FormatInt(int64(r.ID), 10),
 			Titles: []string{r.Title},
 			Score:  float32(r.Mean),
-
-			// TODO(minkezhang): Set correct corpus.
-			Corpus: dpb.Corpus_CORPUS_MANGA,
+			Corpus: corpus,
 		}
 
 		for _, t := range r.AlternativeTitles.Synonyms {
@@ -130,7 +159,6 @@ func (c *C) MangaSearch(title string, popularity int) ([]*dpb.Entry, error) {
 				Authors: authors,
 			},
 		}
-
 		epbs = append(epbs, epb)
 	}
 
