@@ -16,6 +16,10 @@ type S struct {
 func (s S) Search() ([]*dpb.Entry, error) {
 	var candidates []*dpb.Entry
 	for _, epb := range s.DB.GetEntries() {
+		if len(epb.Titles) == 0 {
+			candidates = append(candidates, epb)
+			continue
+		}
 		for _, t := range epb.GetTitles() {
 			m := map[dpb.Corpus]bool{
 				epb.GetCorpus():           true,
