@@ -42,7 +42,7 @@ func read(fn string) ([]byte, error) {
 	if err := os.MkdirAll(filepath.Dir(fn), 0777); err != nil {
 		return nil, err
 	}
-	fp, err := os.OpenFile(fn, os.O_CREATE, 0666)
+	fp, err := os.OpenFile(fn, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +56,7 @@ func write(fn string, data []byte) error {
 }
 
 func main() {
-	subcommands.Register(subcommands.HelpCommand(), "")
-	subcommands.Register(subcommands.FlagsCommand(), "")
-	subcommands.Register(subcommands.CommandsCommand(), "")
+	flag.Parse()
 
 	data, err := read(*fn)
 	if err != nil {
@@ -71,6 +69,9 @@ func main() {
 	}
 
 	for _, c := range []subcommands.Command{
+		subcommands.HelpCommand(),
+		subcommands.FlagsCommand(),
+		subcommands.CommandsCommand(),
 		get.New(db),
 		add.New(db),
 		search.New(db),
@@ -81,7 +82,6 @@ func main() {
 		subcommands.Register(c, "")
 	}
 
-	flag.Parse()
 	ctx := context.Background()
 
 	status := subcommands.Execute(ctx)
