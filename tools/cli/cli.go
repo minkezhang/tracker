@@ -11,6 +11,7 @@ import (
 	"github.com/minkezhang/tracker/database"
 	"github.com/minkezhang/tracker/tools/cli/commands/add"
 	"github.com/minkezhang/tracker/tools/cli/commands/get"
+	"github.com/minkezhang/tracker/tools/cli/commands/search"
 )
 
 const (
@@ -40,6 +41,7 @@ func main() {
 
 	subcommands.Register(get.New(db), "")
 	subcommands.Register(add.New(db), "")
+	subcommands.Register(search.New(db), "")
 
 	flag.Parse()
 	ctx := context.Background()

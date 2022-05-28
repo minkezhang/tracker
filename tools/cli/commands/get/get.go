@@ -55,7 +55,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	e := &ce.E{Format: ce.FormatShort}
+	e := &ce.E{}
 	e.Dump(entries[0])
 	fmt.Print(string(e.Data))
 
