@@ -1,38 +1,59 @@
 # tracker
 Project to track queue of media that needs to be consumed.
 
-Formerly "Loose Record" Excel spreadsheet.
+## Examples
+```bash
+go install github.com/minkezhang/truffle/truffle
+
+# Add sample entry.
+truffle add \
+  --titles=Sabikui \
+  --corpus=anime \
+  --score=6.3 \
+  --providers=crunchyroll \
+  --queued=true \
+  --studios=OZ \
+  --directors="Atsushi Itagaki" \
+  --writers="Sadayuki Murai" \
+  --season=1 \
+  --episode=4
+
+# Start watching the next season of Sabikui. rt supports partial title and
+# corpus matching.
+truffle bump \
+  --title=Sabikui \
+  --corpus=anime \
+  --major
+
+# Re-rate the entry.
+truffle patch \
+  --title=Sabikui \
+  --corpus=anime \
+  --score=6.4
+
+truffle get --title=Sabikui
+
+# Search the user database as well as the MAL API for similar entries.
+truffle search \
+  --title=Sabikui \
+  --corpus=anime \
+  --trackers=truffle\
+  --trackers=mal
+
+# Delete the entry.
+truffle delete --title=Sabikui
+
+```
+
+## Uninstall
 
 ```bash
-go run internal/importer/main.go \
-  --input data/database.csv \
-  --output data/database.textproto
+go clean -i github.com/minkezhang/truffle/truffle
 ```
 
 ## Proposed API
 
 ```
-* Search(e dpb.Entry): search across all scrapers and allow user to choose from
-  variety of IDs
-* Add(e dpb.Entry): add after getting scraper-specific ID (return err if scraper
-  ID not found in request)
-* Patch(e dpb.Entry): manually update data
-* Sync(e dpb.Entry): get data from upstream sources
-* Delete(e dpb.Entry)
-* Bump(e dpb.Entry): increment chapter or episode count
-* BumpMajor(e dpb.Entry): increment volume or season, reset chapter and episode
-  count to 1
 * Filter(title_asc, corpus_asc, ...): return subset of collection
 * Recommend()
-```
-
-## Proposed UI
-
-TUI (cli)
-Web --> gRPC service
-
-## Examples
-
-```bash
-go run github.com/minkezhang/tracker/tools/cli get --title=Sense8 --corpus=tv
 ```

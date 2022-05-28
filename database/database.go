@@ -12,7 +12,7 @@ import (
 	"github.com/minkezhang/tracker/database/ids"
 	"github.com/minkezhang/tracker/database/search"
 	"github.com/minkezhang/tracker/database/search/mal"
-	"github.com/minkezhang/tracker/database/search/tracker"
+	"github.com/minkezhang/tracker/database/search/truffle"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -104,7 +104,7 @@ type O struct {
 
 func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 	s := map[dpb.API]search.S{
-		dpb.API_API_TRACKER: tracker.S{
+		dpb.API_API_TRUFFLE: truffle.S{
 			DB:     db.db,
 			Title:  opts.Title,
 			Corpus: opts.Corpus,
@@ -173,6 +173,10 @@ func Unmarshal(data []byte) (*DB, error) {
 			return nil, err
 		}
 		epb.Etag = etag
+	}
+
+	if pb.GetEntries() == nil {
+		pb.Entries = map[string]*dpb.Entry{}
 	}
 	return &DB{db: pb}, nil
 }

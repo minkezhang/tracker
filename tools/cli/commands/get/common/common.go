@@ -29,7 +29,7 @@ func Get(opts O) (*dpb.Entry, error) {
 		candidates, err := opts.DB.Search(database.O{
 			Title:  opts.Title,
 			Corpus: corpus,
-			APIs:   []dpb.API{dpb.API_API_TRACKER},
+			APIs:   []dpb.API{dpb.API_API_TRUFFLE},
 		})
 		if err != nil {
 			return nil, err

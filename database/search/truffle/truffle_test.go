@@ -1,4 +1,4 @@
-package tracker
+package truffle
 
 import (
 	"github.com/minkezhang/tracker/database/search"

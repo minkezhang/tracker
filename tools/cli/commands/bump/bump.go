@@ -94,7 +94,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 
 	e := &ce.E{}
 	e.Dump(epb)
-	fmt.Printf(string(e.Data))
+	fmt.Print(string(e.Data))
 
 	return subcommands.ExitSuccess
 }

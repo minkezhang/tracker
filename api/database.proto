@@ -5,7 +5,7 @@
 //   protoc -I api/ \
 //     --go_out=api/ \
 //     --go_opt=paths=import \
-//     --go_opt=module=github.com/minkezhang/tracker/api \
+//     --go_opt=module=github.com/minkezhang/truffle/api \
 //     api/*proto
 syntax = "proto3";
 
@@ -15,9 +15,9 @@ option go_package = "github.com/minkezhang/tracker/api/go/database";
 enum API {
 	API_UNKNOWN = 0;
 
-	// API_TRACKER is the github.com/minkezhang/tracker database, i.e. the
+	// API_TRUFFLE is the github.com/minkezhang/truffle database, i.e. the
 	// local user list.
-	API_TRACKER = 1;
+	API_TRUFFLE = 1;
 
 	API_MAL = 2;
 }
