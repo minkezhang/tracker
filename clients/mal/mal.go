@@ -117,7 +117,7 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 		if popularity >= 0 && r.Popularity >= popularity {
 			continue
 		}
-		if corpus != lookup[r.MediaType] {
+		if corpus != dpb.Corpus_CORPUS_UNKNOWN && corpus != lookup[r.MediaType] {
 			continue
 		}
 
@@ -125,7 +125,7 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 			Id:     utils.ID(dpb.API_API_MAL, strconv.FormatInt(int64(r.ID), 10)),
 			Titles: []string{r.Title},
 			Score:  float32(r.Mean),
-			Corpus: corpus,
+			Corpus: lookup[r.MediaType],
 		}
 
 		var studios []string
@@ -185,7 +185,7 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 		if popularity >= 0 && r.Popularity >= popularity {
 			continue
 		}
-		if corpus != lookup[r.MediaType] {
+		if corpus != dpb.Corpus_CORPUS_UNKNOWN && corpus != lookup[r.MediaType] {
 			continue
 		}
 
@@ -193,7 +193,7 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 			Id:     utils.ID(dpb.API_API_MAL, strconv.FormatInt(int64(r.ID), 10)),
 			Titles: []string{r.Title},
 			Score:  float32(r.Mean),
-			Corpus: corpus,
+			Corpus: lookup[r.MediaType],
 		}
 
 		for _, t := range r.AlternativeTitles.Synonyms {

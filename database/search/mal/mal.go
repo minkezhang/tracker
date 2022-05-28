@@ -35,6 +35,7 @@ func (s *S) Search(ctx context.Context) ([]*dpb.Entry, error) {
 	if map[dpb.Corpus]bool{
 		dpb.Corpus_CORPUS_ANIME:      true,
 		dpb.Corpus_CORPUS_ANIME_FILM: true,
+		dpb.Corpus_CORPUS_UNKNOWN:    true,
 	}[s.corpus] {
 		cs, err := s.client.AnimeSearch(ctx, s.title, s.corpus, s.cutoff)
 		if err != nil {
@@ -43,8 +44,9 @@ func (s *S) Search(ctx context.Context) ([]*dpb.Entry, error) {
 		candidates = append(candidates, cs...)
 	}
 	if map[dpb.Corpus]bool{
-		dpb.Corpus_CORPUS_BOOK:  true,
-		dpb.Corpus_CORPUS_MANGA: true,
+		dpb.Corpus_CORPUS_BOOK:    true,
+		dpb.Corpus_CORPUS_MANGA:   true,
+		dpb.Corpus_CORPUS_UNKNOWN: true,
 	}[s.corpus] {
 		cs, err := s.client.MangaSearch(ctx, s.title, s.corpus, s.cutoff)
 		if err != nil {
