@@ -26,6 +26,8 @@ type Body struct {
 
 	Season  int
 	Episode int
+
+	ETag string
 }
 
 func (b *Body) GetCorpus() string {
@@ -61,6 +63,8 @@ func (b *Body) SetFlags(f *flag.FlagSet) {
 	f.IntVar(&b.Season, "volume", 0, "current manga or book volume")
 	f.IntVar(&b.Episode, "episode", 0, "current anime or tv show episode")
 	f.IntVar(&b.Episode, "chapter", 0, "current manga or book chapter")
+
+	f.StringVar(&b.ETag, "etag", "", "current etag of the entry; ignored if empty")
 }
 
 func (b *Body) Load() (proto.Message, error) {
@@ -81,6 +85,7 @@ func (b *Body) Load() (proto.Message, error) {
 	epb.Providers = providers
 	epb.Queued = b.Queued
 	epb.Score = float32(b.Score)
+	epb.Etag = []byte(b.ETag)
 
 	switch utils.AuxDataL[epb.GetCorpus()] {
 	case utils.AuxDataVideo:

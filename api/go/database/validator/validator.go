@@ -12,6 +12,7 @@ type f func(e *dpb.Entry) error
 
 var (
 	validators = []f{
+		score,
 		corpus,
 		aux_data,
 		tracker,
@@ -23,6 +24,13 @@ func Validate(epb *dpb.Entry) error {
 		if err := v(epb); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func score(e *dpb.Entry) error {
+	if 0 > e.GetScore() || e.GetScore() > 10 {
+		return fmt.Errorf("invalid score %v, must be in the range [0, 10]", e.GetScore())
 	}
 	return nil
 }

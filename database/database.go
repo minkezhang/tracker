@@ -32,7 +32,7 @@ func New(epbs []*dpb.Entry) *DB {
 		},
 	}
 	for _, epb := range epbs {
-		if err := db.Add(epb); err != nil {
+		if _, err := db.Add(epb); err != nil {
 			panic(fmt.Sprintf("could not create database: %v", err))
 		}
 	}
@@ -40,9 +40,10 @@ func New(epbs []*dpb.Entry) *DB {
 	return db
 }
 
-func (db *DB) Add(epb *dpb.Entry) error {
+func (db *DB) Add(epb *dpb.Entry) (*dpb.Entry, error) {
+	epb = proto.Clone(epb).(*dpb.Entry)
 	if err := validator.Validate(epb); err != nil {
-		return status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
 	}
 
 	eid := ids.New()
@@ -52,12 +53,12 @@ func (db *DB) Add(epb *dpb.Entry) error {
 	epb.Id = eid
 	etag, err := ETag(epb)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	epb.Etag = etag
 
 	db.db.GetEntries()[eid] = epb
-	return nil
+	return proto.Clone(epb).(*dpb.Entry), nil
 }
 
 func (db *DB) Get(id string) (*dpb.Entry, error) {
@@ -65,10 +66,12 @@ func (db *DB) Get(id string) (*dpb.Entry, error) {
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", id)
 	}
-	return epb, nil
+
+	return proto.Clone(epb).(*dpb.Entry), nil
 }
 
 func (db *DB) Put(epb *dpb.Entry) (*dpb.Entry, error) {
+	epb = proto.Clone(epb).(*dpb.Entry)
 	if err := validator.Validate(epb); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
 	}
@@ -78,7 +81,7 @@ func (db *DB) Put(epb *dpb.Entry) (*dpb.Entry, error) {
 		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", epb.GetId())
 	}
 	if !reflect.DeepEqual(epb.GetEtag(), fpb.GetEtag()) {
-		return nil, status.Errorf(codes.InvalidArgument, "cannot update entry with mismatching ETag values: %v != %v", epb.GetEtag(), fpb.GetEtag())
+		return nil, status.Errorf(codes.InvalidArgument, "cannot update entry with mismatching ETag values: %s != %s", epb.GetEtag(), fpb.GetEtag())
 	}
 	etag, err := ETag(epb)
 	if err != nil {
@@ -93,7 +96,7 @@ func (db *DB) Put(epb *dpb.Entry) (*dpb.Entry, error) {
 func (db *DB) Delete(id string) (*dpb.Entry, error) {
 	epb := db.db.GetEntries()[id]
 	delete(db.db.GetEntries(), id)
-	return epb, nil
+	return proto.Clone(epb).(*dpb.Entry), nil
 }
 
 type O struct {
@@ -137,11 +140,12 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 }
 
 func ETag(epb *dpb.Entry) ([]byte, error) {
-	fpb := proto.Clone(epb).(*dpb.Entry)
-	fpb.Id = ""
-	fpb.Etag = nil
+	epb = proto.Clone(epb).(*dpb.Entry)
 
-	data, err := prototext.Marshal(fpb)
+	epb.Id = ""
+	epb.Etag = nil
+
+	data, err := prototext.Marshal(epb)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot marshal input proto: %v", err)
 	}
