@@ -1,6 +1,6 @@
 // Package mal wraps the underlying MAL API client and return database entries.
 //
-// TODO(minkezhang): Add support for configurable NSFW searches.
+// TODO(github.com/nstratos/go-myanimelist/pull/8): Add support for configurable NSFW searches.
 package mal
 
 import (
@@ -118,7 +118,8 @@ func (c *C) MangaSearch(title string, corpus dpb.Corpus, popularity int) ([]*dpb
 			"title",
 			"alternative_titles",
 			"mean",
-			"authors{first_name,last_name}"},
+			"authors{first_name,last_name}",
+		},
 	)
 	if err != nil {
 		return nil, err
