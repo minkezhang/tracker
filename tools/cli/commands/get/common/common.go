@@ -43,7 +43,6 @@ func Get(opts O) (*dpb.Entry, error) {
 	}
 
 	if len(entries) > 1 {
-		fmt.Printf("%s", entries)
 		return nil, fmt.Errorf("Too many results returned. Please refine your search.")
 	}
 
