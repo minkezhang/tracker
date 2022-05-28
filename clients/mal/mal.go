@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/minkezhang/tracker/api/go/database/utils"
 	"github.com/nstratos/go-myanimelist/mal"
 
 	dpb "github.com/minkezhang/tracker/api/go/database"
@@ -86,7 +87,7 @@ func (c *C) AnimeSearch(title string, corpus dpb.Corpus, popularity int) ([]*dpb
 		}
 
 		epb := &dpb.Entry{
-			Id:     strconv.FormatInt(int64(r.ID), 10),
+			Id:     utils.ID(dpb.API_API_MAL, strconv.FormatInt(int64(r.ID), 10)),
 			Titles: []string{r.Title},
 			Score:  float32(r.Mean),
 			Corpus: corpus,
@@ -134,7 +135,7 @@ func (c *C) MangaSearch(title string, corpus dpb.Corpus, popularity int) ([]*dpb
 		}
 
 		epb := &dpb.Entry{
-			Id:     strconv.FormatInt(int64(r.ID), 10),
+			Id:     utils.ID(dpb.API_API_MAL, strconv.FormatInt(int64(r.ID), 10)),
 			Titles: []string{r.Title},
 			Score:  float32(r.Mean),
 			Corpus: corpus,

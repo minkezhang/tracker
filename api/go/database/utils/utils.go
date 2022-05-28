@@ -23,6 +23,16 @@ const (
 )
 
 var (
+	APIPrefix = map[dpb.API]string{
+		dpb.API_API_MAL: "mal",
+	}
+)
+
+func ID(api dpb.API, id string) string {
+	return fmt.Sprintf("%v:%v", APIPrefix[api], id)
+}
+
+var (
 	AuxDataL = map[dpb.Corpus]AuxDataT{
 		dpb.Corpus_CORPUS_TV:         AuxDataVideo,
 		dpb.Corpus_CORPUS_ANIME:      AuxDataVideo,
