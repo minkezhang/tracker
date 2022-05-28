@@ -2,11 +2,25 @@
 // Fully specifies the database spec.
 //
 // To generate this protobuf file, run
-//   protoc -I api/ --go_out=api/ --go_opt=paths=import --go_opt=module=github.com/minkezhang/tracker/api api/*proto
+//   protoc -I api/ \
+//     --go_out=api/ \
+//     --go_opt=paths=import \
+//     --go_opt=module=github.com/minkezhang/tracker/api \
+//     api/*proto
 syntax = "proto3";
 
 package tracker.database;
 option go_package = "github.com/minkezhang/tracker/api/go/database";
+
+enum API {
+	API_UNKNOWN = 0;
+
+	// API_TRACKER is the github.com/minkezhang/tracker database, i.e. the
+	// local user list.
+	API_TRACKER = 1;
+
+	API_MAL = 2;
+}
 
 enum Corpus {
 	CORPUS_UNKNOWN = 0;
