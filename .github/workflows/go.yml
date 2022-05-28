@@ -17,8 +17,8 @@ jobs:
       with:
         go-version: 1.18
 
-    - name: Build github.com/minkezhang/tracker
-      run: go build -v github.com/minkezhang/tracker/...
+    - name: Build github.com/minkezhang/truffle
+      run: go build -v github.com/minkezhang/truffle/...
 
-    - name: Test github.com/minkezhang/tracker
-      run: go test -v github.com/minkezhang/tracker/... -bench . -benchmem
+    - name: Test github.com/minkezhang/truffle
+      run: go test -v github.com/minkezhang/truffle/... -bench . -benchmem
