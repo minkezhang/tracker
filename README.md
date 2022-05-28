@@ -51,9 +51,9 @@ truffle delete --title=Sabikui
 go clean -i github.com/minkezhang/truffle/truffle
 ```
 
-## Proposed API
+## Feature Docket
 
 ```
-* Filter(title_asc, corpus_asc, ...): return subset of collection
-* Recommend()
+* database.Filter(queued bool, score_acending bool)
+* database.Recommend()
 ```
