@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/golang/protobuf/proto"
+
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
@@ -17,6 +19,8 @@ type S struct {
 func (s S) Search(context.Context) ([]*dpb.Entry, error) {
 	var candidates []*dpb.Entry
 	for _, epb := range s.DB.GetEntries() {
+		epb = proto.Clone(epb).(*dpb.Entry)
+
 		if s.Title == "" && len(epb.Titles) == 0 {
 			candidates = append(candidates, epb)
 			continue

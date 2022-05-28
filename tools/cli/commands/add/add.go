@@ -54,7 +54,8 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 
 	proto.Merge(epb, s.(*dpb.Entry))
 
-	if err := c.db.Add(epb); err != nil {
+	epb, err = c.db.Add(epb)
+	if err != nil {
 		fmt.Printf("Could not add data to database: %v\n", err)
 		return subcommands.ExitFailure
 	}

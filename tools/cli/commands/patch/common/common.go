@@ -38,7 +38,13 @@ func Patch(opts O) (*dpb.Entry, error) {
 
 	fpb := s.(*dpb.Entry)
 
+	// Pass in the user-specified ETag for matching checks.
+	if len(fpb.GetEtag()) > 0 {
+		epb.Etag = nil
+	}
+
 	proto.Merge(epb, fpb)
+
 	// Ensure we actually replace lists, not the default append as per
 	// default Merge behavior.
 	switch utils.AuxDataL[epb.GetCorpus()] {
