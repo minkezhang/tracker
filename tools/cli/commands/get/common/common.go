@@ -3,10 +3,10 @@ package common
 import (
 	"fmt"
 
-	"github.com/minkezhang/tracker/api/go/database/utils"
-	"github.com/minkezhang/tracker/database"
+	"github.com/minkezhang/truffle/api/go/database/utils"
+	"github.com/minkezhang/truffle/database"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 type O struct {

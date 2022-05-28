@@ -2,11 +2,11 @@
 //
 // To see how to use the tool, run
 //
-//   go run github.com/minkezhang/tracker/tools/cli help
+//   truffle help
 //
 // To see global flags, run
 //
-//   go run github.com/minkezhang/tracker/tools/cli flags
+//   truffle flags
 package main
 
 import (
@@ -18,14 +18,14 @@ import (
 	"path/filepath"
 
 	"github.com/google/subcommands"
-	"github.com/minkezhang/tracker/database"
-	"github.com/minkezhang/tracker/tools/cli/commands/add"
-	"github.com/minkezhang/tracker/tools/cli/commands/bump"
-	"github.com/minkezhang/tracker/tools/cli/commands/get"
-	"github.com/minkezhang/tracker/tools/cli/commands/patch"
-	"github.com/minkezhang/tracker/tools/cli/commands/search"
+	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/tools/cli/commands/add"
+	"github.com/minkezhang/truffle/tools/cli/commands/bump"
+	"github.com/minkezhang/truffle/tools/cli/commands/get"
+	"github.com/minkezhang/truffle/tools/cli/commands/patch"
+	"github.com/minkezhang/truffle/tools/cli/commands/search"
 
-	del "github.com/minkezhang/tracker/tools/cli/commands/delete"
+	del "github.com/minkezhang/truffle/tools/cli/commands/delete"
 )
 
 var (

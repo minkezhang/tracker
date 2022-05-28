@@ -1,9 +1,9 @@
 package mal
 
 import (
-	"github.com/minkezhang/tracker/clients/mal"
+	"github.com/minkezhang/truffle/clients/mal"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 const (

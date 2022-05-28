@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 type TrackerT int

@@ -8,16 +8,16 @@ import (
 	"reflect"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/minkezhang/tracker/api/go/database/validator"
-	"github.com/minkezhang/tracker/database/ids"
-	"github.com/minkezhang/tracker/database/search"
-	"github.com/minkezhang/tracker/database/search/mal"
-	"github.com/minkezhang/tracker/database/search/truffle"
+	"github.com/minkezhang/truffle/api/go/database/validator"
+	"github.com/minkezhang/truffle/database/ids"
+	"github.com/minkezhang/truffle/database/search"
+	"github.com/minkezhang/truffle/database/search/mal"
+	"github.com/minkezhang/truffle/database/search/truffle"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/prototext"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 type DB struct {

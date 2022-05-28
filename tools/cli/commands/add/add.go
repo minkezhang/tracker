@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"github.com/google/subcommands"
-	"github.com/minkezhang/tracker/database"
+	"github.com/minkezhang/truffle/database"
 	"google.golang.org/protobuf/proto"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
-	ce "github.com/minkezhang/tracker/formats/cli"
-	se "github.com/minkezhang/tracker/formats/cli/struct"
+	dpb "github.com/minkezhang/truffle/api/go/database"
+	ce "github.com/minkezhang/truffle/formats/cli"
+	se "github.com/minkezhang/truffle/formats/cli/struct"
 )
 
 type C struct {

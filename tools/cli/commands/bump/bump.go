@@ -6,13 +6,13 @@ import (
 	"fmt"
 
 	"github.com/google/subcommands"
-	"github.com/minkezhang/tracker/api/go/database/utils"
-	"github.com/minkezhang/tracker/database"
+	"github.com/minkezhang/truffle/api/go/database/utils"
+	"github.com/minkezhang/truffle/database"
 
-	ce "github.com/minkezhang/tracker/formats/cli"
-	se "github.com/minkezhang/tracker/formats/cli/struct"
-	gc "github.com/minkezhang/tracker/tools/cli/commands/get/common"
-	pc "github.com/minkezhang/tracker/tools/cli/commands/patch/common"
+	ce "github.com/minkezhang/truffle/formats/cli"
+	se "github.com/minkezhang/truffle/formats/cli/struct"
+	gc "github.com/minkezhang/truffle/tools/cli/commands/get/common"
+	pc "github.com/minkezhang/truffle/tools/cli/commands/patch/common"
 )
 
 type C struct {

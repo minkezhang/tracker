@@ -1,7 +1,7 @@
 package lookup
 
 import (
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 var (

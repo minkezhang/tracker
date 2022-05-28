@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/minkezhang/tracker/api/go/database/utils"
+	"github.com/minkezhang/truffle/api/go/database/utils"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 type FormatT int

@@ -8,13 +8,13 @@ import (
 	"text/tabwriter"
 
 	"github.com/google/subcommands"
-	"github.com/minkezhang/tracker/api/go/database/utils"
-	"github.com/minkezhang/tracker/database"
+	"github.com/minkezhang/truffle/api/go/database/utils"
+	"github.com/minkezhang/truffle/database"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
-	ce "github.com/minkezhang/tracker/formats/cli"
-	se "github.com/minkezhang/tracker/formats/cli/struct"
-	cf "github.com/minkezhang/tracker/tools/cli/flag"
+	dpb "github.com/minkezhang/truffle/api/go/database"
+	ce "github.com/minkezhang/truffle/formats/cli"
+	se "github.com/minkezhang/truffle/formats/cli/struct"
+	cf "github.com/minkezhang/truffle/tools/cli/flag"
 )
 
 type C struct {
@@ -38,7 +38,7 @@ func (c *C) Synopsis() string { return "search across multiple databases with ma
 func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
-	f.Var(&c.apis, "apis", "APIs to use in the search operation, e.g. \"tracker\"")
+	f.Var(&c.apis, "apis", "APIs to use in the search operation, e.g. \"truffle\"")
 	c.title.SetFlags(f)
 	c.corpus.SetFlags(f)
 }
@@ -46,7 +46,7 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
 	var apis []dpb.API
 	if len(c.apis) == 0 {
-		c.apis = append(c.apis, "tracker")
+		c.apis = append(c.apis, "truffle")
 	}
 	for _, api := range c.apis {
 		apis = append(apis, dpb.API(

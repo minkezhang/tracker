@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/minkezhang/tracker/api/go/database/utils"
+	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/nstratos/go-myanimelist/mal"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 const (

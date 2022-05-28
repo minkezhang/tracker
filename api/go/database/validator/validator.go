@@ -3,9 +3,9 @@ package validator
 import (
 	"fmt"
 
-	"github.com/minkezhang/tracker/api/go/database/utils"
+	"github.com/minkezhang/truffle/api/go/database/utils"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 type f func(e *dpb.Entry) error

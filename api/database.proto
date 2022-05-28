@@ -9,8 +9,8 @@
 //     api/*proto
 syntax = "proto3";
 
-package tracker.database;
-option go_package = "github.com/minkezhang/tracker/api/go/database";
+package truffle.database;
+option go_package = "github.com/minkezhang/truffle/api/go/database";
 
 enum API {
 	API_UNKNOWN = 0;

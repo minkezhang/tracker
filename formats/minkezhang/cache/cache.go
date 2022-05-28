@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/minkezhang/tracker/api/go/database/utils"
-	"github.com/minkezhang/tracker/formats/minkezhang/columns"
-	"github.com/minkezhang/tracker/formats/minkezhang/lookup"
+	"github.com/minkezhang/truffle/api/go/database/utils"
+	"github.com/minkezhang/truffle/formats/minkezhang/columns"
+	"github.com/minkezhang/truffle/formats/minkezhang/lookup"
 
-	dpb "github.com/minkezhang/tracker/api/go/database"
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 type E [11]string

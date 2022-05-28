@@ -6,11 +6,11 @@ import (
 	"fmt"
 
 	"github.com/google/subcommands"
-	"github.com/minkezhang/tracker/database"
-	"github.com/minkezhang/tracker/tools/cli/commands/get/common"
+	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/tools/cli/commands/get/common"
 
-	ce "github.com/minkezhang/tracker/formats/cli"
-	se "github.com/minkezhang/tracker/formats/cli/struct"
+	ce "github.com/minkezhang/truffle/formats/cli"
+	se "github.com/minkezhang/truffle/formats/cli/struct"
 )
 
 type C struct {

@@ -1,4 +1,4 @@
-module github.com/minkezhang/tracker
+module github.com/minkezhang/truffle
 
 go 1.18
 
