@@ -103,6 +103,9 @@ type O struct {
 	Corpus dpb.Corpus
 
 	APIs []dpb.API
+
+	// MAL contains MAL-specific API options.
+	MAL mal.O
 }
 
 func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
@@ -112,7 +115,7 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 			Title:  opts.Title,
 			Corpus: opts.Corpus,
 		},
-		dpb.API_API_MAL: mal.New(opts.Title, opts.Corpus),
+		dpb.API_API_MAL: mal.New(opts.Title, opts.Corpus, opts.MAL.Cutoff),
 	}
 
 	apis := map[dpb.API]bool{}
