@@ -3,7 +3,7 @@ Project to track queue of media that needs to be consumed.
 
 ## Examples
 ```bash
-go install github.com/minkezhang/truffle/truffle
+go install github.com/minkezhang/truffle/truffle@latest
 
 # Add sample entry.
 truffle add \
