@@ -89,9 +89,10 @@ func (db *DB) PutEntry(epb *dpb.Entry) (*dpb.Entry, error) {
 	return epb, nil
 }
 
-func (db *DB) DeleteEntry(id string) error {
+func (db *DB) DeleteEntry(id string) (*dpb.Entry, error) {
+	epb := db.db.GetEntries()[id]
 	delete(db.db.GetEntries(), id)
-	return nil
+	return epb, nil
 }
 
 type O struct {

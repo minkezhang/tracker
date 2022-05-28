@@ -14,6 +14,8 @@ import (
 	"github.com/minkezhang/tracker/tools/cli/commands/get"
 	"github.com/minkezhang/tracker/tools/cli/commands/patch"
 	"github.com/minkezhang/tracker/tools/cli/commands/search"
+
+	del "github.com/minkezhang/tracker/tools/cli/commands/delete"
 )
 
 const (
@@ -46,6 +48,7 @@ func main() {
 	subcommands.Register(search.New(db), "")
 	subcommands.Register(patch.New(db), "")
 	subcommands.Register(bump.New(db), "")
+	subcommands.Register(del.New(db), "")
 
 	flag.Parse()
 	ctx := context.Background()
