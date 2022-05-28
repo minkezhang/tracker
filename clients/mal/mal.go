@@ -1,9 +1,14 @@
 package mal
 
 import (
+	"context"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/nstratos/go-myanimelist/mal"
+
+	dpb "github.com/minkezhang/tracker/api/go/database"
 )
 
 const (
@@ -15,18 +20,121 @@ const (
 	clientID = "6114d00ca681b7701d1e15fe11a4987e"
 )
 
-type C struct {
-	mal *mal.Client
-}
+type C mal.Client
 
 func New() *C {
-	return &C{
-		mal: mal.NewClient(
-			&http.Client{
-				Transport: t{clientID: clientID},
-			},
-		),
+	c := C(*mal.NewClient(
+		&http.Client{
+			Transport: t{clientID: clientID},
+		},
+	))
+	return &c
+}
+
+func (c *C) AnimeSearch(title string, popularity int) ([]*dpb.Entry, error) {
+	// TODO(minkezhang): Allow for configurable NSFW searches.
+	results, _, err := (*mal.Client)(c).Anime.List(
+		context.Background(), title,
+		mal.Fields{
+			"media_type",
+			"popularity",
+			"title",
+			"mean",
+			"studios",
+		},
+	)
+	if err != nil {
+		return nil, err
 	}
+
+	var epbs []*dpb.Entry
+	for _, r := range results {
+		// Trim obscure series.
+		if popularity > 0 && r.Popularity <= popularity {
+			continue
+		}
+
+		epb := &dpb.Entry{
+			Id:     strconv.FormatInt(int64(r.ID), 10),
+			Titles: []string{r.Title},
+			Score:  float32(r.Mean),
+
+			// TODO(minkezhang): Set correct corpus.
+			Corpus: dpb.Corpus_CORPUS_ANIME,
+		}
+
+		var studios []string
+		for _, s := range r.Studios {
+			studios = append(studios, s.Name)
+		}
+		epb.AuxData = &dpb.Entry_AuxDataVideo{
+			AuxDataVideo: &dpb.AuxDataVideo{
+				Studios: studios,
+			},
+		}
+
+		epbs = append(epbs, epb)
+	}
+
+	return epbs, nil
+}
+
+func (c *C) MangaSearch(title string, popularity int) ([]*dpb.Entry, error) {
+	// TODO(minkezhang): Allow for configurable NSFW searches.
+	results, _, err := (*mal.Client)(c).Manga.List(
+		context.Background(), title,
+		mal.Fields{
+			"media_type",
+			"popularity",
+			"title",
+			"alternative_titles",
+			"mean",
+			"authors{first_name,last_name}"},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var epbs []*dpb.Entry
+	for _, r := range results {
+		// Trim obscure series.
+		if popularity > 0 && r.Popularity >= popularity {
+			continue
+		}
+
+		epb := &dpb.Entry{
+			Id:     strconv.FormatInt(int64(r.ID), 10),
+			Titles: []string{r.Title},
+			Score:  float32(r.Mean),
+
+			// TODO(minkezhang): Set correct corpus.
+			Corpus: dpb.Corpus_CORPUS_MANGA,
+		}
+
+		for _, t := range r.AlternativeTitles.Synonyms {
+			epb.Titles = append(epb.GetTitles(), t)
+		}
+
+		var authors []string
+		for _, a := range r.Authors {
+			var names []string
+			for _, n := range []string{a.Person.FirstName, a.Person.LastName} {
+				if n != "" {
+					names = append(names, n)
+				}
+			}
+			authors = append(authors, strings.Join(names, " "))
+		}
+		epb.AuxData = &dpb.Entry_AuxDataBook{
+			AuxDataBook: &dpb.AuxDataBook{
+				Authors: authors,
+			},
+		}
+
+		epbs = append(epbs, epb)
+	}
+
+	return epbs, nil
 }
 
 type t struct {

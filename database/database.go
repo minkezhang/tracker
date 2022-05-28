@@ -11,6 +11,7 @@ import (
 	"github.com/minkezhang/tracker/api/go/database/validator"
 	"github.com/minkezhang/tracker/database/ids"
 	"github.com/minkezhang/tracker/database/search"
+	"github.com/minkezhang/tracker/database/search/mal"
 	"github.com/minkezhang/tracker/database/search/tracker"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -107,10 +108,16 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 			Title:  opts.Title,
 			Corpus: opts.Corpus,
 		},
+		dpb.API_API_MAL: mal.New(opts.Title, opts.Corpus),
+	}
+
+	apis := map[dpb.API]bool{}
+	for _, api := range opts.APIs {
+		apis[api] = true
 	}
 
 	var candidates []*dpb.Entry
-	for _, api := range opts.APIs {
+	for api, _ := range apis {
 		if sf, ok := s[api]; ok {
 			cs, err := sf.Search()
 			if err != nil {
