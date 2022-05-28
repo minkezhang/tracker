@@ -67,26 +67,26 @@ func (db *DB) GetEntry(id string) (*dpb.Entry, error) {
 	return epb, nil
 }
 
-func (db *DB) PutEntry(epb *dpb.Entry) error {
+func (db *DB) PutEntry(epb *dpb.Entry) (*dpb.Entry, error) {
 	if err := validator.Validate(epb); err != nil {
-		return status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
 	}
 
 	fpb, ok := db.db.GetEntries()[epb.GetId()]
 	if !ok {
-		return status.Errorf(codes.NotFound, "cannot find entry with id %v", epb.GetId())
+		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", epb.GetId())
 	}
 	if !reflect.DeepEqual(epb.GetEtag(), fpb.GetEtag()) {
-		return status.Errorf(codes.InvalidArgument, "cannot update entry with mismatching ETag values: %v != %v", epb.GetEtag(), fpb.GetEtag())
+		return nil, status.Errorf(codes.InvalidArgument, "cannot update entry with mismatching ETag values: %v != %v", epb.GetEtag(), fpb.GetEtag())
 	}
 	etag, err := ETag(epb)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	epb.Etag = etag
 
 	db.db.GetEntries()[epb.GetId()] = epb
-	return nil
+	return epb, nil
 }
 
 func (db *DB) DeleteEntry(id string) error {

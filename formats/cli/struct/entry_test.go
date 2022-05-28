@@ -5,5 +5,9 @@ import (
 )
 
 var (
-	_ entry.Importer = &E{}
+	_ entry.Importer = &Body{}
+	_ entry.Importer = &Title{}
+	_ entry.Importer = &Titles{}
+	_ entry.Importer = &Corpus{}
+	_ entry.Importer = &ID{}
 )

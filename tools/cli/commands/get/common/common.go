@@ -1,7 +1,6 @@
 package common
 
 import (
-	"flag"
 	"fmt"
 
 	"github.com/minkezhang/tracker/api/go/database/utils"
@@ -10,7 +9,7 @@ import (
 	dpb "github.com/minkezhang/tracker/api/go/database"
 )
 
-type C struct {
+type O struct {
 	DB *database.DB
 
 	ID     string
@@ -18,23 +17,17 @@ type C struct {
 	Corpus string
 }
 
-func (c *C) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&c.ID, "id", "", "entry ID")
-	f.StringVar(&c.Title, "title", "", "entry title substring")
-	f.StringVar(&c.Corpus, "corpus", "unknown", "optional corpus hint for the entry")
-}
-
-func (c *C) Get() (*dpb.Entry, error) {
+func Get(opts O) (*dpb.Entry, error) {
 	var entries []*dpb.Entry
-	if c.ID != "" {
-		results, _ := c.DB.GetEntry(c.ID)
+	if opts.ID != "" {
+		results, _ := opts.DB.GetEntry(opts.ID)
 		entries = append(entries, results)
 	} else {
 		corpus := dpb.Corpus(
-			dpb.Corpus_value[utils.ToEnum("CORPUS", c.Corpus)])
+			dpb.Corpus_value[utils.ToEnum("CORPUS", opts.Corpus)])
 
-		candidates, err := c.DB.Search(database.O{
-			Title:  c.Title,
+		candidates, err := opts.DB.Search(database.O{
+			Title:  opts.Title,
 			Corpus: corpus,
 			APIs:   []dpb.API{dpb.API_API_TRACKER},
 		})
