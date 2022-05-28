@@ -61,9 +61,9 @@ var (
 	}
 )
 
-func (c *C) AnimeSearch(title string, corpus dpb.Corpus, popularity int) ([]*dpb.Entry, error) {
+func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus, popularity int) ([]*dpb.Entry, error) {
 	results, _, err := (*mal.Client)(c).Anime.List(
-		context.Background(), title,
+		ctx, title,
 		mal.Fields{
 			"media_type",
 			"popularity",
@@ -109,9 +109,9 @@ func (c *C) AnimeSearch(title string, corpus dpb.Corpus, popularity int) ([]*dpb
 	return epbs, nil
 }
 
-func (c *C) MangaSearch(title string, corpus dpb.Corpus, popularity int) ([]*dpb.Entry, error) {
+func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus, popularity int) ([]*dpb.Entry, error) {
 	results, _, err := (*mal.Client)(c).Manga.List(
-		context.Background(), title,
+		ctx, title,
 		mal.Fields{
 			"media_type",
 			"popularity",

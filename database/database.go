@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"fmt"
@@ -96,6 +97,8 @@ func (db *DB) DeleteEntry(id string) (*dpb.Entry, error) {
 }
 
 type O struct {
+	Context context.Context
+
 	Title  string
 	Corpus dpb.Corpus
 
@@ -120,7 +123,7 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 	var candidates []*dpb.Entry
 	for api, _ := range apis {
 		if sf, ok := s[api]; ok {
-			cs, err := sf.Search()
+			cs, err := sf.Search(opts.Context)
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "error while executing search operation: %v", err)
 			}

@@ -1,6 +1,8 @@
 package mal
 
 import (
+	"context"
+
 	"github.com/minkezhang/truffle/clients/mal"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
@@ -25,13 +27,13 @@ func New(title string, corpus dpb.Corpus) *S {
 	}
 }
 
-func (s *S) Search() ([]*dpb.Entry, error) {
+func (s *S) Search(ctx context.Context) ([]*dpb.Entry, error) {
 	var candidates []*dpb.Entry
 	if map[dpb.Corpus]bool{
 		dpb.Corpus_CORPUS_ANIME:      true,
 		dpb.Corpus_CORPUS_ANIME_FILM: true,
 	}[s.corpus] {
-		cs, err := s.client.AnimeSearch(s.title, s.corpus, cutoff)
+		cs, err := s.client.AnimeSearch(ctx, s.title, s.corpus, cutoff)
 		if err != nil {
 			return nil, err
 		}
@@ -41,7 +43,7 @@ func (s *S) Search() ([]*dpb.Entry, error) {
 		dpb.Corpus_CORPUS_BOOK:  true,
 		dpb.Corpus_CORPUS_MANGA: true,
 	}[s.corpus] {
-		cs, err := s.client.MangaSearch(s.title, s.corpus, cutoff)
+		cs, err := s.client.MangaSearch(ctx, s.title, s.corpus, cutoff)
 		if err != nil {
 			return nil, err
 		}

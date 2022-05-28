@@ -55,9 +55,10 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 
 	s, _ := c.corpus.Load()
 	entries, err := c.db.Search(database.O{
-		Title:  c.title.Title,
-		Corpus: s.(*dpb.Entry).GetCorpus(),
-		APIs:   apis,
+		Context: ctx,
+		Title:   c.title.Title,
+		Corpus:  s.(*dpb.Entry).GetCorpus(),
+		APIs:    apis,
 	})
 	if err != nil {
 		fmt.Printf("%v\n", err)

@@ -1,6 +1,7 @@
 package truffle
 
 import (
+	"context"
 	"strings"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
@@ -13,7 +14,7 @@ type S struct {
 	Corpus dpb.Corpus
 }
 
-func (s S) Search() ([]*dpb.Entry, error) {
+func (s S) Search(context.Context) ([]*dpb.Entry, error) {
 	var candidates []*dpb.Entry
 	for _, epb := range s.DB.GetEntries() {
 		if len(epb.Titles) == 0 {
