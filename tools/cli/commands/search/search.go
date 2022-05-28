@@ -11,6 +11,7 @@ import (
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/database/search/mal"
+	"github.com/minkezhang/truffle/tools/cli/commands/search/ordering"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 	ce "github.com/minkezhang/truffle/formats/cli"
@@ -24,13 +25,16 @@ type C struct {
 	apis   cf.MultiString
 	title  *se.Title
 	corpus *se.Corpus
+
+	ordering *ordering.O
 }
 
 func New(db *database.DB) *C {
 	return &C{
-		db:     db,
-		title:  &se.Title{},
-		corpus: &se.Corpus{},
+		db:       db,
+		title:    &se.Title{},
+		corpus:   &se.Corpus{},
+		ordering: &ordering.O{},
 	}
 }
 
@@ -42,9 +46,17 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 	f.Var(&c.apis, "apis", "APIs to use in the search operation, e.g. \"truffle\"")
 	c.title.SetFlags(f)
 	c.corpus.SetFlags(f)
+
+	c.ordering.SetFlags(f)
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
+	if len(c.ordering.Orderings) == 0 {
+		c.ordering.Orderings = append(
+			c.ordering.Orderings, "queued", "corpus", "score", "titles",
+		)
+	}
+
 	var apis []dpb.API
 	if len(c.apis) == 0 {
 		c.apis = append(c.apis, "truffle")
@@ -65,6 +77,12 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 			Cutoff: 2000,
 		},
 	})
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return subcommands.ExitFailure
+	}
+
+	entries, err = ordering.Order(entries, *c.ordering)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure
