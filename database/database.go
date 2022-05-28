@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io"
 	"reflect"
-	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/minkezhang/tracker/api/go/database/validator"
 	"github.com/minkezhang/tracker/database/ids"
+	"github.com/minkezhang/tracker/database/search"
+	"github.com/minkezhang/tracker/database/search/tracker"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -95,19 +96,28 @@ func (db *DB) DeleteEntry(id string) error {
 type O struct {
 	Title  string
 	Corpus dpb.Corpus
+
+	APIs []dpb.API
 }
 
-func (db *DB) Search(opts O) []*dpb.Entry {
-	var candidates []*dpb.Entry
-	for _, epb := range db.db.GetEntries() {
-		for _, t := range epb.GetTitles() {
-			if strings.Contains(strings.ToLower(t), strings.ToLower(opts.Title)) && ((epb.GetCorpus() == opts.Corpus) || (epb.GetCorpus() == dpb.Corpus_CORPUS_UNKNOWN) || (opts.Corpus == dpb.Corpus_CORPUS_UNKNOWN)) {
-				candidates = append(candidates, epb)
-				continue
-			}
-		}
+func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
+	s := map[dpb.API]search.S{
+		dpb.API_API_TRACKER: tracker.S{
+			DB:     db.db,
+			Title:  opts.Title,
+			Corpus: opts.Corpus,
+		},
 	}
-	return candidates
+
+	var candidates []*dpb.Entry
+	for _, api := range opts.APIs {
+		cs, err := s[api].Search()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "error while executing search operation: %v", err)
+		}
+		candidates = append(candidates, cs...)
+	}
+	return candidates, nil
 }
 
 func ETag(epb *dpb.Entry) ([]byte, error) {

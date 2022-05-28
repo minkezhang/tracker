@@ -42,7 +42,17 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		corpus := dpb.Corpus(
 			dpb.Corpus_value[utils.ToEnum("CORPUS", c.corpus)])
 
-		entries = append(entries, c.db.Search(database.O{Title: c.title, Corpus: corpus})...)
+		candidates, err := c.db.Search(database.O{
+			Title:  c.title,
+			Corpus: corpus,
+			APIs:   []dpb.API{dpb.API_API_TRACKER},
+		})
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			return subcommands.ExitFailure
+		}
+
+		entries = append(entries, candidates...)
 	}
 
 	if len(entries) == 0 {

@@ -36,7 +36,15 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
 	corpus := dpb.Corpus(
 		dpb.Corpus_value[utils.ToEnum("CORPUS", c.corpus)])
-	entries := c.db.Search(database.O{Title: c.title, Corpus: corpus})
+	entries, err := c.db.Search(database.O{
+		Title:  c.title,
+		Corpus: corpus,
+		APIs:   []dpb.API{dpb.API_API_TRACKER},
+	})
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return subcommands.ExitFailure
+	}
 
 	e := &ce.E{Format: ce.FormatShort}
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
