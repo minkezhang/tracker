@@ -18,7 +18,7 @@ truffle add \
   --season=1 \
   --episode=4
 
-# Start watching the next season of Sabikui. rt supports partial title and
+# Start watching the next season of Sabikui. truffle supports partial title and
 # corpus matching.
 truffle bump \
   --title=Sabikui \

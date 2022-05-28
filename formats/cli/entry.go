@@ -46,6 +46,12 @@ func (e *E) Dump(m proto.Message) error {
 		epb.GetCorpus().String(),
 
 		epb.GetId(),
+
+		map[bool]string{
+			true:  "Q",
+			false: "",
+		}[epb.GetQueued()],
+
 		func() string {
 			if s := epb.GetScore(); s > 0 {
 				return fmt.Sprintf("%.1f", s)
@@ -149,8 +155,6 @@ func (e *E) Dump(m proto.Message) error {
 			}
 			return ""
 		}(),
-
-		string(epb.GetEtag()),
 	)
 
 	e.Data = []byte(fmt.Sprintf("%v\n", strings.Join(lines, "\t")))
