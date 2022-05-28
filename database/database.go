@@ -111,11 +111,13 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 
 	var candidates []*dpb.Entry
 	for _, api := range opts.APIs {
-		cs, err := s[api].Search()
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "error while executing search operation: %v", err)
+		if sf, ok := s[api]; ok {
+			cs, err := sf.Search()
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "error while executing search operation: %v", err)
+			}
+			candidates = append(candidates, cs...)
 		}
-		candidates = append(candidates, cs...)
 	}
 	return candidates, nil
 }
