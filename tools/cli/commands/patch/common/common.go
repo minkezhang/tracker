@@ -72,5 +72,5 @@ func Patch(opts O) (*dpb.Entry, error) {
 		}
 	}
 
-	return opts.DB.PutEntry(epb)
+	return opts.DB.Put(epb)
 }

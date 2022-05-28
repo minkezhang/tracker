@@ -53,7 +53,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	epb, err = c.db.DeleteEntry(epb.GetId())
+	epb, err = c.db.Delete(epb.GetId())
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure

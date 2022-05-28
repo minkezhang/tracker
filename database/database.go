@@ -32,7 +32,7 @@ func New(epbs []*dpb.Entry) *DB {
 		},
 	}
 	for _, epb := range epbs {
-		if err := db.AddEntry(epb); err != nil {
+		if err := db.Add(epb); err != nil {
 			panic(fmt.Sprintf("could not create database: %v", err))
 		}
 	}
@@ -40,7 +40,7 @@ func New(epbs []*dpb.Entry) *DB {
 	return db
 }
 
-func (db *DB) AddEntry(epb *dpb.Entry) error {
+func (db *DB) Add(epb *dpb.Entry) error {
 	if err := validator.Validate(epb); err != nil {
 		return status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
 	}
@@ -60,7 +60,7 @@ func (db *DB) AddEntry(epb *dpb.Entry) error {
 	return nil
 }
 
-func (db *DB) GetEntry(id string) (*dpb.Entry, error) {
+func (db *DB) Get(id string) (*dpb.Entry, error) {
 	epb, ok := db.db.GetEntries()[id]
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", id)
@@ -68,7 +68,7 @@ func (db *DB) GetEntry(id string) (*dpb.Entry, error) {
 	return epb, nil
 }
 
-func (db *DB) PutEntry(epb *dpb.Entry) (*dpb.Entry, error) {
+func (db *DB) Put(epb *dpb.Entry) (*dpb.Entry, error) {
 	if err := validator.Validate(epb); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
 	}
@@ -90,7 +90,7 @@ func (db *DB) PutEntry(epb *dpb.Entry) (*dpb.Entry, error) {
 	return epb, nil
 }
 
-func (db *DB) DeleteEntry(id string) (*dpb.Entry, error) {
+func (db *DB) Delete(id string) (*dpb.Entry, error) {
 	epb := db.db.GetEntries()[id]
 	delete(db.db.GetEntries(), id)
 	return epb, nil

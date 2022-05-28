@@ -20,7 +20,7 @@ type O struct {
 func Get(opts O) (*dpb.Entry, error) {
 	var entries []*dpb.Entry
 	if opts.ID != "" {
-		results, _ := opts.DB.GetEntry(opts.ID)
+		results, _ := opts.DB.Get(opts.ID)
 		entries = append(entries, results)
 	} else {
 		corpus := dpb.Corpus(
