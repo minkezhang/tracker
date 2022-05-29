@@ -25,11 +25,13 @@ truffle bump \
   --corpus=anime \
   --major
 
-# Re-rate the entry.
+# Re-rate the entry and mark the MAL entry as duplicate, which will be filtered
+# out in searches.
 truffle patch \
   --title=Sabikui \
   --corpus=anime \
-  --score=6.4
+  --score=6.4 \
+  --links=mal:48414
 
 truffle get --title=Sabikui
 

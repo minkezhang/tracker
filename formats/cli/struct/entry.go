@@ -28,6 +28,8 @@ type Body struct {
 	Episode int
 
 	ETag string
+
+	LinkedIDs cf.MultiString
 }
 
 func (b *Body) GetCorpus() string {
@@ -64,6 +66,8 @@ func (b *Body) SetFlags(f *flag.FlagSet) {
 	f.IntVar(&b.Episode, "episode", 0, "current anime or tv show episode")
 	f.IntVar(&b.Episode, "chapter", 0, "current manga or book chapter")
 
+	f.Var(&b.LinkedIDs, "links", "linked API IDs, e.g. \"mal:123\"")
+
 	f.StringVar(&b.ETag, "etag", "", "current etag of the entry; ignored if empty")
 }
 
@@ -86,6 +90,18 @@ func (b *Body) Load() (proto.Message, error) {
 	epb.Queued = b.Queued
 	epb.Score = float32(b.Score)
 	epb.Etag = []byte(b.ETag)
+
+	for _, id := range b.LinkedIDs {
+		api, lid, _ := strings.Cut(id, ":")
+		epb.LinkedIds = append(epb.LinkedIds,
+			&dpb.LinkedID{
+				Id: lid,
+				Api: dpb.API(
+					dpb.API_value[utils.ToEnum("API", api)]),
+			},
+		)
+
+	}
 
 	switch utils.AuxDataL[epb.GetCorpus()] {
 	case utils.AuxDataVideo:
@@ -191,6 +207,9 @@ func (id *ID) SetFlags(f *flag.FlagSet) {
 
 func (id *ID) Load() (proto.Message, error) {
 	return &dpb.Entry{
-		Id: id.ID,
+		Id: &dpb.LinkedID{
+			Id:  id.ID,
+			Api: dpb.API_API_TRUFFLE,
+		},
 	}, nil
 }

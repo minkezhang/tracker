@@ -77,6 +77,9 @@ func Patch(opts O) (*dpb.Entry, error) {
 			epb.GetAuxDataGame().Writers = fpb.GetAuxDataGame().GetWriters()
 		}
 	}
+	if len(fpb.GetLinkedIds()) > 0 {
+		epb.LinkedIds = fpb.GetLinkedIds()
+	}
 
 	return opts.DB.Put(epb)
 }

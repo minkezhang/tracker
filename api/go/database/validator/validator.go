@@ -16,6 +16,7 @@ var (
 		corpus,
 		aux_data,
 		tracker,
+		linked_ids,
 	}
 )
 
@@ -23,6 +24,22 @@ func Validate(epb *dpb.Entry) error {
 	for _, v := range validators {
 		if err := v(epb); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func linked_ids(e *dpb.Entry) error {
+	unhandled := map[dpb.API]bool{
+		dpb.API_API_TRUFFLE: true,
+	}
+
+	for _, id := range e.GetLinkedIds() {
+		if unhandled[id.GetApi()] {
+			return fmt.Errorf("invalid linked API %v", id.GetApi().String())
+		}
+		if id.GetApi() == dpb.API_API_UNKNOWN && id.GetId() != "" {
+			return fmt.Errorf("invalid non-null ID for API %v", id.GetApi())
 		}
 	}
 	return nil

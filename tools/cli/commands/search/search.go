@@ -50,6 +50,11 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 	c.ordering.SetFlags(f)
 }
 
+type d struct {
+	id  string
+	api dpb.API
+}
+
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
 	if len(c.ordering.Orderings) == 0 {
 		c.ordering.Orderings = append(
@@ -82,7 +87,28 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	entries, err = ordering.Order(entries, *c.ordering)
+	var unique []*dpb.Entry
+
+	duplicates := map[d]bool{}
+	for _, epb := range entries {
+		dup := d{
+			id:  epb.GetId().GetId(),
+			api: epb.GetId().GetApi(),
+		}
+		if _, ok := duplicates[dup]; ok {
+			continue
+		}
+		duplicates[dup] = true
+		for _, id := range epb.GetLinkedIds() {
+			duplicates[d{
+				id:  id.GetId(),
+				api: id.GetApi(),
+			}] = true
+		}
+		unique = append(unique, epb)
+	}
+
+	unique, err = ordering.Order(unique, *c.ordering)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure
@@ -90,7 +116,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 
 	e := &ce.E{Format: ce.FormatShort}
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	for _, epb := range entries {
+	for _, epb := range unique {
 		e.Dump(epb)
 		fmt.Fprint(w, string(e.Data))
 	}

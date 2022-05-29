@@ -45,7 +45,7 @@ func (e *E) Dump(m proto.Message) error {
 
 		epb.GetCorpus().String(),
 
-		epb.GetId(),
+		utils.ID(epb.GetId()),
 
 		map[bool]string{
 			true:  "Q",

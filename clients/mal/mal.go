@@ -19,7 +19,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/nstratos/go-myanimelist/mal"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
@@ -122,7 +121,10 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 		}
 
 		epb := &dpb.Entry{
-			Id:     utils.ID(dpb.API_API_MAL, strconv.FormatInt(int64(r.ID), 10)),
+			Id: &dpb.LinkedID{
+				Id:  strconv.FormatInt(int64(r.ID), 10),
+				Api: dpb.API_API_MAL,
+			},
 			Titles: []string{r.Title},
 			Score:  float32(r.Mean),
 			Corpus: lookup[r.MediaType],
@@ -190,7 +192,10 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 		}
 
 		epb := &dpb.Entry{
-			Id:     utils.ID(dpb.API_API_MAL, strconv.FormatInt(int64(r.ID), 10)),
+			Id: &dpb.LinkedID{
+				Id:  strconv.FormatInt(int64(r.ID), 10),
+				Api: dpb.API_API_MAL,
+			},
 			Titles: []string{r.Title},
 			Score:  float32(r.Mean),
 			Corpus: lookup[r.MediaType],

@@ -60,10 +60,17 @@ message Database {
 	map<string, Entry> entries = 1;
 }
 
+message LinkedID {
+	string id = 1;
+	API api = 2;
+}
+
 message Entry {
 	// Immutable fields.
-	string id = 12;
+	LinkedID id = 12;
 	bytes etag = 13;
+
+	repeated LinkedID linked_ids = 14;	
 
 	Corpus corpus = 1;
 	repeated string titles = 2;
