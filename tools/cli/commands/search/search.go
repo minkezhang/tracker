@@ -87,27 +87,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	duplicates := map[d]bool{}
-	for _, epb := range entries {
-		for _, id := range epb.GetLinkedIds() {
-			duplicates[d{
-				id:  id.GetId(),
-				api: id.GetApi()}] = true
-		}
-	}
-
-	var unique []*dpb.Entry
-	for _, epb := range entries {
-		if _, ok := duplicates[d{
-			id:  epb.GetId().GetId(),
-			api: epb.GetId().GetApi(),
-		}]; ok {
-			continue
-		}
-		unique = append(unique, epb)
-	}
-
-	unique, err = ordering.Order(unique, *c.ordering)
+	entries, err = ordering.Order(entries, *c.ordering)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure
@@ -115,7 +95,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 
 	e := &ce.E{Format: ce.FormatShort}
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	for _, epb := range unique {
+	for _, epb := range entries {
 		e.Dump(epb)
 		fmt.Fprint(w, string(e.Data))
 	}

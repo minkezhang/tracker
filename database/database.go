@@ -9,6 +9,7 @@ import (
 	"reflect"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/api/go/database/validator"
 	"github.com/minkezhang/truffle/database/ids"
 	"github.com/minkezhang/truffle/database/search"
@@ -129,6 +130,13 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 		apis[api] = true
 	}
 
+	duplicates := map[string]bool{}
+	for _, epb := range db.db.GetEntries() {
+		for _, id := range epb.GetLinkedIds() {
+			duplicates[utils.ID(id)] = true
+		}
+	}
+
 	var candidates []*dpb.Entry
 	for api, _ := range apis {
 		if sf, ok := s[api]; ok {
@@ -139,7 +147,17 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 			candidates = append(candidates, cs...)
 		}
 	}
-	return candidates, nil
+
+	var unique []*dpb.Entry
+	for _, epb := range candidates {
+		// Skip reporting entries which are already accounted for in the
+		// user DB (if we are returning user DB results).
+		if apis[dpb.API_API_TRUFFLE] && duplicates[utils.ID(epb.GetId())] {
+			continue
+		}
+		unique = append(unique, epb)
+	}
+	return unique, nil
 }
 
 func ETag(epb *dpb.Entry) ([]byte, error) {
