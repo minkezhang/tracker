@@ -35,11 +35,8 @@ func linked_ids(e *dpb.Entry) error {
 	}
 
 	for _, id := range e.GetLinkedIds() {
-		if unhandled[id.GetApi()] {
+		if unhandled[id.GetApi()] || (id.GetApi() == dpb.API_API_UNKNOWN && id.GetId() != "") {
 			return fmt.Errorf("invalid linked API %v", id.GetApi().String())
-		}
-		if id.GetApi() == dpb.API_API_UNKNOWN && id.GetId() != "" {
-			return fmt.Errorf("invalid non-null ID for API %v", id.GetApi())
 		}
 	}
 	return nil

@@ -92,7 +92,11 @@ func (b *Body) Load() (proto.Message, error) {
 	epb.Etag = []byte(b.ETag)
 
 	for _, id := range b.LinkedIDs {
-		api, lid, _ := strings.Cut(id, ":")
+		api, lid, ok := strings.Cut(id, ":")
+		// Assume a solid string is the ID, i.e. "123" and not the API.
+		if !ok {
+			api, lid = lid, api
+		}
 		epb.LinkedIds = append(epb.LinkedIds,
 			&dpb.LinkedID{
 				Id: lid,
