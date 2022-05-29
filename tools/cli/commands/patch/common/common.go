@@ -80,6 +80,9 @@ func Patch(opts O) (*dpb.Entry, error) {
 	if len(fpb.GetLinkedIds()) > 0 {
 		epb.LinkedIds = fpb.GetLinkedIds()
 	}
+	if len(fpb.GetProviders()) > 0 {
+		epb.Providers = fpb.GetProviders()
+	}
 
 	return opts.DB.Put(epb)
 }
