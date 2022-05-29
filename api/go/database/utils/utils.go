@@ -28,8 +28,13 @@ var (
 	}
 )
 
-func ID(api dpb.API, id string) string {
-	return fmt.Sprintf("%v:%v", APIPrefix[api], id)
+func ID(id *dpb.LinkedID) string {
+	var parts []string
+	if api := APIPrefix[id.GetApi()]; api != "" {
+		parts = append(parts, api)
+	}
+	parts = append(parts, id.GetId())
+	return strings.Join(parts, ":")
 }
 
 var (

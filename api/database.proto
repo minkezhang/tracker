@@ -67,7 +67,7 @@ message LinkedID {
 
 message Entry {
 	// Immutable fields.
-	string id = 12;
+	LinkedID id = 12;
 	bytes etag = 13;
 
 	repeated LinkedID linked_ids = 14;	

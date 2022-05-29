@@ -50,7 +50,10 @@ func (db *DB) Add(epb *dpb.Entry) (*dpb.Entry, error) {
 	for ; db.db.GetEntries()[eid] != nil; eid = ids.New() {
 	}
 
-	epb.Id = eid
+	epb.Id = &dpb.LinkedID{
+		Id:  eid,
+		Api: dpb.API_API_TRUFFLE,
+	}
 	etag, err := ETag(epb)
 	if err != nil {
 		return nil, err
@@ -76,7 +79,7 @@ func (db *DB) Put(epb *dpb.Entry) (*dpb.Entry, error) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot add invalid entry: %v", err)
 	}
 
-	fpb, ok := db.db.GetEntries()[epb.GetId()]
+	fpb, ok := db.db.GetEntries()[epb.GetId().GetId()]
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", epb.GetId())
 	}
@@ -89,7 +92,7 @@ func (db *DB) Put(epb *dpb.Entry) (*dpb.Entry, error) {
 	}
 	epb.Etag = etag
 
-	db.db.GetEntries()[epb.GetId()] = epb
+	db.db.GetEntries()[epb.GetId().GetId()] = epb
 	return epb, nil
 }
 
@@ -142,7 +145,7 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 func ETag(epb *dpb.Entry) ([]byte, error) {
 	epb = proto.Clone(epb).(*dpb.Entry)
 
-	epb.Id = ""
+	epb.Id = nil
 	epb.Etag = nil
 
 	data, err := prototext.Marshal(epb)
@@ -177,7 +180,10 @@ func Unmarshal(data []byte) (*DB, error) {
 		return nil, err
 	}
 	for eid, epb := range pb.GetEntries() {
-		epb.Id = eid
+		epb.Id = &dpb.LinkedID{
+			Id:  eid,
+			Api: dpb.API_API_TRUFFLE,
+		}
 		etag, err := ETag(epb)
 		if err != nil {
 			return nil, err

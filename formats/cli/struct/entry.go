@@ -207,6 +207,9 @@ func (id *ID) SetFlags(f *flag.FlagSet) {
 
 func (id *ID) Load() (proto.Message, error) {
 	return &dpb.Entry{
-		Id: id.ID,
+		Id: &dpb.LinkedID{
+			Id:  id.ID,
+			Api: dpb.API_API_TRUFFLE,
+		},
 	}, nil
 }
