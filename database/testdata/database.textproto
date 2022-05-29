@@ -1,133 +1,138 @@
-id: {
-  id: "otaF"
-  api: API_TRUFFLE
-}
-etag: "SBJAILVaTd-r3_DnDb2BTQ=="
-linked_ids: {
-  id: "48414"
-  api: API_MAL
-}
-corpus: CORPUS_ANIME
-titles: "Sabikui Bisco"
-score: 6.3
-providers: PROVIDER_CRUNCHYROLL
-queued: true
-aux_data_video: {
-  studios: "OZ"
-  directors: "Atsushi Itagaki"
-  writers: "Sadayuki Murai"
-}
-tracker_video: {
-  season: 2
-  episode: 1
-}
-entries: {
-  key: "OtaR"
-  value: {
-    id: {
-      id: "OtaR"
-      api: API_TRUFFLE
+entries:  {
+  key:  "OtaR"
+  value:  {
+    id:  {
+      id:  "OtaR"
+      api:  API_TRUFFLE
     }
-    etag: "PRO8FD1Kn3X1tu1Ov9tnNQ=="
-    corpus: CORPUS_FILM
-    titles: "12 Angry Men (1957)"
-    score: 9.3
-    aux_data_video: {
-      studios: "Orion-Nova Productions"
-      directors: "Sidney Lumet"
-      writers: "Reginald Rose"
+    etag:  "14hjDSAuwUoSgg_vFi2z9g=="
+    corpus:  CORPUS_FILM
+    titles:  "12 Angry Men (1957)"
+    score:  9.3
+    aux_data_video:  {
+      studios:  "Orion-Nova Productions"
+      directors:  "Sidney Lumet"
+      writers:  "Reginald Rose"
     }
   }
 }
-entries: {
-  key: "PNRW"
-  value: {
-    id: {
-      id: "PNRW"
-      api: API_TRUFFLE
+entries:  {
+  key:  "PNRW"
+  value:  {
+    id:  {
+      id:  "PNRW"
+      api:  API_TRUFFLE
     }
-    etag: "rI9PYS3yy7nAl5M7iQfFJg=="
-    corpus: CORPUS_ANIME_FILM
-    titles: "Akira"
-    aux_data_video: {
-      studios: "Tokyo Movie Shinsha"
-      directors: "Katsuhiro Otomo"
-      writers: "Katsuhiro Otomo"
-    }
-  }
-}
-entries: {
-  key: "UUJe"
-  value: {
-    id: {
-      id: "UUJe"
-      api: API_TRUFFLE
-    }
-    etag: "XmV2qKg3iui3E8YQvIsi1g=="
-    corpus: CORPUS_TV
-    titles: "Sense8"
-    score: 5.7
-    providers: PROVIDER_NETFLIX
-    aux_data_video: {
-      studios: "Anarchos Productions"
-      directors: "Lana Wachowski"
-      directors: "Lilly Wachowski"
-      writers: "Lana Wachowski"
-      writers: "Lilly Wachowski"
-    }
-    tracker_video: {}
-  }
-}
-entries: {
-  key: "nMkG"
-  value: {
-    id: {
-      id: "nMkG"
-      api: API_TRUFFLE
-    }
-    etag: "lVsWNieEdBM4e_PaAUsOlg=="
-    corpus: CORPUS_MANGA
-    titles: "Chrno Crusade"
-    score: 5
-    aux_data_book: {
-      authors: "Daisuke Moriyama"
-    }
-    tracker_book: {
-      chapter: 4
+    etag:  "Dua2nSaGwwNuLsdqTmdqGQ=="
+    corpus:  CORPUS_ANIME_FILM
+    titles:  "Akira"
+    aux_data_video:  {
+      studios:  "Tokyo Movie Shinsha"
+      directors:  "Katsuhiro Otomo"
+      writers:  "Katsuhiro Otomo"
     }
   }
 }
-entries: {
-  key: "tAyy"
-  value: {
-    id: {
-      id: "tAyy"
-      api: API_TRUFFLE
+entries:  {
+  key:  "UUJe"
+  value:  {
+    id:  {
+      id:  "UUJe"
+      api:  API_TRUFFLE
     }
-    etag: "7o1thFIbWV4p1WwLgBbq_g=="
-    corpus: CORPUS_GAME
-    titles: "Bastion"
-    score: 7.2
-    providers: PROVIDER_STEAM
-    aux_data_game: {
-      studios: "Supergiant Games"
-      directors: "Amir Rao"
-      writers: "Greg Kasavin"
+    etag:  "zALts8VAwozwEpw14AYXZw=="
+    corpus:  CORPUS_TV
+    titles:  "Sense8"
+    score:  5.7
+    providers:  PROVIDER_NETFLIX
+    aux_data_video:  {
+      studios:  "Anarchos Productions"
+      directors:  "Lana Wachowski"
+      directors:  "Lilly Wachowski"
+      writers:  "Lana Wachowski"
+      writers:  "Lilly Wachowski"
+    }
+    tracker_video:  {}
+  }
+}
+entries:  {
+  key:  "nMkG"
+  value:  {
+    id:  {
+      id:  "nMkG"
+      api:  API_TRUFFLE
+    }
+    etag:  "ZqgRGXzoSZvAZBZa5Sj5ug=="
+    corpus:  CORPUS_MANGA
+    titles:  "Chrno Crusade"
+    score:  5
+    aux_data_book:  {
+      authors:  "Daisuke Moriyama"
+    }
+    tracker_book:  {
+      chapter:  4
     }
   }
 }
-entries: {
-  key: "zgba"
-  value: {
-    id: {
-      id: "zgba"
-      api: API_TRUFFLE
+entries:  {
+  key:  "otaF"
+  value:  {
+    id:  {
+      id:  "otaF"
+      api:  API_TRUFFLE
     }
-    etag: "cElIiVsl3lZkuOMp65pzUA=="
-    corpus: CORPUS_ALBUM
-    titles: "Heart of My Own"
-    aux_data_audio: {
-      composers: "Basia Bulat"
+    etag:  "R1eQcrSlI6NCwY0MGqUILw=="
+    linked_ids:  {
+      id:  "48414"
+      api:  API_MAL
+    }
+    corpus:  CORPUS_ANIME
+    titles:  "Sabikui Bisco"
+    score:  6.3
+    providers:  PROVIDER_CRUNCHYROLL
+    queued:  true
+    aux_data_video:  {
+      studios:  "OZ"
+      directors:  "Atsushi Itagaki"
+      writers:  "Sadayuki Murai"
+    }
+    tracker_video:  {
+      season:  2
+      episode:  1
+    }
+  }
+}
+entries:  {
+  key:  "tAyy"
+  value:  {
+    id:  {
+      id:  "tAyy"
+      api:  API_TRUFFLE
+    }
+    etag:  "aGrUIflayrzoozsXh5jpPw=="
+    corpus:  CORPUS_GAME
+    titles:  "Bastion"
+    score:  7.2
+    providers:  PROVIDER_STEAM
+    aux_data_game:  {
+      studios:  "Supergiant Games"
+      directors:  "Amir Rao"
+      writers:  "Greg Kasavin"
+    }
+  }
+}
+entries:  {
+  key:  "zgba"
+  value:  {
+    id:  {
+      id:  "zgba"
+      api:  API_TRUFFLE
+    }
+    etag:  "5kSOqGA7aDJFOpBP_sCJTQ=="
+    corpus:  CORPUS_ALBUM
+    titles:  "Heart of My Own"
+    aux_data_audio:  {
+      composers:  "Basia Bulat"
     }
   }
 }
