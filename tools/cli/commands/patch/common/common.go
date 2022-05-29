@@ -30,8 +30,6 @@ func Patch(opts O) (*dpb.Entry, error) {
 		return nil, err
 	}
 
-	panic(epb)
-
 	opts.Body.SetCorpus(epb.GetCorpus())
 	s, err := opts.Body.Load()
 	if err != nil {
