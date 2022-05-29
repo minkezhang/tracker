@@ -87,23 +87,22 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	var unique []*dpb.Entry
-
 	duplicates := map[d]bool{}
 	for _, epb := range entries {
-		dup := d{
-			id:  epb.GetId().GetId(),
-			api: epb.GetId().GetApi(),
-		}
-		if _, ok := duplicates[dup]; ok {
-			continue
-		}
-		duplicates[dup] = true
 		for _, id := range epb.GetLinkedIds() {
 			duplicates[d{
 				id:  id.GetId(),
-				api: id.GetApi(),
-			}] = true
+				api: id.GetApi()}] = true
+		}
+	}
+
+	var unique []*dpb.Entry
+	for _, epb := range entries {
+		if _, ok := duplicates[d{
+			id:  epb.GetId().GetId(),
+			api: epb.GetId().GetApi(),
+		}]; ok {
+			continue
 		}
 		unique = append(unique, epb)
 	}
