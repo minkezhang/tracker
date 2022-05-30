@@ -1,42 +1,34 @@
-package common
+package get
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/database"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 type O struct {
-	DB *database.DB
-
-	ID     string
+	ID     *dpb.LinkedID
 	Title  string
-	Corpus string
+	Corpus dpb.Corpus
 }
 
-func Get(ctx context.Context, opts O) (*dpb.Entry, error) {
+func Get(ctx context.Context, db *database.DB, opts O) (*dpb.Entry, error) {
 	var entries []*dpb.Entry
-	if opts.ID != "" {
-		results, err := opts.DB.Get(ctx,
-			&dpb.LinkedID{
-				Id:  opts.ID,
-				Api: dpb.API_API_TRUFFLE,
-			})
+
+	if opts.ID != nil {
+		results, err := db.Get(ctx, opts.ID)
 		if err != nil {
 			return nil, err
 		}
+
 		entries = append(entries, results)
 	} else {
-		corpus := dpb.Corpus(
-			dpb.Corpus_value[utils.ToEnum("CORPUS", opts.Corpus)])
-
-		candidates, err := opts.DB.Search(ctx, database.SearchOpts{
+		candidates, err := db.Search(ctx, database.SearchOpts{
 			Title:  opts.Title,
-			Corpus: corpus,
+			Corpus: opts.Corpus,
 			APIs:   []dpb.API{dpb.API_API_TRUFFLE},
 		})
 		if err != nil {

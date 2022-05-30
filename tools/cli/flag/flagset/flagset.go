@@ -8,9 +8,9 @@ import (
 	"fmt"
 
 	"github.com/minkezhang/truffle/api/go/database/utils"
+	"github.com/minkezhang/truffle/formats/cli/struct"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
-	entry "github.com/minkezhang/truffle/formats/cli/x"
 )
 
 type Corpus entry.E
@@ -31,7 +31,7 @@ type Title entry.E
 
 func (set *Title) SetFlags(f *flag.FlagSet) {
 	g := func(title string) error {
-		set.Titles = append(set.Titles, title)
+		set.Titles = []string{title}
 		return nil
 	}
 	f.Func("title", "entry title, e.g. \"12 Angry Men\"", g)

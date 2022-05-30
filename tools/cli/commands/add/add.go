@@ -4,28 +4,25 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"unsafe"
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/database"
-	"google.golang.org/protobuf/proto"
+	"github.com/minkezhang/truffle/formats/cli/struct"
+	"github.com/minkezhang/truffle/tools/cli/flag/flagset"
 
-	dpb "github.com/minkezhang/truffle/api/go/database"
 	ce "github.com/minkezhang/truffle/formats/cli"
-	se "github.com/minkezhang/truffle/formats/cli/struct"
 )
 
 type C struct {
-	db *database.DB
-
-	body   *se.Body
-	titles *se.Titles
+	db    *database.DB
+	entry *entry.E
 }
 
 func New(db *database.DB) *C {
 	return &C{
-		db:     db,
-		titles: &se.Titles{},
-		body:   &se.Body{},
+		db:    db,
+		entry: &entry.E{},
 	}
 }
 
@@ -34,25 +31,16 @@ func (c *C) Synopsis() string { return "add entry to database" }
 func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
-	c.titles.SetFlags(f)
-	c.body.SetFlags(f)
+	(*flagset.Titles)(unsafe.Pointer(c.entry)).SetFlags(f)
+	(*flagset.Body)(unsafe.Pointer(c.entry)).SetFlags(f)
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
-	s, err := c.titles.Load()
+	epb, err := c.entry.PB()
 	if err != nil {
 		fmt.Printf("Could not load flags into data struct: %v\n", err)
 		return subcommands.ExitFailure
 	}
-
-	epb := s.(*dpb.Entry)
-
-	s, err = c.body.Load()
-	if err != nil {
-		fmt.Printf("Could not load flags into data struct: %v\n", err)
-	}
-
-	proto.Merge(epb, s.(*dpb.Entry))
 
 	epb, err = c.db.Add(ctx, epb)
 	if err != nil {

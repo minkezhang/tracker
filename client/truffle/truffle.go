@@ -1,3 +1,7 @@
+// Package truffle provides a client interface for the truffle DB.
+//
+// TODO(minkezhang): Add support for server-side atomic operations (i.e.
+// RW-locks).
 package truffle
 
 import (

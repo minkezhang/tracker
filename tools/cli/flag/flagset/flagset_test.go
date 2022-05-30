@@ -6,9 +6,10 @@ import (
 	"unsafe"
 
 	"github.com/google/go-cmp/cmp"
-	dpb "github.com/minkezhang/truffle/api/go/database"
-	"github.com/minkezhang/truffle/formats/cli/x"
+	"github.com/minkezhang/truffle/formats/cli/struct"
 	"google.golang.org/protobuf/testing/protocmp"
+
+	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 func TestSetFlags(t *testing.T) {
@@ -18,12 +19,14 @@ func TestSetFlags(t *testing.T) {
 	(*ID)(unsafe.Pointer(got)).SetFlags(f)
 	(*Title)(unsafe.Pointer(got)).SetFlags(f)
 	(*Corpus)(unsafe.Pointer(got)).SetFlags(f)
+	(*Body)(unsafe.Pointer(got)).SetFlags(f)
 
 	if err := f.Parse(
 		[]string{
 			"--corpus=manga",
 			"--id=123",
 			"--title=ABC",
+			"--providers=crunchyroll",
 		}); err != nil {
 		t.Errorf("Parse() = %v, want = nil", err)
 	}
@@ -35,6 +38,9 @@ func TestSetFlags(t *testing.T) {
 		},
 		Corpus: dpb.Corpus_CORPUS_MANGA,
 		Titles: []string{"ABC"},
+		Providers: []dpb.Provider{
+			dpb.Provider_PROVIDER_CRUNCHYROLL,
+		},
 	}
 
 	if diff := cmp.Diff(want, got, protocmp.Transform()); diff != "" {

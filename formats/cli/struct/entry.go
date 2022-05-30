@@ -1,146 +1,88 @@
 package entry
 
 import (
-	"flag"
-	"fmt"
 	"strings"
 
 	"github.com/minkezhang/truffle/api/go/database/utils"
-	"google.golang.org/protobuf/proto"
+	"github.com/minkezhang/truffle/tools/cli/flag"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
-	entry "github.com/minkezhang/truffle/formats/cli/x"
-	cf "github.com/minkezhang/truffle/tools/cli/flag"
 )
 
-type F entry.E
+// E centralizes flagset storage.
+type E struct {
+	// ID is a string of the truffle ID.
+	ID *dpb.LinkedID
 
-func (g *F) SetFlags(f *flag.FlagSet) {
-	f.Var(&g.Providers, "p", "")
-}
-
-type Body struct {
-	corpus *Corpus
-
-	Providers cf.MultiString
-
-	Directors cf.MultiString
-	Studios   cf.MultiString
-	Writers   cf.MultiString
+	Titles    flag.MultiString
+	Corpus    dpb.Corpus
+	LinkedIDs []*dpb.LinkedID
+	Providers []dpb.Provider
 
 	Score  float64
 	Queued bool
 
+	Directors flag.MultiString
+	Studios   flag.MultiString
+	Writers   flag.MultiString
+
 	Season  int
 	Episode int
 
-	ETag string
-
-	LinkedIDs cf.MultiString
+	ETag []byte
 }
 
-func (b *Body) GetCorpus() string {
-	if b.corpus == nil {
-		return "unknown"
+func ID(id string) *dpb.LinkedID {
+	api, lid, ok := strings.Cut(id, ":")
+	// Assume a solid string is the ID, i.e. "123" and not the API.
+	if !ok {
+		api, lid = lid, api
 	}
-	return b.corpus.Corpus
-}
-
-func (b *Body) SetCorpus(c dpb.Corpus) {
-	_, corpus, _ := strings.Cut(c.String(), "_")
-	b.corpus = &Corpus{
-		Corpus: corpus,
+	return &dpb.LinkedID{
+		Id: lid,
+		Api: dpb.API(
+			dpb.API_value[utils.ToEnum("API", api)]),
 	}
 }
 
-func (b *Body) SetFlags(f *flag.FlagSet) {
-	b.corpus = &Corpus{}
-	b.corpus.SetFlags(f)
-
-	f.Var(&b.Providers, "providers", "distributors of the entry, e.g. \"google_play\"")
-
-	f.Float64Var(&b.Score, "score", 0, "user score")
-	f.BoolVar(&b.Queued, "queued", false, "indicates if the entry is on the user watchlist")
-
-	f.Var(&b.Directors, "directors", "directors of game or visual-based entries")
-	f.Var(&b.Studios, "studios", "studios of game or visual-based entries")
-	f.Var(&b.Writers, "writers", "writers of game or visual-based entries")
-	f.Var(&b.Writers, "composers", "composers for album-only entries")
-	f.Var(&b.Writers, "authors", "authors for literature-based entries")
-
-	f.IntVar(&b.Season, "season", 0, "current anime or tv show season")
-	f.IntVar(&b.Season, "volume", 0, "current manga or book volume")
-	f.IntVar(&b.Episode, "episode", 0, "current anime or tv show episode")
-	f.IntVar(&b.Episode, "chapter", 0, "current manga or book chapter")
-
-	f.Var(&b.LinkedIDs, "links", "linked API IDs, e.g. \"mal:123\"")
-
-	f.StringVar(&b.ETag, "etag", "", "current etag of the entry; ignored if empty")
-}
-
-func (b *Body) Load() (proto.Message, error) {
-	if b.corpus == nil {
-		return nil, fmt.Errorf("cannot load body without a corpus defined")
-	}
-
-	epb := &dpb.Entry{}
-
-	s, _ := b.corpus.Load()
-	proto.Merge(epb, s.(*dpb.Entry))
-
-	var providers []dpb.Provider
-	for _, p := range b.Providers {
-		providers = append(providers, dpb.Provider(dpb.Provider_value[utils.ToEnum("PROVIDER", p)]))
-	}
-
-	epb.Providers = providers
-	epb.Queued = b.Queued
-	epb.Score = float32(b.Score)
-	epb.Etag = []byte(b.ETag)
-
-	for _, id := range b.LinkedIDs {
-		api, lid, ok := strings.Cut(id, ":")
-		// Assume a solid string is the ID, i.e. "123" and not the API.
-		if !ok {
-			api, lid = lid, api
-		}
-		epb.LinkedIds = append(epb.LinkedIds,
-			&dpb.LinkedID{
-				Id: lid,
-				Api: dpb.API(
-					dpb.API_value[utils.ToEnum("API", api)]),
-			},
-		)
-
+func (e E) PB() (*dpb.Entry, error) {
+	epb := &dpb.Entry{
+		Id:        e.ID,
+		Corpus:    e.Corpus,
+		LinkedIds: e.LinkedIDs,
+		Score:     float32(e.Score),
+		Providers: e.Providers,
+		Queued:    e.Queued,
+		Etag:      e.ETag,
 	}
 
 	switch utils.AuxDataL[epb.GetCorpus()] {
 	case utils.AuxDataVideo:
 		epb.AuxData = &dpb.Entry_AuxDataVideo{
 			AuxDataVideo: &dpb.AuxDataVideo{
-				Studios:   b.Studios,
-				Directors: b.Directors,
-				Writers:   b.Writers,
+				Studios:   e.Studios,
+				Directors: e.Directors,
+				Writers:   e.Writers,
 			},
 		}
 	case utils.AuxDataBook:
 		epb.AuxData = &dpb.Entry_AuxDataBook{
 			AuxDataBook: &dpb.AuxDataBook{
-				Authors: b.Writers,
+				Authors: e.Writers,
 			},
 		}
 	case utils.AuxDataGame:
 		epb.AuxData = &dpb.Entry_AuxDataGame{
 			AuxDataGame: &dpb.AuxDataGame{
-				Studios:   b.Studios,
-				Directors: b.Directors,
-				Writers:   b.Writers,
+				Studios:   e.Studios,
+				Directors: e.Directors,
+				Writers:   e.Writers,
 			},
 		}
 	case utils.AuxDataAudio:
 		epb.AuxData = &dpb.Entry_AuxDataAudio{
 			AuxDataAudio: &dpb.AuxDataAudio{
-				Composers: b.Writers,
+				Composers: e.Writers,
 			},
 		}
 	}
@@ -149,78 +91,18 @@ func (b *Body) Load() (proto.Message, error) {
 	case utils.TrackerVideo:
 		epb.Tracker = &dpb.Entry_TrackerVideo{
 			TrackerVideo: &dpb.TrackerVideo{
-				Season:  int32(b.Season),
-				Episode: int32(b.Episode),
+				Season:  int32(e.Season),
+				Episode: int32(e.Episode),
 			},
 		}
 	case utils.TrackerBook:
 		epb.Tracker = &dpb.Entry_TrackerBook{
 			TrackerBook: &dpb.TrackerBook{
-				Volume:  int32(b.Season),
-				Chapter: int32(b.Episode),
+				Volume:  int32(e.Season),
+				Chapter: int32(e.Episode),
 			},
 		}
 	}
 
 	return epb, nil
-}
-
-type Title struct {
-	Title string
-}
-
-func (t *Title) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&t.Title, "title", "", "entry title, e.g. \"12 Angry Men\"")
-}
-
-func (t *Title) Load() (proto.Message, error) {
-	return &dpb.Entry{
-		Titles: []string{t.Title},
-	}, nil
-}
-
-type Titles struct {
-	Titles cf.MultiString
-}
-
-func (t *Titles) SetFlags(f *flag.FlagSet) {
-	f.Var(&t.Titles, "titles", "entry titles, e.g. \"12 Angry Men\"")
-}
-
-func (t *Titles) Load() (proto.Message, error) {
-	return &dpb.Entry{
-		Titles: t.Titles,
-	}, nil
-}
-
-type Corpus struct {
-	Corpus string
-}
-
-func (c *Corpus) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&c.Corpus, "corpus", "unknown", "entry corpus, e.g. \"film\"")
-}
-
-func (c *Corpus) Load() (proto.Message, error) {
-	return &dpb.Entry{
-		Corpus: dpb.Corpus(
-			dpb.Corpus_value[utils.ToEnum("CORPUS", c.Corpus)]),
-	}, nil
-}
-
-type ID struct {
-	ID string
-}
-
-func (id *ID) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&id.ID, "id", "", "entry ID")
-}
-
-func (id *ID) Load() (proto.Message, error) {
-	return &dpb.Entry{
-		Id: &dpb.LinkedID{
-			Id:  id.ID,
-			Api: dpb.API_API_TRUFFLE,
-		},
-	}, nil
 }

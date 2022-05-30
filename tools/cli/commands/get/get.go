@@ -4,29 +4,26 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"unsafe"
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/database"
-	"github.com/minkezhang/truffle/tools/cli/commands/get/common"
+	"github.com/minkezhang/truffle/database/helper/get"
+	"github.com/minkezhang/truffle/tools/cli/flag/flagset"
+	"github.com/minkezhang/truffle/formats/cli/struct"
 
 	ce "github.com/minkezhang/truffle/formats/cli"
-	se "github.com/minkezhang/truffle/formats/cli/struct"
 )
 
 type C struct {
 	db *database.DB
-
-	title  *se.Title
-	id     *se.ID
-	corpus *se.Corpus
+	entry *entry.E
 }
 
 func New(db *database.DB) *C {
 	return &C{
-		db:     db,
-		title:  &se.Title{},
-		id:     &se.ID{},
-		corpus: &se.Corpus{},
+		db:    db,
+		entry: &entry.E{},
 	}
 }
 
@@ -35,17 +32,19 @@ func (c *C) Synopsis() string { return "get entry from database with matching pa
 func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
-	c.title.SetFlags(f)
-	c.id.SetFlags(f)
-	c.corpus.SetFlags(f)
+	(*flagset.Title)(unsafe.Pointer(c.entry)).SetFlags(f)
+	(*flagset.ID)(unsafe.Pointer(c.entry)).SetFlags(f)
+	(*flagset.Corpus)(unsafe.Pointer(c.entry)).SetFlags(f)
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
-	epb, err := common.Get(ctx, common.O{
-		DB:     c.db,
-		Title:  c.title.Title,
-		ID:     c.id.ID,
-		Corpus: c.corpus.Corpus,
+	if len(c.entry.Titles) == 0 {
+		... ""?
+	}
+	epb, err := get.Get(ctx, c.db, get.O{
+		Title:  c.entry.Titles[0],
+		ID:     c.entry.ID,
+		Corpus: c.entry.Corpus,
 	})
 	if err != nil {
 		fmt.Printf("%v\n", err)
