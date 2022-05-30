@@ -42,7 +42,7 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
-	epb, err := common.Get(common.O{
+	epb, err := common.Get(ctx, common.O{
 		DB:     c.db,
 		ID:     c.id.ID,
 		Title:  c.title.Title,
@@ -53,7 +53,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	epb, err = c.db.Delete(epb.GetId().GetId())
+	epb, err = c.db.Delete(ctx, epb.GetId())
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure

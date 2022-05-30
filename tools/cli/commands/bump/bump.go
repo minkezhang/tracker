@@ -48,7 +48,7 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
-	epb, err := gc.Get(gc.O{
+	epb, err := gc.Get(ctx, gc.O{
 		DB:     c.db,
 		ID:     c.id.ID,
 		Title:  c.title.Title,
@@ -81,7 +81,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		body.Episode = int(episode) + 1
 	}
 
-	epb, err = pc.Patch(pc.O{
+	epb, err = pc.Patch(ctx, pc.O{
 		DB:    c.db,
 		ID:    c.id.ID,
 		Title: c.title.Title,

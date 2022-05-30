@@ -32,33 +32,23 @@ func New(epbs []*dpb.Entry) *DB {
 	return db
 }
 
-func (db *DB) Add(epb *dpb.Entry) (*dpb.Entry, error) {
-	return db.truffle.Add(context.Background(), epb)
+func (db *DB) Add(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
+	return db.truffle.Add(ctx, epb)
 }
 
-func (db *DB) Get(id string) (*dpb.Entry, error) {
-	return db.truffle.Get(
-		context.Background(),
-		&dpb.LinkedID{
-			Id:  id,
-			Api: dpb.API_API_TRUFFLE,
-		})
+func (db *DB) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
+	return db.truffle.Get(ctx, id)
 }
 
-func (db *DB) Put(epb *dpb.Entry) (*dpb.Entry, error) {
-	return db.truffle.Put(context.Background(), epb)
+func (db *DB) Put(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
+	return db.truffle.Put(ctx, epb)
 }
 
-func (db *DB) Delete(id string) (*dpb.Entry, error) {
-	return db.truffle.Delete(context.Background(), &dpb.LinkedID{
-		Id:  id,
-		Api: dpb.API_API_TRUFFLE,
-	})
+func (db *DB) Delete(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
+	return db.truffle.Delete(ctx, id)
 }
 
-type O struct {
-	Context context.Context
-
+type SearchOpts struct {
 	Title  string
 	Corpus dpb.Corpus
 
@@ -68,9 +58,9 @@ type O struct {
 	MAL mal.SearchOpts
 }
 
-func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
+func (db *DB) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) {
 	apis := map[dpb.API]bool{}
-	for _, api := range opts.APIs {
+	for _, api := range query.APIs {
 		apis[api] = true
 	}
 
@@ -78,10 +68,10 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 
 	if apis[dpb.API_API_TRUFFLE] {
 		if cs, err := db.truffle.Search(
-			opts.Context,
+			ctx,
 			truffle.SearchOpts{
-				Title:  opts.Title,
-				Corpus: opts.Corpus,
+				Title:  query.Title,
+				Corpus: query.Corpus,
 			},
 		); err != nil {
 			return nil, err
@@ -99,11 +89,11 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 
 	if apis[dpb.API_API_MAL] {
 		if cs, err := mal.New().Search(
-			opts.Context,
+			ctx,
 			mal.SearchOpts{
-				Title:  opts.Title,
-				Corpus: opts.Corpus,
-				Cutoff: opts.MAL.Cutoff,
+				Title:  query.Title,
+				Corpus: query.Corpus,
+				Cutoff: query.MAL.Cutoff,
 			},
 		); err != nil {
 			return nil, err

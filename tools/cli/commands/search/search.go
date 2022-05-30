@@ -72,11 +72,10 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 	}
 
 	s, _ := c.corpus.Load()
-	entries, err := c.db.Search(database.O{
-		Context: ctx,
-		Title:   c.title.Title,
-		Corpus:  s.(*dpb.Entry).GetCorpus(),
-		APIs:    apis,
+	entries, err := c.db.Search(ctx, database.SearchOpts{
+		Title:  c.title.Title,
+		Corpus: s.(*dpb.Entry).GetCorpus(),
+		APIs:   apis,
 
 		MAL: mal.SearchOpts{
 			Cutoff: 2000,

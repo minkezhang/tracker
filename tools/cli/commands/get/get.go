@@ -41,7 +41,7 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
-	epb, err := common.Get(common.O{
+	epb, err := common.Get(ctx, common.O{
 		DB:     c.db,
 		Title:  c.title.Title,
 		ID:     c.id.ID,

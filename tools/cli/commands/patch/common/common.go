@@ -1,6 +1,8 @@
 package common
 
 import (
+	"context"
+
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/tools/cli/commands/get/common"
@@ -19,8 +21,8 @@ type O struct {
 	Body *se.Body
 }
 
-func Patch(opts O) (*dpb.Entry, error) {
-	epb, err := common.Get(common.O{
+func Patch(ctx context.Context, opts O) (*dpb.Entry, error) {
+	epb, err := common.Get(ctx, common.O{
 		DB:     opts.DB,
 		Title:  opts.Title,
 		ID:     opts.ID,
@@ -84,5 +86,5 @@ func Patch(opts O) (*dpb.Entry, error) {
 		epb.Providers = fpb.GetProviders()
 	}
 
-	return opts.DB.Put(epb)
+	return opts.DB.Put(ctx, epb)
 }
