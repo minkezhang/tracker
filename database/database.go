@@ -11,10 +11,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/api/go/database/validator"
+	"github.com/minkezhang/truffle/client/mal"
+	"github.com/minkezhang/truffle/client/truffle"
 	"github.com/minkezhang/truffle/database/ids"
-	"github.com/minkezhang/truffle/database/search"
-	"github.com/minkezhang/truffle/database/search/mal"
-	"github.com/minkezhang/truffle/database/search/truffle"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -66,12 +65,12 @@ func (db *DB) Add(epb *dpb.Entry) (*dpb.Entry, error) {
 }
 
 func (db *DB) Get(id string) (*dpb.Entry, error) {
-	epb, ok := db.db.GetEntries()[id]
-	if !ok {
-		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", id)
-	}
-
-	return proto.Clone(epb).(*dpb.Entry), nil
+	return truffle.New(db.db).Get(
+		context.Background(),
+		&dpb.LinkedID{
+			Id:  id,
+			Api: dpb.API_API_TRUFFLE,
+		})
 }
 
 func (db *DB) Put(epb *dpb.Entry) (*dpb.Entry, error) {
@@ -112,24 +111,10 @@ type O struct {
 	APIs []dpb.API
 
 	// MAL contains MAL-specific API options.
-	MAL mal.O
+	MAL mal.SearchOpts
 }
 
 func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
-	s := map[dpb.API]search.S{
-		dpb.API_API_TRUFFLE: truffle.S{
-			DB:     db.db,
-			Title:  opts.Title,
-			Corpus: opts.Corpus,
-		},
-		dpb.API_API_MAL: mal.New(opts.Title, opts.Corpus, opts.MAL.Cutoff),
-	}
-
-	apis := map[dpb.API]bool{}
-	for _, api := range opts.APIs {
-		apis[api] = true
-	}
-
 	duplicates := map[string]bool{}
 	for _, epb := range db.db.GetEntries() {
 		for _, id := range epb.GetLinkedIds() {
@@ -137,13 +122,38 @@ func (db *DB) Search(opts O) ([]*dpb.Entry, error) {
 		}
 	}
 
+	apis := map[dpb.API]bool{}
+	for _, api := range opts.APIs {
+		apis[api] = true
+	}
+
 	var candidates []*dpb.Entry
-	for api, _ := range apis {
-		if sf, ok := s[api]; ok {
-			cs, err := sf.Search(opts.Context)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "error while executing search operation: %v", err)
-			}
+
+	if apis[dpb.API_API_TRUFFLE] {
+		if cs, err := truffle.New(db.db).Search(
+			opts.Context,
+			truffle.SearchOpts{
+				Title:  opts.Title,
+				Corpus: opts.Corpus,
+			},
+		); err != nil {
+			return nil, err
+		} else {
+			candidates = append(candidates, cs...)
+		}
+	}
+
+	if apis[dpb.API_API_MAL] {
+		if cs, err := mal.New().Search(
+			opts.Context,
+			mal.SearchOpts{
+				Title:  opts.Title,
+				Corpus: opts.Corpus,
+				Cutoff: opts.MAL.Cutoff,
+			},
+		); err != nil {
+			return nil, err
+		} else {
 			candidates = append(candidates, cs...)
 		}
 	}

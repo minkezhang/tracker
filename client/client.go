@@ -6,7 +6,7 @@ import (
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
-type C interface {
-	Get(ctx context.Context, id string, corpus dpb.Corpus) (*dpb.Entry, error)
-	Search(ctx context.Context, query string, corpus dpb.Corpus) ([]*dpb.Entry, error)
+type RO[T any] interface {
+	Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error)
+	Search(ctx context.Context, query T) ([]*dpb.Entry, error)
 }

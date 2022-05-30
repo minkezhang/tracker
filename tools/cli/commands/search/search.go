@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/api/go/database/utils"
+	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
-	"github.com/minkezhang/truffle/database/search/mal"
 	"github.com/minkezhang/truffle/tools/cli/commands/search/ordering"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
@@ -78,7 +78,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		Corpus:  s.(*dpb.Entry).GetCorpus(),
 		APIs:    apis,
 
-		MAL: mal.O{
+		MAL: mal.SearchOpts{
 			Cutoff: 2000,
 		},
 	})
