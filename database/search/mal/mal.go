@@ -3,7 +3,7 @@ package mal
 import (
 	"context"
 
-	"github.com/minkezhang/truffle/clients/mal"
+	"github.com/minkezhang/truffle/client/mal"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
