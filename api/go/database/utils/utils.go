@@ -58,6 +58,7 @@ func ETag(epb *dpb.Entry) ([]byte, error) {
 	), nil
 }
 
+// TODO(minkezhang): Migrate elsewhere.
 func ID(id *dpb.LinkedID) string {
 	var parts []string
 	if api := APIPrefix[id.GetApi()]; api != "" {

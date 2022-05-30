@@ -9,8 +9,15 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
+	entry "github.com/minkezhang/truffle/formats/cli/x"
 	cf "github.com/minkezhang/truffle/tools/cli/flag"
 )
+
+type F entry.E
+
+func (g *F) SetFlags(f *flag.FlagSet) {
+	f.Var(&g.Providers, "p", "")
+}
 
 type Body struct {
 	corpus *Corpus
