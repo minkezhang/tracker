@@ -5,23 +5,36 @@ package flagset
 
 import (
 	"flag"
+	"fmt"
 
+	"github.com/minkezhang/truffle/api/go/database/utils"
+
+	dpb "github.com/minkezhang/truffle/api/go/database"
 	entry "github.com/minkezhang/truffle/formats/cli/x"
 )
 
 type Corpus entry.E
 
 func (set *Corpus) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&set.Corpus, "corpus", "unknown", "entry corpus, e.g. \"film\"")
+	g := func(corpus string) error {
+		if corpus == "" {
+			corpus = "unknown"
+		}
+		set.Corpus = dpb.Corpus(
+			dpb.Corpus_value[utils.ToEnum("CORPUS", corpus)])
+		return nil
+	}
+	f.Func("corpus", "entry corpus, e.g. \"film\"", g)
 }
 
 type Title entry.E
 
 func (set *Title) SetFlags(f *flag.FlagSet) {
-	f.Func("title", "entry title, e.g. \"12 Angry Men\"", func(s string) error {
-		set.Titles = append(set.Titles, s)
+	g := func(title string) error {
+		set.Titles = append(set.Titles, title)
 		return nil
-	})
+	}
+	f.Func("title", "entry title, e.g. \"12 Angry Men\"", g)
 }
 
 type Titles entry.E
@@ -33,13 +46,21 @@ func (set *Titles) SetFlags(f *flag.FlagSet) {
 type ID entry.E
 
 func (set *ID) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&set.ID, "id", "", "entry ID")
+	g := func(id string) error {
+		set.ID = entry.ID(fmt.Sprintf("truffle:%v", id))
+		return nil
+	}
+	f.Func("id", "entry ID, e.g. \"JxCF\"", g)
 }
 
 type Body entry.E
 
 func (set *Body) SetFlags(f *flag.FlagSet) {
-	f.Var(&set.Providers, "providers", "distributors of the entry, e.g. \"google_play\"")
+	f.Func("providers", "distributors of the entry, e.g. \"google_play\"", func(provider string) error {
+		set.Providers = append(set.Providers, dpb.Provider(
+			dpb.Provider_value[utils.ToEnum("PROVIDER", provider)]))
+		return nil
+	})
 
 	f.Float64Var(&set.Score, "score", 0, "user score")
 	f.BoolVar(&set.Queued, "queued", false, "indicates if the entry is on the user watchlist")
@@ -55,7 +76,13 @@ func (set *Body) SetFlags(f *flag.FlagSet) {
 	f.IntVar(&set.Episode, "episode", 0, "current anime or tv show episode")
 	f.IntVar(&set.Episode, "chapter", 0, "current manga or book chapter")
 
-	f.Var(&set.LinkedIDs, "links", "linked API IDs, e.g. \"mal:123\"")
+	f.Func("links", "linked API IDs, e.g. \"mal:123\"", func(link string) error {
+		set.LinkedIDs = append(set.LinkedIDs, entry.ID(link))
+		return nil
+	})
 
-	f.StringVar(&set.ETag, "etag", "", "current etag of the entry; ignored if empty")
+	f.Func("etag", "current etag of the entry; ignored if empty", func(etag string) error {
+		set.ETag = []byte(etag)
+		return nil
+	})
 }

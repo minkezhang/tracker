@@ -12,20 +12,12 @@ import (
 // E centralizes flagset storage.
 type E struct {
 	// ID is a string of the truffle ID.
-	ID string
+	ID *dpb.LinkedID
 
-	// LinkedIDs is a list of linked API IDs; each ID is of the form
-	// {API}:{API_ID}, e.g. "mal:123"
-	LinkedIDs flag.MultiString
-
-	Titles flag.MultiString
-
-	// Corpus is a sanitized dpb.Corpus enum string, e.g. "manga".
-	Corpus string
-
-	// Providers is a list of sanitized dpb.Provider enum strings, e.g.
-	// "crunchyroll".
-	Providers flag.MultiString
+	Titles    flag.MultiString
+	Corpus    dpb.Corpus
+	LinkedIDs []*dpb.LinkedID
+	Providers []dpb.Provider
 
 	Score  float64
 	Queued bool
@@ -37,7 +29,7 @@ type E struct {
 	Season  int
 	Episode int
 
-	ETag string
+	ETag []byte
 }
 
 func ID(id string) *dpb.LinkedID {
@@ -55,20 +47,13 @@ func ID(id string) *dpb.LinkedID {
 
 func (e E) PB() (*dpb.Entry, error) {
 	epb := &dpb.Entry{
-		Id: ID(e.ID),
-		Corpus: dpb.Corpus(
-			dpb.Corpus_value[utils.ToEnum("CORPUS", e.Corpus)]),
-		Score:  float32(e.Score),
-		Queued: e.Queued,
-		Etag:   []byte(e.ETag),
-	}
-	for _, id := range e.LinkedIDs {
-		epb.LinkedIds = append(epb.GetLinkedIds(), ID(id))
-	}
-	for _, p := range e.Providers {
-		epb.Providers = append(epb.GetProviders(),
-			dpb.Provider(
-				dpb.Provider_value[utils.ToEnum("PROVIDER", p)]))
+		Id:        e.ID,
+		Corpus:    e.Corpus,
+		LinkedIds: e.LinkedIDs,
+		Score:     float32(e.Score),
+		Providers: e.Providers,
+		Queued:    e.Queued,
+		Etag:      e.ETag,
 	}
 
 	switch utils.AuxDataL[epb.GetCorpus()] {
