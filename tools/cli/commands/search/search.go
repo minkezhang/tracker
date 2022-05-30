@@ -6,34 +6,33 @@ import (
 	"fmt"
 	"os"
 	"text/tabwriter"
+	"unsafe"
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/formats/cli/struct"
 	"github.com/minkezhang/truffle/tools/cli/commands/search/ordering"
+	"github.com/minkezhang/truffle/tools/cli/flag/flagset"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 	ce "github.com/minkezhang/truffle/formats/cli"
-	se "github.com/minkezhang/truffle/formats/cli/struct"
-	cf "github.com/minkezhang/truffle/tools/cli/flag"
 )
 
 type C struct {
-	db *database.DB
+	db    *database.DB
+	entry *entry.E
 
-	apis   cf.MultiString
-	title  *se.Title
-	corpus *se.Corpus
-
+	apis     []dpb.API
 	ordering *ordering.O
 }
 
 func New(db *database.DB) *C {
 	return &C{
-		db:       db,
-		title:    &se.Title{},
-		corpus:   &se.Corpus{},
+		db:    db,
+		entry: &entry.E{},
+
 		ordering: &ordering.O{},
 	}
 }
@@ -43,40 +42,43 @@ func (c *C) Synopsis() string { return "search across multiple databases with ma
 func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
-	f.Var(&c.apis, "apis", "APIs to use in the search operation, e.g. \"truffle\"")
-	c.title.SetFlags(f)
-	c.corpus.SetFlags(f)
-
+	f.Func("apis", "APIs to use in the search operation, e.g. \"truffle\"", func(api string) error {
+		c.apis = append(c.apis, dpb.API(
+			dpb.API_value[utils.ToEnum("API", api)]))
+		return nil
+	})
 	c.ordering.SetFlags(f)
-}
 
-type d struct {
-	id  string
-	api dpb.API
+	(*flagset.Title)(unsafe.Pointer(c.entry)).SetFlags(f)
+	(*flagset.Corpus)(unsafe.Pointer(c.entry)).SetFlags(f)
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
+	epb, err := c.entry.PB()
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return subcommands.ExitFailure
+	}
+
 	if len(c.ordering.Orderings) == 0 {
 		c.ordering.Orderings = append(
 			c.ordering.Orderings, "queued", "corpus", "score", "titles",
 		)
 	}
 
-	var apis []dpb.API
 	if len(c.apis) == 0 {
-		c.apis = append(c.apis, "truffle")
-	}
-	for _, api := range c.apis {
-		apis = append(apis, dpb.API(
-			dpb.API_value[utils.ToEnum("API", api)]))
+		c.apis = []dpb.API{dpb.API_API_TRUFFLE}
 	}
 
-	s, _ := c.corpus.Load()
+	var title string
+	if len(epb.GetTitles()) > 0 {
+		title = epb.GetTitles()[0]
+	}
+
 	entries, err := c.db.Search(ctx, database.SearchOpts{
-		Title:  c.title.Title,
-		Corpus: s.(*dpb.Entry).GetCorpus(),
-		APIs:   apis,
-
+		Title:  title,
+		Corpus: epb.GetCorpus(),
+		APIs:   c.apis,
 		MAL: mal.SearchOpts{
 			Cutoff: 2000,
 		},

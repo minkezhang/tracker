@@ -48,6 +48,7 @@ func ID(id string) *dpb.LinkedID {
 func (e E) PB() (*dpb.Entry, error) {
 	epb := &dpb.Entry{
 		Id:        e.ID,
+		Titles:    e.Titles,
 		Corpus:    e.Corpus,
 		LinkedIds: e.LinkedIDs,
 		Score:     float32(e.Score),

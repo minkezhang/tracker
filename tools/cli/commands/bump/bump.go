@@ -4,34 +4,30 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"unsafe"
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/database/helper/get"
+	"github.com/minkezhang/truffle/database/helper/patch"
+	"github.com/minkezhang/truffle/formats/cli/struct"
+	"github.com/minkezhang/truffle/tools/cli/flag/flagset"
 
 	ce "github.com/minkezhang/truffle/formats/cli"
-	se "github.com/minkezhang/truffle/formats/cli/struct"
-	gc "github.com/minkezhang/truffle/tools/cli/commands/get/common"
-	pc "github.com/minkezhang/truffle/tools/cli/commands/patch/common"
 )
 
 type C struct {
 	db *database.DB
 
-	title  *se.Title
-	id     *se.ID
-	corpus *se.Corpus
-
+	entry *entry.E
 	major bool
 }
 
 func New(db *database.DB) *C {
 	return &C{
-		db: db,
-
-		title:  &se.Title{},
-		id:     &se.ID{},
-		corpus: &se.Corpus{},
+		db:    db,
+		entry: &entry.E{},
 	}
 }
 
@@ -40,20 +36,21 @@ func (c *C) Synopsis() string { return "bump entry bookmark" }
 func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
-	c.title.SetFlags(f)
-	c.id.SetFlags(f)
-	c.corpus.SetFlags(f)
+	(*flagset.ID)(unsafe.Pointer(c.entry)).SetFlags(f)
+	(*flagset.Corpus)(unsafe.Pointer(c.entry)).SetFlags(f)
+	(*flagset.Title)(unsafe.Pointer(c.entry)).SetFlags(f)
 
 	f.BoolVar(&c.major, "major", false, "bump the bookmark season / volume instead of the episode / chapter")
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
-	epb, err := gc.Get(ctx, gc.O{
-		DB:     c.db,
-		ID:     c.id.ID,
-		Title:  c.title.Title,
-		Corpus: c.corpus.Corpus,
-	})
+	epb, err := c.entry.PB()
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return subcommands.ExitFailure
+	}
+
+	epb, err = get.Get(ctx, c.db, epb)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure
@@ -74,19 +71,19 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	body := &se.Body{}
 	if c.major {
-		body.Season = int(season) + 1
+		c.entry.Season = int(season) + 1
 	} else {
-		body.Episode = int(episode) + 1
+		c.entry.Episode = int(episode) + 1
 	}
 
-	epb, err = pc.Patch(ctx, pc.O{
-		DB:    c.db,
-		ID:    c.id.ID,
-		Title: c.title.Title,
-		Body:  body,
-	})
+	epb, err = c.entry.PB()
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return subcommands.ExitFailure
+	}
+
+	epb, err = patch.Patch(ctx, c.db, epb)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure

@@ -9,14 +9,14 @@ import (
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/database/helper/get"
-	"github.com/minkezhang/truffle/tools/cli/flag/flagset"
 	"github.com/minkezhang/truffle/formats/cli/struct"
+	"github.com/minkezhang/truffle/tools/cli/flag/flagset"
 
 	ce "github.com/minkezhang/truffle/formats/cli"
 )
 
 type C struct {
-	db *database.DB
+	db    *database.DB
 	entry *entry.E
 }
 
@@ -38,14 +38,13 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 }
 
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
-	if len(c.entry.Titles) == 0 {
-		... ""?
+	epb, err := c.entry.PB()
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return subcommands.ExitFailure
 	}
-	epb, err := get.Get(ctx, c.db, get.O{
-		Title:  c.entry.Titles[0],
-		ID:     c.entry.ID,
-		Corpus: c.entry.Corpus,
-	})
+
+	epb, err = get.Get(ctx, c.db, epb)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure
