@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"math"
 	"unsafe"
 
 	"github.com/google/subcommands"
@@ -15,6 +16,7 @@ import (
 	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"github.com/minkezhang/truffle/truffle/flag/flagset"
 
+	dpb "github.com/minkezhang/truffle/api/go/database"
 	formatter "github.com/minkezhang/truffle/truffle/formatter/full/entry"
 )
 
@@ -74,16 +76,30 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
+	// Most likely use-case for bumping an entry tracker is after reading
+	// the first chapter or watching the first episode.
 	if c.major {
-		c.entry.Season = int(season) + 1
+		season = int32(math.Max(2, float64(season)+1))
+		episode = 1
 	} else {
-		c.entry.Episode = int(episode) + 1
+		episode = int32(math.Max(2, float64(episode)+1))
 	}
 
-	epb, err = c.entry.PB()
-	if err != nil {
-		fmt.Fprintln(c.common.Error, err)
-		return subcommands.ExitFailure
+	switch utils.TrackerL[epb.GetCorpus()] {
+	case utils.TrackerVideo:
+		epb.Tracker = &dpb.Entry_TrackerVideo{
+			TrackerVideo: &dpb.TrackerVideo{
+				Season:  season,
+				Episode: episode,
+			},
+		}
+	case utils.TrackerBook:
+		epb.Tracker = &dpb.Entry_TrackerBook{
+			TrackerBook: &dpb.TrackerBook{
+				Volume:  season,
+				Chapter: episode,
+			},
+		}
 	}
 
 	epb, err = patch.Patch(ctx, c.db, epb)
