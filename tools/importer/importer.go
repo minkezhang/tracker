@@ -1,7 +1,7 @@
 // Package main runs the importer on a CSV file.
 //
 // The format of the CSV file is explicitly described in
-// /formats/minkezhang/columns/
+// /tools/importer/formatter/columns/
 //
 // Example
 //
@@ -12,14 +12,15 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"log"
 	"os"
 
-	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/client/truffle"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
-	entry "github.com/minkezhang/truffle/formats/minkezhang"
+	entry "github.com/minkezhang/truffle/tools/importer/formatter"
 )
 
 var (
@@ -39,7 +40,7 @@ func main() {
 	scanner := bufio.NewScanner(fp)
 	scanner.Scan()
 
-	var entries []*dpb.Entry
+	db := truffle.New(&dpb.Database{})
 	for scanner.Scan() {
 		m, err := entry.New(scanner.Bytes()).Load()
 		if err != nil {
@@ -47,7 +48,7 @@ func main() {
 		}
 		epb := m.(*dpb.Entry)
 		if epb.GetCorpus() != dpb.Corpus_CORPUS_UNKNOWN {
-			entries = append(entries, epb)
+			db.Add(context.Background(), epb)
 		}
 	}
 
@@ -55,7 +56,7 @@ func main() {
 		log.Fatalf("error while reading CSV file %v: %v", *input, err)
 	}
 
-	data, err := database.Marshal(database.New(entries))
+	data, err := truffle.Marshal(db)
 	if err != nil {
 		log.Fatalf("error while marshalling proto: %v", err)
 	}

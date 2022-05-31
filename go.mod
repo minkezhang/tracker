@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/golang/protobuf v1.5.0
+	github.com/google/go-cmp v0.5.5
 	github.com/google/subcommands v1.2.0
 	github.com/nstratos/go-myanimelist v0.9.3
 	google.golang.org/grpc v1.31.0
