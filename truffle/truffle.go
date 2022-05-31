@@ -56,6 +56,9 @@ func write(fn string, data []byte) error {
 }
 
 func main() {
+	subcommands.ImportantFlag("database")
+	subcommands.ImportantFlag("dry_run")
+
 	flag.Parse()
 
 	data, err := read(*fn)
