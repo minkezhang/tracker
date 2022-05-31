@@ -20,7 +20,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
-	ce "github.com/minkezhang/truffle/formats/cli"
+	formatter "github.com/minkezhang/truffle/formats/cli/short/entry"
 )
 
 type C struct {
@@ -106,13 +106,17 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	e := &ce.E{Format: ce.FormatShort}
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	defer w.Flush()
+
 	for _, epb := range entries {
-		e.Dump(epb)
-		fmt.Fprint(w, string(e.Data))
+		data, err := formatter.Format(epb)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			return subcommands.ExitFailure
+		}
+		fmt.Fprint(w, string(data))
 	}
-	w.Flush()
 
 	return subcommands.ExitSuccess
 }

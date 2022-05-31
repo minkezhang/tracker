@@ -12,7 +12,7 @@ import (
 	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"github.com/minkezhang/truffle/truffle/flag/flagset"
 
-	ce "github.com/minkezhang/truffle/formats/cli"
+	formatter "github.com/minkezhang/truffle/formats/cli/full/entry"
 )
 
 type C struct {
@@ -56,9 +56,12 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	e := &ce.E{}
-	e.Dump(epb)
-	fmt.Print(string(e.Data))
+	data, err := formatter.Format(epb)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return subcommands.ExitFailure
+	}
+	fmt.Print(string(data))
 
 	return subcommands.ExitSuccess
 }
