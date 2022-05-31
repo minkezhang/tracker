@@ -9,10 +9,10 @@ import (
 	"google.golang.org/grpc/status"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
-	cf "github.com/minkezhang/truffle/truffle/flag"
 )
 
 type T int
+type C func(a *dpb.Entry, b *dpb.Entry) int
 
 const (
 	OrderingUnknown T = iota
@@ -29,26 +29,7 @@ var (
 		"score":  OrderingScore,
 		"corpus": OrderingCorpus,
 	}
-)
 
-type O struct {
-	Orderings cf.MultiString
-}
-
-func (o *O) SetFlags(f *flag.FlagSet) {
-	f.Var(&o.Orderings, "orderings", "list of fields to order by, e.g. \"title\"")
-}
-
-func Validate(o O) error {
-	for _, ordering := range o.Orderings {
-		if L[strings.ToLower(ordering)] == OrderingUnknown {
-			return status.Errorf(codes.InvalidArgument, "invalid ordering field specified %v", ordering)
-		}
-	}
-	return nil
-}
-
-var (
 	F = map[T]C{
 		OrderingTitles: func(a *dpb.Entry, b *dpb.Entry) int {
 			var at string
@@ -87,7 +68,21 @@ var (
 	}
 )
 
-type C func(a *dpb.Entry, b *dpb.Entry) int
+type O struct {
+	Orderings []T
+}
+
+func (o *O) SetFlags(f *flag.FlagSet) {
+	f.Func("orderings", "list of fields to order by, e.g. \"title\"", func(ordering string) error {
+		order := L[strings.ToLower(ordering)]
+		if order == OrderingUnknown {
+			return status.Errorf(codes.InvalidArgument, "invalid ordering field specified %v", ordering)
+		}
+		o.Orderings = append(o.Orderings, L[strings.ToLower(ordering)])
+		return nil
+	})
+}
+
 type S struct {
 	priorities []C
 
@@ -110,13 +105,9 @@ func (s *S) Less(i, j int) bool {
 }
 
 func Order(entries []*dpb.Entry, o O) ([]*dpb.Entry, error) {
-	if err := Validate(o); err != nil {
-		return nil, err
-	}
-
 	var priorities []C
 	for _, ordering := range o.Orderings {
-		if p := F[L[ordering]]; p != nil {
+		if p := F[ordering]; p != nil {
 			priorities = append(priorities, p)
 		}
 	}

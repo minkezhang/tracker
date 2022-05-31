@@ -62,7 +62,11 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 
 	if len(c.ordering.Orderings) == 0 {
 		c.ordering.Orderings = append(
-			c.ordering.Orderings, "queued", "corpus", "score", "titles",
+			c.ordering.Orderings,
+			ordering.OrderingQueued,
+			ordering.OrderingCorpus,
+			ordering.OrderingScore,
+			ordering.OrderingTitles,
 		)
 	}
 
