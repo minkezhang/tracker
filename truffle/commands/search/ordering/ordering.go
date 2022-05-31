@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
-	cf "github.com/minkezhang/truffle/tools/cli/flag"
+	cf "github.com/minkezhang/truffle/truffle/flag"
 )
 
 type T int

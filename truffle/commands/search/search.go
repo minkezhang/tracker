@@ -13,8 +13,8 @@ import (
 	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/formats/cli/struct"
-	"github.com/minkezhang/truffle/tools/cli/commands/search/ordering"
-	"github.com/minkezhang/truffle/tools/cli/flag/flagset"
+	"github.com/minkezhang/truffle/truffle/commands/search/ordering"
+	"github.com/minkezhang/truffle/truffle/flag/flagset"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 	ce "github.com/minkezhang/truffle/formats/cli"

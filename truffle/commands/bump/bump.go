@@ -12,7 +12,7 @@ import (
 	"github.com/minkezhang/truffle/database/helper/get"
 	"github.com/minkezhang/truffle/database/helper/patch"
 	"github.com/minkezhang/truffle/formats/cli/struct"
-	"github.com/minkezhang/truffle/tools/cli/flag/flagset"
+	"github.com/minkezhang/truffle/truffle/flag/flagset"
 
 	ce "github.com/minkezhang/truffle/formats/cli"
 )

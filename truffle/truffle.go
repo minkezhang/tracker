@@ -19,13 +19,13 @@ import (
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/database"
-	"github.com/minkezhang/truffle/tools/cli/commands/add"
-	"github.com/minkezhang/truffle/tools/cli/commands/bump"
-	"github.com/minkezhang/truffle/tools/cli/commands/get"
-	"github.com/minkezhang/truffle/tools/cli/commands/patch"
-	"github.com/minkezhang/truffle/tools/cli/commands/search"
+	"github.com/minkezhang/truffle/truffle/commands/add"
+	"github.com/minkezhang/truffle/truffle/commands/bump"
+	"github.com/minkezhang/truffle/truffle/commands/get"
+	"github.com/minkezhang/truffle/truffle/commands/patch"
+	"github.com/minkezhang/truffle/truffle/commands/search"
 
-	del "github.com/minkezhang/truffle/tools/cli/commands/delete"
+	del "github.com/minkezhang/truffle/truffle/commands/delete"
 )
 
 var (

@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/minkezhang/truffle/api/go/database/utils"
-	"github.com/minkezhang/truffle/tools/cli/flag"
+	"github.com/minkezhang/truffle/truffle/flag"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
