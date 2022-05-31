@@ -31,6 +31,7 @@ func (c *C) Synopsis() string { return "add entry to database" }
 func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
+	(*flagset.Corpus)(unsafe.Pointer(c.entry)).SetFlags(f)
 	(*flagset.Titles)(unsafe.Pointer(c.entry)).SetFlags(f)
 	(*flagset.Body)(unsafe.Pointer(c.entry)).SetFlags(f)
 }

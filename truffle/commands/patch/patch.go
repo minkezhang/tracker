@@ -34,6 +34,7 @@ func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 func (c *C) SetFlags(f *flag.FlagSet) {
 	(*flagset.Title)(unsafe.Pointer(c.entry)).SetFlags(f)
 	(*flagset.ID)(unsafe.Pointer(c.entry)).SetFlags(f)
+	(*flagset.Body)(unsafe.Pointer(c.entry)).SetFlags(f)
 	(*flagset.Corpus)(unsafe.Pointer(c.entry)).SetFlags(f)
 }
 

@@ -7,14 +7,14 @@ go install github.com/minkezhang/truffle/truffle@latest
 
 # Add sample entry.
 truffle add \
-  --titles=Sabikui \
+  --title=Sabikui \
   --corpus=anime \
   --score=6.3 \
-  --providers=crunchyroll \
+  --provider=crunchyroll \
   --queued=true \
-  --studios=OZ \
-  --directors="Atsushi Itagaki" \
-  --writers="Sadayuki Murai" \
+  --studio=OZ \
+  --director="Atsushi Itagaki" \
+  --writer="Sadayuki Murai" \
   --season=1 \
   --episode=4
 
@@ -31,7 +31,7 @@ truffle patch \
   --title=Sabikui \
   --corpus=anime \
   --score=6.4 \
-  --links=mal:48414
+  --link=mal:48414
 
 truffle get --title=Sabikui
 
@@ -39,8 +39,8 @@ truffle get --title=Sabikui
 truffle search \
   --title=Sabikui \
   --corpus=anime \
-  --apis=truffle\
-  --apis=mal
+  --api=truffle\
+  --api=mal
 
 # Delete the entry.
 truffle delete --title=Sabikui

@@ -43,13 +43,13 @@ func (c *C) Synopsis() string { return "search across multiple databases with ma
 func (c *C) Usage() string    { return fmt.Sprintf("%v\n", c.Synopsis()) }
 
 func (c *C) SetFlags(f *flag.FlagSet) {
-	f.Func("apis", "APIs to use in the search operation, e.g. \"truffle\"", func(api string) error {
+	f.Func("api", "APIs to use in the search operation, e.g. \"truffle\"", func(api string) error {
 		c.apis = append(c.apis, dpb.API(
 			dpb.API_value[utils.ToEnum("API", api)]))
 		return nil
 	})
 
-	f.Func("orderings", "list of fields to order by, e.g. \"title\"", func(order string) error {
+	f.Func("order", "list of fields to order by, e.g. \"title\"", func(order string) error {
 		if o := ordering.L[strings.ToLower(order)]; o == ordering.OrderingUnknown {
 			return status.Errorf(codes.InvalidArgument, "invalid ordering field specified %v", order)
 		} else {

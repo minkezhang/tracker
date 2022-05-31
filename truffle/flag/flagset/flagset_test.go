@@ -26,7 +26,7 @@ func TestSetFlags(t *testing.T) {
 			"--corpus=manga",
 			"--id=123",
 			"--title=ABC",
-			"--providers=crunchyroll",
+			"--provider=crunchyroll",
 		}); err != nil {
 		t.Errorf("Parse() = %v, want = nil", err)
 	}
