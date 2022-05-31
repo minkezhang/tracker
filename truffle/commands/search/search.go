@@ -20,7 +20,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
-	formatter "github.com/minkezhang/truffle/formats/cli/short/entry"
+	formatter "github.com/minkezhang/truffle/truffle/formatter/short/entry"
 )
 
 type C struct {

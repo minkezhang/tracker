@@ -1,7 +1,7 @@
 // Package main runs the importer on a CSV file.
 //
 // The format of the CSV file is explicitly described in
-// /formats/minkezhang/columns/
+// /tools/importer/formatter/columns/
 //
 // Example
 //
@@ -20,7 +20,7 @@ import (
 	"github.com/minkezhang/truffle/client/truffle"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
-	entry "github.com/minkezhang/truffle/formats/minkezhang"
+	entry "github.com/minkezhang/truffle/tools/importer/formatter"
 )
 
 var (

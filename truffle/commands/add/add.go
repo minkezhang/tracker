@@ -11,7 +11,7 @@ import (
 	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"github.com/minkezhang/truffle/truffle/flag/flagset"
 
-	formatter "github.com/minkezhang/truffle/formats/cli/full/entry"
+	formatter "github.com/minkezhang/truffle/truffle/formatter/full/entry"
 )
 
 type C struct {
