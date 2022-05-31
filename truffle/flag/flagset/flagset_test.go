@@ -27,6 +27,7 @@ func TestSetFlags(t *testing.T) {
 			"--id=123",
 			"--title=ABC",
 			"--provider=crunchyroll",
+			"--queued=true",
 		}); err != nil {
 		t.Errorf("Parse() = %v, want = nil", err)
 	}
@@ -41,6 +42,9 @@ func TestSetFlags(t *testing.T) {
 		Providers: []dpb.Provider{
 			dpb.Provider_PROVIDER_CRUNCHYROLL,
 		},
+
+		Queued:    true,
+		SetQueued: true,
 	}
 
 	if diff := cmp.Diff(want, got, protocmp.Transform()); diff != "" {

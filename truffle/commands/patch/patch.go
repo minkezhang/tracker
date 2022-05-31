@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/database/helper/get"
 	"github.com/minkezhang/truffle/database/helper/patch"
 	"github.com/minkezhang/truffle/truffle/commands/common"
 	"github.com/minkezhang/truffle/truffle/flag/entry"
@@ -46,6 +47,16 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 	if err != nil {
 		fmt.Fprintln(c.common.Error, err)
 		return subcommands.ExitFailure
+	}
+
+	fpb, err := get.Get(ctx, c.db, epb)
+	if err != nil {
+		fmt.Fprintln(c.common.Error, err)
+		return subcommands.ExitFailure
+	}
+
+	if !c.entry.SetQueued {
+		epb.Queued = fpb.GetQueued()
 	}
 
 	epb, err = patch.Patch(ctx, c.db, epb)

@@ -25,6 +25,10 @@ func Patch(ctx context.Context, db *database.DB, epb *dpb.Entry) (*dpb.Entry, er
 	// Entry titles are not directly changeable.
 	epb.Titles = nil
 
+	// Assume the user-supplied queue tag is the source of truth, as there
+	// is no way to unset a bool field using proto.Merge.
+	fpb.Queued = false
+
 	proto.Merge(fpb, epb)
 
 	// Ensure we actually replace lists, not the default append as per
