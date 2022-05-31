@@ -1,12 +1,8 @@
 package ordering
 
 import (
-	"flag"
 	"sort"
 	"strings"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
@@ -68,21 +64,6 @@ var (
 	}
 )
 
-type O struct {
-	Orderings []T
-}
-
-func (o *O) SetFlags(f *flag.FlagSet) {
-	f.Func("orderings", "list of fields to order by, e.g. \"title\"", func(ordering string) error {
-		order := L[strings.ToLower(ordering)]
-		if order == OrderingUnknown {
-			return status.Errorf(codes.InvalidArgument, "invalid ordering field specified %v", ordering)
-		}
-		o.Orderings = append(o.Orderings, L[strings.ToLower(ordering)])
-		return nil
-	})
-}
-
 type S struct {
 	priorities []C
 
@@ -104,9 +85,9 @@ func (s *S) Less(i, j int) bool {
 	return false
 }
 
-func Order(entries []*dpb.Entry, o O) ([]*dpb.Entry, error) {
+func Order(entries []*dpb.Entry, orderings []T) ([]*dpb.Entry, error) {
 	var priorities []C
-	for _, ordering := range o.Orderings {
+	for _, ordering := range orderings {
 		if p := F[ordering]; p != nil {
 			priorities = append(priorities, p)
 		}

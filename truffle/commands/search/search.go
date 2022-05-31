@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"text/tabwriter"
 	"unsafe"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/minkezhang/truffle/truffle/commands/search/ordering"
 	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"github.com/minkezhang/truffle/truffle/flag/flagset"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 	ce "github.com/minkezhang/truffle/formats/cli"
@@ -24,16 +27,14 @@ type C struct {
 	db    *database.DB
 	entry *entry.E
 
-	apis     []dpb.API
-	ordering *ordering.O
+	apis      []dpb.API
+	orderings []ordering.T
 }
 
 func New(db *database.DB) *C {
 	return &C{
 		db:    db,
 		entry: &entry.E{},
-
-		ordering: &ordering.O{},
 	}
 }
 
@@ -47,7 +48,15 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 			dpb.API_value[utils.ToEnum("API", api)]))
 		return nil
 	})
-	c.ordering.SetFlags(f)
+
+	f.Func("orderings", "list of fields to order by, e.g. \"title\"", func(order string) error {
+		if o := ordering.L[strings.ToLower(order)]; o == ordering.OrderingUnknown {
+			return status.Errorf(codes.InvalidArgument, "invalid ordering field specified %v", order)
+		} else {
+			c.orderings = append(c.orderings, o)
+		}
+		return nil
+	})
 
 	(*flagset.Title)(unsafe.Pointer(c.entry)).SetFlags(f)
 	(*flagset.Corpus)(unsafe.Pointer(c.entry)).SetFlags(f)
@@ -60,14 +69,13 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	if len(c.ordering.Orderings) == 0 {
-		c.ordering.Orderings = append(
-			c.ordering.Orderings,
+	if len(c.orderings) == 0 {
+		c.orderings = []ordering.T{
 			ordering.OrderingQueued,
 			ordering.OrderingCorpus,
 			ordering.OrderingScore,
 			ordering.OrderingTitles,
-		)
+		}
 	}
 
 	if len(c.apis) == 0 {
@@ -92,7 +100,7 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	entries, err = ordering.Order(entries, *c.ordering)
+	entries, err = ordering.Order(entries, c.orderings)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return subcommands.ExitFailure
