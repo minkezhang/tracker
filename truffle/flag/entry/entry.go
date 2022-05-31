@@ -19,8 +19,12 @@ type E struct {
 	LinkedIDs []*dpb.LinkedID
 	Providers []dpb.Provider
 
-	Score  float64
+	Score float64
+
 	Queued bool
+
+	// SetQueued is marked true when --queued is called while parsing flags.
+	SetQueued bool
 
 	Directors flag.MultiString
 	Studios   flag.MultiString

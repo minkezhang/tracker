@@ -5,6 +5,7 @@ package flagset
 
 import (
 	"flag"
+	"strconv"
 
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/truffle/flag/entry"
@@ -66,7 +67,15 @@ func (set *Body) SetFlags(f *flag.FlagSet) {
 	})
 
 	f.Float64Var(&set.Score, "score", 0, "user score")
-	f.BoolVar(&set.Queued, "queued", false, "indicates if the entry is on the user watchlist")
+	f.Func("queued", "indicates if the entry is on the user watchlist", func(queued string) error {
+		set.SetQueued = true
+		if q, err := strconv.ParseBool(queued); err != nil {
+			return err
+		} else {
+			set.Queued = q
+		}
+		return nil
+	})
 
 	f.Var(&set.Directors, "director", "directors of game or visual-based entries")
 	f.Var(&set.Studios, "studio", "studios of game or visual-based entries")
