@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 	"text/tabwriter"
 	"unsafe"
@@ -13,6 +12,7 @@ import (
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/truffle/commands/common"
 	"github.com/minkezhang/truffle/truffle/commands/search/ordering"
 	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"github.com/minkezhang/truffle/truffle/flag/flagset"
@@ -24,17 +24,19 @@ import (
 )
 
 type C struct {
-	db    *database.DB
-	entry *entry.E
+	common common.O
+	db     *database.DB
+	entry  *entry.E
 
 	apis      []dpb.API
 	orderings []ordering.T
 }
 
-func New(db *database.DB) *C {
+func New(db *database.DB, common common.O) *C {
 	return &C{
-		db:    db,
-		entry: &entry.E{},
+		common: common,
+		db:     db,
+		entry:  &entry.E{},
 	}
 }
 
@@ -65,7 +67,7 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
 	epb, err := c.entry.PB()
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Fprintln(c.common.Error, err)
 		return subcommands.ExitFailure
 	}
 
@@ -96,23 +98,23 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		},
 	})
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Fprintln(c.common.Error, err)
 		return subcommands.ExitFailure
 	}
 
 	entries, err = ordering.Order(entries, c.orderings)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Fprintln(c.common.Error, err)
 		return subcommands.ExitFailure
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	w := tabwriter.NewWriter(c.common.Output, 0, 0, 2, ' ', 0)
 	defer w.Flush()
 
 	for _, epb := range entries {
 		data, err := formatter.Format(epb)
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			fmt.Fprintln(c.common.Error, err)
 			return subcommands.ExitFailure
 		}
 		fmt.Fprint(w, string(data))

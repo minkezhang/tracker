@@ -9,6 +9,7 @@ import (
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/database/helper/patch"
+	"github.com/minkezhang/truffle/truffle/commands/common"
 	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"github.com/minkezhang/truffle/truffle/flag/flagset"
 
@@ -16,14 +17,16 @@ import (
 )
 
 type C struct {
-	db    *database.DB
-	entry *entry.E
+	common common.O
+	db     *database.DB
+	entry  *entry.E
 }
 
-func New(db *database.DB) *C {
+func New(db *database.DB, common common.O) *C {
 	return &C{
-		db:    db,
-		entry: &entry.E{},
+		common: common,
+		db:     db,
+		entry:  &entry.E{},
 	}
 }
 
@@ -41,22 +44,22 @@ func (c *C) SetFlags(f *flag.FlagSet) {
 func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) subcommands.ExitStatus {
 	epb, err := c.entry.PB()
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Fprintln(c.common.Error, err)
 		return subcommands.ExitFailure
 	}
 
 	epb, err = patch.Patch(ctx, c.db, epb)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Fprintln(c.common.Error, err)
 		return subcommands.ExitFailure
 	}
 
 	data, err := formatter.Format(epb)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Fprintln(c.common.Error, err)
 		return subcommands.ExitFailure
 	}
-	fmt.Print(string(data))
+	fmt.Fprint(c.common.Output, string(data))
 
 	return subcommands.ExitSuccess
 }

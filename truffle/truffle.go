@@ -12,8 +12,8 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -21,6 +21,7 @@ import (
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/truffle/commands/add"
 	"github.com/minkezhang/truffle/truffle/commands/bump"
+	"github.com/minkezhang/truffle/truffle/commands/common"
 	"github.com/minkezhang/truffle/truffle/commands/get"
 	"github.com/minkezhang/truffle/truffle/commands/patch"
 	"github.com/minkezhang/truffle/truffle/commands/search"
@@ -31,6 +32,8 @@ import (
 var (
 	home, _         = os.UserHomeDir()
 	defaultFilename = filepath.Join(home, ".truffle/database.textproto")
+
+	errCode = -1
 )
 
 var (
@@ -61,41 +64,48 @@ func main() {
 
 	flag.Parse()
 
+	common := common.O{
+		Output: subcommands.DefaultCommander.Output,
+		Error:  subcommands.DefaultCommander.Error,
+	}
+
 	data, err := read(*fn)
 	if err != nil {
-		log.Fatalf("could not read file %v: %v", fn, err)
+		fmt.Fprintf(common.Error, "could not read file %v: %v", fn, err)
+		os.Exit(errCode)
 	}
 
 	db, err := database.Unmarshal(data)
 	if err != nil {
-		log.Fatalf("could not read database: %v", err)
+		fmt.Fprintf(common.Error, "could not read database: %v", err)
+		os.Exit(errCode)
 	}
 
 	for _, c := range []subcommands.Command{
 		subcommands.HelpCommand(),
 		subcommands.FlagsCommand(),
 		subcommands.CommandsCommand(),
-		get.New(db),
-		add.New(db),
-		search.New(db),
-		patch.New(db),
-		bump.New(db),
-		del.New(db),
+		get.New(db, common),
+		add.New(db, common),
+		search.New(db, common),
+		patch.New(db, common),
+		bump.New(db, common),
+		del.New(db, common),
 	} {
 		subcommands.Register(c, "")
 	}
 
-	ctx := context.Background()
-
-	status := subcommands.Execute(ctx)
+	status := subcommands.Execute(context.Background())
 
 	if status == subcommands.ExitSuccess && !*mock {
 		data, err := database.Marshal(db)
 		if err != nil {
-			log.Fatalf("could not marshal database: %v", err)
+			fmt.Fprintf(common.Error, "could not marshal database: %v", err)
+			os.Exit(errCode)
 		}
 		if err := write(*fn, data); err != nil {
-			log.Fatalf("could not write to database: %v", err)
+			fmt.Fprintf(common.Error, "could not write to database: %v", err)
+			os.Exit(errCode)
 		}
 	}
 
