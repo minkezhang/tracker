@@ -24,7 +24,7 @@ type C struct {
 func New() *C { return &C{client: shim.New()} }
 
 func (c C) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
-	return nil, status.Errorf(codes.Unimplemented, "")
+	return nil, status.Errorf(codes.Unimplemented, "MAL Get is not implemented yet")
 }
 
 func (c C) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) {
@@ -36,7 +36,7 @@ func (c C) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) {
 	}[query.Corpus] {
 		cs, err := c.client.AnimeSearch(ctx, query.Title, query.Corpus, query.Cutoff)
 		if err != nil {
-			return nil, err
+			return nil, status.Errorf(codes.Internal, "error while getting data from MAL: %v", err)
 		}
 		candidates = append(candidates, cs...)
 	}
@@ -47,7 +47,7 @@ func (c C) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) {
 	}[query.Corpus] {
 		cs, err := c.client.MangaSearch(ctx, query.Title, query.Corpus, query.Cutoff)
 		if err != nil {
-			return nil, err
+			return nil, status.Errorf(codes.Internal, "error while getting data from MAL: %v", err)
 		}
 		candidates = append(candidates, cs...)
 	}
