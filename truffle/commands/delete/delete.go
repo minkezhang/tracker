@@ -9,7 +9,7 @@ import (
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/database/helper/get"
-	"github.com/minkezhang/truffle/formats/cli/struct"
+	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"github.com/minkezhang/truffle/truffle/flag/flagset"
 
 	ce "github.com/minkezhang/truffle/formats/cli"

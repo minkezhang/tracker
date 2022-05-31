@@ -6,7 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/minkezhang/truffle/formats/cli/struct"
+	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"

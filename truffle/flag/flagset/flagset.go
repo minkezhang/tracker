@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/minkezhang/truffle/api/go/database/utils"
-	"github.com/minkezhang/truffle/formats/cli/struct"
+	"github.com/minkezhang/truffle/truffle/flag/entry"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
