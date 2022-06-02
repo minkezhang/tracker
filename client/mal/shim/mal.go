@@ -14,6 +14,7 @@ package shim
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -24,7 +25,12 @@ import (
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
+type EndpointT string
+
 const (
+	EndpointAnime EndpointT = "anime"
+	EndpointManga           = "manga"
+
 	// clientID is the publically-known MAL API, per
 	// https://github.com/SuperMarcus/myanimelist-api-specification#requests.
 	//
@@ -37,6 +43,13 @@ const (
 	// matching heuristic, meaning the first couple of matches are much more
 	// likely to be useful for the user.
 	MaxResults = 50
+)
+
+var (
+	SupportedEndpoints = map[EndpointT]bool{
+		EndpointAnime: true,
+		EndpointManga: true,
+	}
 )
 
 type C mal.Client
@@ -74,7 +87,100 @@ var (
 		"manhwa":    dpb.Corpus_CORPUS_MANGA,
 		"oel":       dpb.Corpus_CORPUS_MANGA,
 	}
+
+	animeFields = mal.Fields{
+		"media_type",
+		"popularity",
+		"title",
+		"mean",
+		"studios",
+	}
+	mangaFields = mal.Fields{
+		"media_type",
+		"popularity",
+		"title",
+		"alternative_titles",
+		"mean",
+		"authors{first_name,last_name}",
+	}
 )
+
+type a mal.Anime
+
+func (r a) PB() *dpb.Entry {
+	epb := &dpb.Entry{
+		Id: &dpb.LinkedID{
+			Id:  fmt.Sprintf("%v/%v", EndpointAnime, strconv.FormatInt(int64(r.ID), 10)),
+			Api: dpb.API_API_MAL,
+		},
+		Titles: []string{r.Title},
+		Score:  float32(r.Mean),
+		Corpus: lookup[r.MediaType],
+	}
+
+	var studios []string
+	for _, s := range r.Studios {
+		studios = append(studios, s.Name)
+	}
+	epb.AuxData = &dpb.Entry_AuxDataVideo{
+		AuxDataVideo: &dpb.AuxDataVideo{
+			Studios: studios,
+		},
+	}
+
+	return epb
+}
+
+type m mal.Manga
+
+func (r m) PB() *dpb.Entry {
+	epb := &dpb.Entry{
+		Id: &dpb.LinkedID{
+			Id:  fmt.Sprintf("%v/%v", EndpointManga, strconv.FormatInt(int64(r.ID), 10)),
+			Api: dpb.API_API_MAL,
+		},
+		Titles: []string{r.Title},
+		Score:  float32(r.Mean),
+		Corpus: lookup[r.MediaType],
+	}
+
+	for _, t := range r.AlternativeTitles.Synonyms {
+		epb.Titles = append(epb.GetTitles(), t)
+	}
+
+	var authors []string
+	for _, a := range r.Authors {
+		var names []string
+		for _, n := range []string{a.Person.FirstName, a.Person.LastName} {
+			if n != "" {
+				names = append(names, n)
+			}
+		}
+		authors = append(authors, strings.Join(names, " "))
+	}
+	epb.AuxData = &dpb.Entry_AuxDataBook{
+		AuxDataBook: &dpb.AuxDataBook{
+			Authors: authors,
+		},
+	}
+	return epb
+}
+
+func (c *C) AnimeGet(ctx context.Context, id int) (*dpb.Entry, error) {
+	result, _, err := c.Anime.Details(ctx, id, animeFields)
+	if err != nil {
+		return nil, err
+	}
+	return a(*result).PB(), nil
+}
+
+func (c *C) MangaGet(ctx context.Context, id int) (*dpb.Entry, error) {
+	result, _, err := c.Manga.Details(ctx, id, mangaFields)
+	if err != nil {
+		return nil, err
+	}
+	return m(*result).PB(), nil
+}
 
 func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus, popularity int) ([]*dpb.Entry, error) {
 	f := func(r *mal.Response) ([]mal.Anime, *mal.Response, error) {
@@ -86,14 +192,7 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 			offset = r.NextOffset
 		}
 		results, r, err := (*mal.Client)(c).Anime.List(
-			ctx, title,
-			mal.Fields{
-				"media_type",
-				"popularity",
-				"title",
-				"mean",
-				"studios",
-			},
+			ctx, title, animeFields,
 			mal.Limit(math.Min(100, MaxResults)),
 			mal.Offset(offset),
 		)
@@ -120,27 +219,7 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 			continue
 		}
 
-		epb := &dpb.Entry{
-			Id: &dpb.LinkedID{
-				Id:  strconv.FormatInt(int64(r.ID), 10),
-				Api: dpb.API_API_MAL,
-			},
-			Titles: []string{r.Title},
-			Score:  float32(r.Mean),
-			Corpus: lookup[r.MediaType],
-		}
-
-		var studios []string
-		for _, s := range r.Studios {
-			studios = append(studios, s.Name)
-		}
-		epb.AuxData = &dpb.Entry_AuxDataVideo{
-			AuxDataVideo: &dpb.AuxDataVideo{
-				Studios: studios,
-			},
-		}
-
-		epbs = append(epbs, epb)
+		epbs = append(epbs, a(r).PB())
 	}
 
 	return epbs, nil
@@ -156,15 +235,7 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 			offset = r.NextOffset
 		}
 		results, r, err := (*mal.Client)(c).Manga.List(
-			ctx, title,
-			mal.Fields{
-				"media_type",
-				"popularity",
-				"title",
-				"alternative_titles",
-				"mean",
-				"authors{first_name,last_name}",
-			},
+			ctx, title, mangaFields,
 			mal.Limit(math.Min(100, MaxResults)),
 			mal.Offset(offset),
 		)
@@ -191,36 +262,7 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus, po
 			continue
 		}
 
-		epb := &dpb.Entry{
-			Id: &dpb.LinkedID{
-				Id:  strconv.FormatInt(int64(r.ID), 10),
-				Api: dpb.API_API_MAL,
-			},
-			Titles: []string{r.Title},
-			Score:  float32(r.Mean),
-			Corpus: lookup[r.MediaType],
-		}
-
-		for _, t := range r.AlternativeTitles.Synonyms {
-			epb.Titles = append(epb.GetTitles(), t)
-		}
-
-		var authors []string
-		for _, a := range r.Authors {
-			var names []string
-			for _, n := range []string{a.Person.FirstName, a.Person.LastName} {
-				if n != "" {
-					names = append(names, n)
-				}
-			}
-			authors = append(authors, strings.Join(names, " "))
-		}
-		epb.AuxData = &dpb.Entry_AuxDataBook{
-			AuxDataBook: &dpb.AuxDataBook{
-				Authors: authors,
-			},
-		}
-		epbs = append(epbs, epb)
+		epbs = append(epbs, m(r).PB())
 	}
 
 	return epbs, nil

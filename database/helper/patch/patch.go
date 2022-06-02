@@ -12,7 +12,9 @@ import (
 )
 
 func Patch(ctx context.Context, db *database.DB, epb *dpb.Entry) (*dpb.Entry, error) {
-	fpb, err := get.Get(ctx, db, epb)
+	fpb, err := get.Get(ctx, db, epb, []dpb.API{
+		dpb.API_API_TRUFFLE,
+	})
 	if err != nil {
 		return nil, err
 	}

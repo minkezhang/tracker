@@ -72,7 +72,7 @@ func (c *C) Put(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
 
 	fpb, ok := c.db.GetEntries()[epb.GetId().GetId()]
 	if !ok {
-		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", epb.GetId())
+		return nil, status.Errorf(codes.NotFound, "cannot find entry with ID %v", epb.GetId())
 	}
 	if !reflect.DeepEqual(epb.GetEtag(), fpb.GetEtag()) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot update entry with mismatching ETag values: %s != %s", epb.GetEtag(), fpb.GetEtag())
@@ -88,7 +88,7 @@ func (c *C) Put(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
 }
 
 func (c *C) Delete(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
-	epb, err := c.Get(ctx, id)
+	epb, err := c.Get(ctx, id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *C) Delete(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
 	return epb, nil
 }
 
-func (c *C) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
+func (c *C) Get(ctx context.Context, id *dpb.LinkedID, opts interface{}) (*dpb.Entry, error) {
 	if id.GetApi() != dpb.API_API_TRUFFLE {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot look up entry for given API %v", id.GetApi())
 	}
@@ -108,7 +108,12 @@ func (c *C) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
 	return proto.Clone(epb).(*dpb.Entry), nil
 }
 
-func (c *C) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) {
+func (c *C) Search(ctx context.Context, opts interface{}) ([]*dpb.Entry, error) {
+	query, ok := opts.(SearchOpts)
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid search opts provided")
+	}
+
 	var candidates []*dpb.Entry
 	for _, epb := range c.db.GetEntries() {
 		epb = proto.Clone(epb).(*dpb.Entry)
@@ -124,7 +129,7 @@ func (c *C) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) 
 			}
 			if strings.Contains(strings.ToLower(t), strings.ToLower(query.Title)) && (m[query.Corpus] || (epb.GetCorpus() == dpb.Corpus_CORPUS_UNKNOWN)) {
 				candidates = append(candidates, epb)
-				continue
+				break
 			}
 		}
 	}

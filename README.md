@@ -25,22 +25,26 @@ truffle bump \
   --corpus=anime \
   --major
 
-# Re-rate the entry and mark the MAL entry as duplicate, which will be filtered
-# out in searches.
-truffle patch \
-  --title=Sabikui \
-  --corpus=anime \
-  --score=6.4 \
-  --link=mal:48414
-
-truffle get --title=Sabikui
-
 # Search the user database as well as the MAL API for similar entries.
 truffle search \
   --title=Sabikui \
   --corpus=anime \
   --api=truffle\
   --api=mal
+
+# Inspect the MAL entry directly.
+truffle get --id=mal:anime/48414
+
+# Re-rate the entry and mark the MAL entry as duplicate, which will be filtered
+# out in searches.
+truffle patch \
+  --title=Sabikui \
+  --corpus=anime \
+  --score=6.4 \
+  --link=mal:anime/48414
+
+# Search for DB data merged with any linked duplicates.
+truffle get --title=Sabikui
 
 # Delete the entry.
 truffle delete --title=Sabikui
@@ -51,11 +55,4 @@ truffle delete --title=Sabikui
 
 ```bash
 go clean -i github.com/minkezhang/truffle/truffle
-```
-
-## Feature Docket
-
-```
-* database.Filter(queued bool, score_acending bool)
-* database.Recommend()
 ```
