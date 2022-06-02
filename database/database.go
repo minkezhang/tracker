@@ -7,6 +7,8 @@ import (
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/client/truffle"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
@@ -37,7 +39,14 @@ func (db *DB) Add(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
 }
 
 func (db *DB) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
-	return db.truffle.Get(ctx, id)
+	if f := map[dpb.API]func(context.Context, *dpb.LinkedID) (*dpb.Entry, error){
+		dpb.API_API_TRUFFLE: db.truffle.Get,
+		dpb.API_API_MAL:     mal.New().Get,
+	}[id.GetApi()]; f != nil {
+		// TODO(minkezhang): Recursively get data from linked IDs.
+		return f(ctx, id)
+	}
+	return nil, status.Errorf(codes.InvalidArgument, "unsupported API specified for Get()")
 }
 
 func (db *DB) Put(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {

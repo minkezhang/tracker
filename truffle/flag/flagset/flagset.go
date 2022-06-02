@@ -5,7 +5,9 @@ package flagset
 
 import (
 	"flag"
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/truffle/flag/entry"
@@ -48,9 +50,22 @@ type ID entry.E
 
 func (set *ID) SetFlags(f *flag.FlagSet) {
 	g := func(id string) error {
+		prefix, id, ok := strings.Cut(id, ":")
+		if !ok {
+			prefix, id = id, prefix
+		}
+
+		api := dpb.API(dpb.API_value[utils.ToEnum("API", prefix)])
+		if api == dpb.API_API_UNKNOWN {
+			if prefix != "" {
+				return fmt.Errorf("invalid ID API: %v", prefix)
+			}
+			api = dpb.API_API_TRUFFLE
+		}
+
 		set.ID = &dpb.LinkedID{
 			Id:  id,
-			Api: dpb.API_API_TRUFFLE,
+			Api: api,
 		}
 		return nil
 	}

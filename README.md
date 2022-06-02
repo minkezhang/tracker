@@ -25,13 +25,16 @@ truffle bump \
   --corpus=anime \
   --major
 
+# Inspect the MAL entry directly.
+truffle get --id=mal:anime/48414
+
 # Re-rate the entry and mark the MAL entry as duplicate, which will be filtered
 # out in searches.
 truffle patch \
   --title=Sabikui \
   --corpus=anime \
   --score=6.4 \
-  --link=mal:48414
+  --link=mal:anime/48414
 
 truffle get --title=Sabikui
 
