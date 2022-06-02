@@ -2,12 +2,28 @@ package mal
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"github.com/minkezhang/truffle/client/mal/shim"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
+)
+
+var (
+	animeCorpora = map[dpb.Corpus]bool{
+		dpb.Corpus_CORPUS_ANIME:      true,
+		dpb.Corpus_CORPUS_ANIME_FILM: true,
+		dpb.Corpus_CORPUS_UNKNOWN:    true,
+	}
+
+	mangaCorpora = map[dpb.Corpus]bool{
+		dpb.Corpus_CORPUS_BOOK:    true,
+		dpb.Corpus_CORPUS_MANGA:   true,
+		dpb.Corpus_CORPUS_UNKNOWN: true,
+	}
 )
 
 type SearchOpts struct {
@@ -24,27 +40,45 @@ type C struct {
 func New() *C { return &C{client: shim.New()} }
 
 func (c C) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
-	return nil, status.Errorf(codes.Unimplemented, "MAL Get is not implemented yet")
+	if id.GetApi() != dpb.API_API_MAL {
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use the MAL client to look up non-MAL IDs")
+	}
+	endpoint, sid, ok := strings.Cut(id.GetId(), "/")
+	if !ok || !shim.SupportedEndpoints[shim.EndpointT(endpoint)] {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid MAL endpoint")
+	}
+	lid, err := strconv.Atoi(sid)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid MAL ID: %v", err)
+	}
+
+	if shim.EndpointT(endpoint) == shim.EndpointAnime {
+		epb, err := c.client.AnimeGet(ctx, lid)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "cannot get MAL entry: %v", err)
+		}
+		return epb, nil
+	}
+	if shim.EndpointT(endpoint) == shim.EndpointManga {
+		epb, err := c.client.MangaGet(ctx, lid)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "cannot get MAL entry: %v", err)
+		}
+		return epb, nil
+	}
+	return nil, nil
 }
 
 func (c C) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) {
 	var candidates []*dpb.Entry
-	if map[dpb.Corpus]bool{
-		dpb.Corpus_CORPUS_ANIME:      true,
-		dpb.Corpus_CORPUS_ANIME_FILM: true,
-		dpb.Corpus_CORPUS_UNKNOWN:    true,
-	}[query.Corpus] {
+	if animeCorpora[query.Corpus] {
 		cs, err := c.client.AnimeSearch(ctx, query.Title, query.Corpus, query.Cutoff)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "error while getting data from MAL: %v", err)
 		}
 		candidates = append(candidates, cs...)
 	}
-	if map[dpb.Corpus]bool{
-		dpb.Corpus_CORPUS_BOOK:    true,
-		dpb.Corpus_CORPUS_MANGA:   true,
-		dpb.Corpus_CORPUS_UNKNOWN: true,
-	}[query.Corpus] {
+	if mangaCorpora[query.Corpus] {
 		cs, err := c.client.MangaSearch(ctx, query.Title, query.Corpus, query.Cutoff)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "error while getting data from MAL: %v", err)
