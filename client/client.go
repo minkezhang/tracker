@@ -12,12 +12,12 @@ type WO interface {
 	Delete(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error)
 }
 
-type RO[SearchOpts any] interface {
-	Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error)
-	Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error)
+type RO interface {
+	Get(ctx context.Context, id *dpb.LinkedID, opts any) (*dpb.Entry, error)
+	Search(ctx context.Context, query any) ([]*dpb.Entry, error)
 }
 
-type RW[SearchOpts any] interface {
-	RO[SearchOpts]
+type RW interface {
+	RO
 	WO
 }

@@ -39,8 +39,21 @@ func (db *DB) Add(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
 	return db.truffle.Add(ctx, epb)
 }
 
-// TODO(minkezhang): Add APIs query field.
-func (db *DB) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
+type GetOpts struct {
+	APIs []dpb.API
+}
+
+func (db *DB) Get(ctx context.Context, id *dpb.LinkedID, opts interface{}) (*dpb.Entry, error) {
+	query, ok := opts.(GetOpts)
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid search opts provided")
+	}
+
+	apis := map[dpb.API]bool{}
+	for _, api := range query.APIs {
+		apis[api] = true
+	}
+
 	closed := map[string]bool{}
 	open := []*dpb.LinkedID{id}
 
@@ -53,11 +66,15 @@ func (db *DB) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
 		}
 		closed[utils.ID(id)] = true
 
-		if f := map[dpb.API]func(context.Context, *dpb.LinkedID) (*dpb.Entry, error){
+		if f := map[dpb.API]func(context.Context, *dpb.LinkedID, interface{}) (*dpb.Entry, error){
 			dpb.API_API_TRUFFLE: db.truffle.Get,
 			dpb.API_API_MAL:     mal.New().Get,
 		}[id.GetApi()]; f != nil {
-			fpb, err := f(ctx, id)
+			if !apis[id.GetApi()] {
+				continue
+			}
+
+			fpb, err := f(ctx, id, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -103,7 +120,12 @@ type SearchOpts struct {
 	MAL mal.SearchOpts
 }
 
-func (db *DB) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) {
+func (db *DB) Search(ctx context.Context, opts interface{}) ([]*dpb.Entry, error) {
+	query, ok := opts.(SearchOpts)
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid search opts provided")
+	}
+
 	apis := map[dpb.API]bool{}
 	for _, api := range query.APIs {
 		apis[api] = true

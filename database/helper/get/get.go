@@ -15,7 +15,7 @@ type O struct {
 	Corpus dpb.Corpus
 }
 
-func Get(ctx context.Context, db *database.DB, epb *dpb.Entry) (*dpb.Entry, error) {
+func Get(ctx context.Context, db *database.DB, epb *dpb.Entry, apis []dpb.API) (*dpb.Entry, error) {
 	var title string
 	if len(epb.GetTitles()) > 0 {
 		title = epb.GetTitles()[0]
@@ -24,7 +24,9 @@ func Get(ctx context.Context, db *database.DB, epb *dpb.Entry) (*dpb.Entry, erro
 	var entries []*dpb.Entry
 
 	if epb.GetId() != nil {
-		results, err := db.Get(ctx, epb.GetId())
+		results, err := db.Get(ctx, epb.GetId(), database.GetOpts{
+			APIs: apis,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -51,5 +53,7 @@ func Get(ctx context.Context, db *database.DB, epb *dpb.Entry) (*dpb.Entry, erro
 		return nil, fmt.Errorf("Too many results returned. Please refine your search.")
 	}
 
-	return db.Get(ctx, entries[0].GetId())
+	return db.Get(ctx, entries[0].GetId(), database.GetOpts{
+		APIs: apis,
+	})
 }

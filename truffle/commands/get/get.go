@@ -13,6 +13,7 @@ import (
 	"github.com/minkezhang/truffle/truffle/flag/entry"
 	"github.com/minkezhang/truffle/truffle/flag/flagset"
 
+	dpb "github.com/minkezhang/truffle/api/go/database"
 	formatter "github.com/minkezhang/truffle/truffle/formatter/full/entry"
 )
 
@@ -47,7 +48,14 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
-	epb, err = get.Get(ctx, c.db, epb)
+	var apis []dpb.API
+	for a, _ := range dpb.API_name {
+		if api := dpb.API(a); api != dpb.API_API_UNKNOWN {
+			apis = append(apis, api)
+		}
+	}
+
+	epb, err = get.Get(ctx, c.db, epb, apis)
 	if err != nil {
 		fmt.Fprintln(c.common.Error, err)
 		return subcommands.ExitFailure

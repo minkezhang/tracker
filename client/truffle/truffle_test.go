@@ -5,5 +5,5 @@ import (
 )
 
 var (
-	_ client.RW[SearchOpts] = &C{}
+	_ client.RW = &C{}
 )

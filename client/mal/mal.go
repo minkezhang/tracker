@@ -39,7 +39,7 @@ type C struct {
 
 func New() *C { return &C{client: shim.New()} }
 
-func (c C) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
+func (c C) Get(ctx context.Context, id *dpb.LinkedID, opts interface{}) (*dpb.Entry, error) {
 	if id.GetApi() != dpb.API_API_MAL {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use the MAL client to look up non-MAL IDs")
 	}
@@ -69,7 +69,12 @@ func (c C) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
 	return nil, nil
 }
 
-func (c C) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) {
+func (c C) Search(ctx context.Context, opts interface{}) ([]*dpb.Entry, error) {
+	query, ok := opts.(SearchOpts)
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid search opts provided")
+	}
+
 	var candidates []*dpb.Entry
 	if animeCorpora[query.Corpus] {
 		cs, err := c.client.AnimeSearch(ctx, query.Title, query.Corpus, query.Cutoff)
