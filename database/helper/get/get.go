@@ -51,5 +51,5 @@ func Get(ctx context.Context, db *database.DB, epb *dpb.Entry) (*dpb.Entry, erro
 		return nil, fmt.Errorf("Too many results returned. Please refine your search.")
 	}
 
-	return entries[0], nil
+	return db.Get(ctx, entries[0].GetId())
 }

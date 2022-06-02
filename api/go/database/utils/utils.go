@@ -93,3 +93,55 @@ func ID(id *dpb.LinkedID) string {
 func ToEnum(prefix string, suffix string) string {
 	return fmt.Sprintf("%v_%v", prefix, strings.ReplaceAll(strings.ToUpper(suffix), " ", "_"))
 }
+
+func Clean(epb *dpb.Entry) *dpb.Entry {
+	epb = proto.Clone(epb).(*dpb.Entry)
+
+	lids := map[string]*dpb.LinkedID{}
+	for _, lid := range epb.GetLinkedIds() {
+		lids[ID(lid)] = lid
+	}
+	epb.LinkedIds = nil
+	for _, lid := range lids {
+		epb.LinkedIds = append(epb.GetLinkedIds(), lid)
+	}
+
+	providers := map[dpb.Provider]bool{}
+	for _, p := range epb.GetProviders() {
+		providers[p] = true
+	}
+	epb.Providers = nil
+	for p, _ := range providers {
+		epb.Providers = append(epb.GetProviders(), p)
+	}
+
+	f := func(candidates []string) []string {
+		lookup := map[string]bool{}
+		for _, c := range candidates {
+			lookup[c] = true
+		}
+		var unique []string
+		for c, _ := range lookup {
+			unique = append(unique, c)
+		}
+		return unique
+	}
+
+	epb.Titles = f(epb.GetTitles())
+	switch AuxDataL[epb.GetCorpus()] {
+	case AuxDataVideo:
+		epb.GetAuxDataVideo().Studios = f(epb.GetAuxDataVideo().GetStudios())
+		epb.GetAuxDataVideo().Writers = f(epb.GetAuxDataVideo().GetWriters())
+		epb.GetAuxDataVideo().Directors = f(epb.GetAuxDataVideo().GetDirectors())
+	case AuxDataAudio:
+		epb.GetAuxDataAudio().Composers = f(epb.GetAuxDataAudio().GetComposers())
+	case AuxDataBook:
+		epb.GetAuxDataBook().Authors = f(epb.GetAuxDataBook().GetAuthors())
+	case AuxDataGame:
+		epb.GetAuxDataGame().Studios = f(epb.GetAuxDataGame().GetStudios())
+		epb.GetAuxDataGame().Studios = f(epb.GetAuxDataGame().GetStudios())
+		epb.GetAuxDataGame().Writers = f(epb.GetAuxDataGame().GetWriters())
+	}
+
+	return epb
+}

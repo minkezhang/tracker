@@ -9,6 +9,7 @@ import (
 	"github.com/minkezhang/truffle/client/truffle"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
@@ -38,15 +39,50 @@ func (db *DB) Add(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
 	return db.truffle.Add(ctx, epb)
 }
 
+// TODO(minkezhang): Add APIs query field.
 func (db *DB) Get(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error) {
-	if f := map[dpb.API]func(context.Context, *dpb.LinkedID) (*dpb.Entry, error){
-		dpb.API_API_TRUFFLE: db.truffle.Get,
-		dpb.API_API_MAL:     mal.New().Get,
-	}[id.GetApi()]; f != nil {
-		// TODO(minkezhang): Recursively get data from linked IDs.
-		return f(ctx, id)
+	closed := map[string]bool{}
+	open := []*dpb.LinkedID{id}
+
+	epb := &dpb.Entry{}
+
+	for len(open) > 0 {
+		id, open = open[0], open[1:]
+		if closed[utils.ID(id)] {
+			continue
+		}
+		closed[utils.ID(id)] = true
+
+		if f := map[dpb.API]func(context.Context, *dpb.LinkedID) (*dpb.Entry, error){
+			dpb.API_API_TRUFFLE: db.truffle.Get,
+			dpb.API_API_MAL:     mal.New().Get,
+		}[id.GetApi()]; f != nil {
+			fpb, err := f(ctx, id)
+			if err != nil {
+				return nil, err
+			}
+
+			// Do not override already populated important fields.
+			if epb.GetId() != nil {
+				fpb.Id = nil
+			}
+			if epb.GetScore() != 0 {
+				fpb.Score = 0
+			}
+			if epb.GetEtag() != nil {
+				fpb.Etag = nil
+			}
+
+			proto.Merge(epb, fpb)
+
+			open = append(open, fpb.GetLinkedIds()...)
+		} else {
+			return nil, status.Errorf(codes.InvalidArgument, "unsupported API specified for Get()")
+		}
+
 	}
-	return nil, status.Errorf(codes.InvalidArgument, "unsupported API specified for Get()")
+
+	return utils.Clean(epb), nil
 }
 
 func (db *DB) Put(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {

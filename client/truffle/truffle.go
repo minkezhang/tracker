@@ -72,7 +72,7 @@ func (c *C) Put(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
 
 	fpb, ok := c.db.GetEntries()[epb.GetId().GetId()]
 	if !ok {
-		return nil, status.Errorf(codes.NotFound, "cannot find entry with id %v", epb.GetId())
+		return nil, status.Errorf(codes.NotFound, "cannot find entry with ID %v", epb.GetId())
 	}
 	if !reflect.DeepEqual(epb.GetEtag(), fpb.GetEtag()) {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot update entry with mismatching ETag values: %s != %s", epb.GetEtag(), fpb.GetEtag())
@@ -124,7 +124,7 @@ func (c *C) Search(ctx context.Context, query SearchOpts) ([]*dpb.Entry, error) 
 			}
 			if strings.Contains(strings.ToLower(t), strings.ToLower(query.Title)) && (m[query.Corpus] || (epb.GetCorpus() == dpb.Corpus_CORPUS_UNKNOWN)) {
 				candidates = append(candidates, epb)
-				continue
+				break
 			}
 		}
 	}
