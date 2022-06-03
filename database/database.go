@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	// "fmt"
 
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/client/mal"

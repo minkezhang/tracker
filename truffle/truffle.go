@@ -27,13 +27,17 @@ import (
 	"github.com/minkezhang/truffle/truffle/commands/get"
 	"github.com/minkezhang/truffle/truffle/commands/patch"
 	"github.com/minkezhang/truffle/truffle/commands/search"
+	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/proto"
 
+	cpb "github.com/minkezhang/truffle/api/go/config"
 	del "github.com/minkezhang/truffle/truffle/commands/delete"
 )
 
 var (
-	home, _         = os.UserHomeDir()
-	defaultFilename = filepath.Join(home, ".truffle/database.textproto")
+	home, _           = os.UserHomeDir()
+	defaultFilename   = filepath.Join(home, ".truffle/database.textproto")
+	defaultConfigName = filepath.Join(home, ".truffle/config.textproto")
 
 	errCode = -1
 
@@ -60,6 +64,7 @@ var (
 
 var (
 	fn   = flag.String("database", defaultFilename, "user database location")
+	cn   = flag.String("config", defaultConfigName, "user config overrides location")
 	mock = flag.Bool("dry_run", false, "do not commit changes to database")
 )
 
@@ -80,8 +85,27 @@ func write(fn string, data []byte) error {
 	return ioutil.WriteFile(fn, data, 0666)
 }
 
+func config(fn string) (*cpb.Config, error) {
+	dpb, _ := defaultConfig.PB()
+
+	data, err := read(fn)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file: %v", err)
+	}
+
+	epb := &cpb.Config{}
+	if err := prototext.Unmarshal(data, epb); err != nil {
+		return nil, fmt.Errorf("bad config format: %v", err)
+	}
+
+	proto.Merge(dpb, epb)
+
+	return dpb, nil
+}
+
 func main() {
 	subcommands.ImportantFlag("database")
+	subcommands.ImportantFlag("config")
 	subcommands.ImportantFlag("dry_run")
 
 	flag.Parse()
@@ -91,24 +115,24 @@ func main() {
 		Error:  subcommands.DefaultCommander.Error,
 	}
 
-	config, err := defaultConfig.PB()
+	dpb, err := config(*cn)
 	if err != nil {
-		fmt.Fprintf(subcommands.DefaultCommander.Error, "could not import config: %v", err)
+		fmt.Fprintf(subcommands.DefaultCommander.Error, "could not import config: %v\n", err)
 		os.Exit(errCode)
 	}
 
 	data, err := read(*fn)
 	if err != nil {
-		fmt.Fprintf(common.Error, "could not read file %v: %v", fn, err)
+		fmt.Fprintf(common.Error, "could not read file %v: %v\n", fn, err)
 		os.Exit(errCode)
 	}
 
 	tdb, err := truffle.Unmarshal(data)
 	if err != nil {
-		fmt.Fprintf(common.Error, "could not read database: %v", err)
+		fmt.Fprintf(common.Error, "could not read database: %v\n", err)
 		os.Exit(errCode)
 	}
-	db := database.New(tdb, config)
+	db := database.New(tdb, dpb)
 
 	for _, c := range []subcommands.Command{
 		subcommands.HelpCommand(),
@@ -129,11 +153,11 @@ func main() {
 	if status == subcommands.ExitSuccess && !*mock {
 		data, err := database.Marshal(db)
 		if err != nil {
-			fmt.Fprintf(common.Error, "could not marshal database: %v", err)
+			fmt.Fprintf(common.Error, "could not marshal database: %v\n", err)
 			os.Exit(errCode)
 		}
 		if err := write(*fn, data); err != nil {
-			fmt.Fprintf(common.Error, "could not write to database: %v", err)
+			fmt.Fprintf(common.Error, "could not write to database: %v\n", err)
 			os.Exit(errCode)
 		}
 	}
