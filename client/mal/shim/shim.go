@@ -8,8 +8,6 @@
 // reset to 0 upon reaching the end if the query, and will need to be explicitly
 // handled (as otherwise any loop checking the length of returned results will
 // loop forever).
-//
-// TODO(github.com/nstratos/go-myanimelist/pull/8): Add support for configurable NSFW searches.
 package shim
 
 import (
@@ -20,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/nstratos/go-myanimelist/mal"
 
 	cpb "github.com/minkezhang/truffle/api/go/config"
@@ -187,6 +186,7 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus) ([
 			ctx, title, animeFields,
 			mal.Limit(math.Min(100, float64(c.config.GetSearchMaxResults()))),
 			mal.Offset(offset),
+			mal.NSFW(c.config.GetNsfw()),
 		)
 		return results, r, err
 	}
@@ -201,7 +201,8 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus) ([
 		return nil, err
 	}
 
-	var epbs []*dpb.Entry
+	// MAL API sometimes returns duplicate entries.
+	unique := map[string]*dpb.Entry{}
 	for _, r := range results {
 		// Trim obscure series.
 		if popularity := c.config.GetPopularityCutoff(); popularity >= 0 && r.Popularity >= int(popularity) {
@@ -211,9 +212,14 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus) ([
 			continue
 		}
 
-		epbs = append(epbs, a(r).PB())
+		epb := a(r).PB()
+		unique[utils.ID(epb.GetId())] = epb
 	}
 
+	var epbs []*dpb.Entry
+	for _, epb := range unique {
+		epbs = append(epbs, epb)
+	}
 	return epbs, nil
 }
 
@@ -230,6 +236,7 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus) ([
 			ctx, title, mangaFields,
 			mal.Limit(math.Min(100, float64(c.config.GetSearchMaxResults()))),
 			mal.Offset(offset),
+			mal.NSFW(c.config.GetNsfw()),
 		)
 		return results, r, err
 	}
@@ -244,7 +251,7 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus) ([
 		return nil, err
 	}
 
-	var epbs []*dpb.Entry
+	unique := map[string]*dpb.Entry{}
 	for _, r := range results {
 		// Trim obscure series.
 		if popularity := c.config.GetPopularityCutoff(); popularity >= 0 && r.Popularity >= int(popularity) {
@@ -254,9 +261,14 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus) ([
 			continue
 		}
 
-		epbs = append(epbs, m(r).PB())
+		epb := m(r).PB()
+		unique[utils.ID(epb.GetId())] = epb
 	}
 
+	var epbs []*dpb.Entry
+	for _, epb := range unique {
+		epbs = append(epbs, epb)
+	}
 	return epbs, nil
 }
 
