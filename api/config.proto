@@ -15,7 +15,7 @@ option go_package = "github.com/minkezhang/truffle/api/go/config";
 import "api/database.proto";
 
 message Config {
-	MALConfig mal_config = 1;
+	MALConfig mal = 1;
 }
 
 message MALConfig {

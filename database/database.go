@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
 
 	"github.com/minkezhang/truffle/api/go/database/utils"
 	"github.com/minkezhang/truffle/client/mal"
@@ -11,28 +11,21 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
+	cpb "github.com/minkezhang/truffle/api/go/config"
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
 type DB struct {
 	truffle *truffle.C
+
+	config *cpb.Config
 }
 
-func New(epbs []*dpb.Entry) *DB {
-	db := &DB{
-		truffle: truffle.New(
-			&dpb.Database{
-				Entries: map[string]*dpb.Entry{},
-			},
-		),
+func New(db *truffle.C, config *cpb.Config) *DB {
+	return &DB{
+		truffle: db,
+		config:  config,
 	}
-	for _, epb := range epbs {
-		if _, err := db.truffle.Add(context.Background(), epb); err != nil {
-			panic(fmt.Sprintf("could not create database: %v", err))
-		}
-	}
-
-	return db
 }
 
 func (db *DB) Add(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error) {
@@ -68,7 +61,7 @@ func (db *DB) Get(ctx context.Context, id *dpb.LinkedID, opts interface{}) (*dpb
 
 		if f := map[dpb.API]func(context.Context, *dpb.LinkedID, interface{}) (*dpb.Entry, error){
 			dpb.API_API_TRUFFLE: db.truffle.Get,
-			dpb.API_API_MAL:     mal.New().Get,
+			dpb.API_API_MAL:     mal.New(db.config.GetMal()).Get,
 		}[id.GetApi()]; f != nil {
 			if !apis[id.GetApi()] {
 				continue
@@ -155,12 +148,11 @@ func (db *DB) Search(ctx context.Context, opts interface{}) ([]*dpb.Entry, error
 	}
 
 	if apis[dpb.API_API_MAL] {
-		if cs, err := mal.New().Search(
+		if cs, err := mal.New(db.config.GetMal()).Search(
 			ctx,
 			mal.SearchOpts{
 				Title:  query.Title,
 				Corpus: query.Corpus,
-				Cutoff: query.MAL.Cutoff,
 			},
 		); err != nil {
 			return nil, err
@@ -182,10 +174,3 @@ func (db *DB) Search(ctx context.Context, opts interface{}) ([]*dpb.Entry, error
 }
 
 func Marshal(db *DB) ([]byte, error) { return truffle.Marshal(db.truffle) }
-func Unmarshal(data []byte) (*DB, error) {
-	truffle, err := truffle.Unmarshal(data)
-	if err != nil {
-		return nil, err
-	}
-	return &DB{truffle: truffle}, nil
-}

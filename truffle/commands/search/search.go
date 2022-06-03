@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/subcommands"
 	"github.com/minkezhang/truffle/api/go/database/utils"
-	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/truffle/commands/common"
 	"github.com/minkezhang/truffle/truffle/commands/search/ordering"
@@ -93,9 +92,6 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		Title:  title,
 		Corpus: epb.GetCorpus(),
 		APIs:   c.apis,
-		MAL: mal.SearchOpts{
-			Cutoff: 2000,
-		},
 	})
 	if err != nil {
 		fmt.Fprintln(c.common.Error, err)

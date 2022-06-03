@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	cpb "github.com/minkezhang/truffle/api/go/config"
 	dpb "github.com/minkezhang/truffle/api/go/database"
 )
 
@@ -27,8 +28,6 @@ var (
 )
 
 type SearchOpts struct {
-	Cutoff int
-
 	Title  string
 	Corpus dpb.Corpus
 }
@@ -37,7 +36,7 @@ type C struct {
 	client *shim.C
 }
 
-func New() *C { return &C{client: shim.New()} }
+func New(config *cpb.MALConfig) *C { return &C{client: shim.New(config)} }
 
 func (c C) Get(ctx context.Context, id *dpb.LinkedID, opts interface{}) (*dpb.Entry, error) {
 	if id.GetApi() != dpb.API_API_MAL {
@@ -77,14 +76,14 @@ func (c C) Search(ctx context.Context, opts interface{}) ([]*dpb.Entry, error) {
 
 	var candidates []*dpb.Entry
 	if animeCorpora[query.Corpus] {
-		cs, err := c.client.AnimeSearch(ctx, query.Title, query.Corpus, query.Cutoff)
+		cs, err := c.client.AnimeSearch(ctx, query.Title, query.Corpus)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "error while getting data from MAL: %v", err)
 		}
 		candidates = append(candidates, cs...)
 	}
 	if mangaCorpora[query.Corpus] {
-		cs, err := c.client.MangaSearch(ctx, query.Title, query.Corpus, query.Cutoff)
+		cs, err := c.client.MangaSearch(ctx, query.Title, query.Corpus)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "error while getting data from MAL: %v", err)
 		}
