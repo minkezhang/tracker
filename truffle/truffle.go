@@ -27,6 +27,7 @@ import (
 	"github.com/minkezhang/truffle/truffle/commands/bump"
 	"github.com/minkezhang/truffle/truffle/commands/common"
 	"github.com/minkezhang/truffle/truffle/commands/get"
+	"github.com/minkezhang/truffle/truffle/commands/git"
 	"github.com/minkezhang/truffle/truffle/commands/patch"
 	"github.com/minkezhang/truffle/truffle/commands/search"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -144,7 +145,7 @@ func main() {
 		patch.New(db, common),
 		bump.New(db, common),
 		del.New(db, common),
-		// TODO(minkezhang): Accept git subcommands.
+		git.New(*directory, common),
 	} {
 		subcommands.Register(c, "")
 	}
@@ -185,9 +186,7 @@ func commit() ([]byte, error) {
 		`, *directory, filepath.Join(*directory, ".git"))
 
 	var buf bytes.Buffer
-	cmd := exec.Command(
-		"bash", "-c", b,
-	)
+	cmd := exec.Command("bash", "-c", b)
 
 	cmd.Stdout = &buf
 	err := cmd.Run()
