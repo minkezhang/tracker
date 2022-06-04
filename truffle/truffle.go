@@ -10,11 +10,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/google/subcommands"
@@ -25,6 +27,7 @@ import (
 	"github.com/minkezhang/truffle/truffle/commands/bump"
 	"github.com/minkezhang/truffle/truffle/commands/common"
 	"github.com/minkezhang/truffle/truffle/commands/get"
+	"github.com/minkezhang/truffle/truffle/commands/git"
 	"github.com/minkezhang/truffle/truffle/commands/patch"
 	"github.com/minkezhang/truffle/truffle/commands/search"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -35,10 +38,7 @@ import (
 )
 
 var (
-	home, _           = os.UserHomeDir()
-	defaultFilename   = filepath.Join(home, ".truffle/database.textproto")
-	defaultConfigName = filepath.Join(home, ".truffle/config.textproto")
-
+	home, _ = os.UserHomeDir()
 	errCode = -1
 
 	defaultConfig = utils.Config{
@@ -63,9 +63,8 @@ var (
 )
 
 var (
-	fn   = flag.String("database", defaultFilename, "user database location")
-	cn   = flag.String("config", defaultConfigName, "user config overrides location")
-	mock = flag.Bool("dry_run", false, "do not commit changes to database")
+	directory = flag.String("directory", filepath.Join(home, ".truffle"), "default directory of the database")
+	mock      = flag.Bool("dry_run", false, "do not commit changes to database")
 )
 
 func read(fn string) ([]byte, error) {
@@ -104,24 +103,26 @@ func config(fn string) (*cpb.Config, error) {
 }
 
 func main() {
-	subcommands.ImportantFlag("database")
-	subcommands.ImportantFlag("config")
+	subcommands.ImportantFlag("directory")
 	subcommands.ImportantFlag("dry_run")
 
 	flag.Parse()
+
+	fn := filepath.Join(*directory, "database.textproto")
+	cn := filepath.Join(*directory, "config.textproto")
 
 	common := common.O{
 		Output: subcommands.DefaultCommander.Output,
 		Error:  subcommands.DefaultCommander.Error,
 	}
 
-	dpb, err := config(*cn)
+	dpb, err := config(cn)
 	if err != nil {
 		fmt.Fprintf(subcommands.DefaultCommander.Error, "could not import config: %v\n", err)
 		os.Exit(errCode)
 	}
 
-	data, err := read(*fn)
+	data, err := read(fn)
 	if err != nil {
 		fmt.Fprintf(common.Error, "could not read file %v: %v\n", fn, err)
 		os.Exit(errCode)
@@ -144,6 +145,7 @@ func main() {
 		patch.New(db, common),
 		bump.New(db, common),
 		del.New(db, common),
+		git.New(*directory, common),
 	} {
 		subcommands.Register(c, "")
 	}
@@ -156,11 +158,38 @@ func main() {
 			fmt.Fprintf(common.Error, "could not marshal database: %v\n", err)
 			os.Exit(errCode)
 		}
-		if err := write(*fn, data); err != nil {
+		if err := write(fn, data); err != nil {
 			fmt.Fprintf(common.Error, "could not write to database: %v\n", err)
 			os.Exit(errCode)
 		}
 	}
 
+	if _, err := commit(); err != nil {
+		fmt.Fprintf(common.Error, "could not commit to Github repo %v: %v\n", *directory, err)
+		os.Exit(errCode)
+	}
+
 	os.Exit(int(status))
+}
+
+func commit() ([]byte, error) {
+	b := fmt.Sprintf(
+		`
+		#/bin/bash
+		cd %v
+		if git --git-dir %v rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+		git add -A;
+		  if ! git diff-index --quiet HEAD; then
+		    git commit -m "Truffle update";
+		  fi
+		fi
+		`, *directory, filepath.Join(*directory, ".git"))
+
+	var buf bytes.Buffer
+	cmd := exec.Command("bash", "-c", b)
+
+	cmd.Stdout = &buf
+	err := cmd.Run()
+
+	return buf.Bytes(), err
 }
