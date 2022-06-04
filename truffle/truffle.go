@@ -41,6 +41,12 @@ var (
 	home, _ = os.UserHomeDir()
 	errCode = -1
 
+	// defaultConfig provides sensible, dynamic configuration details for
+	// truffle. This config may be overridden with a config file stored in
+	// the same directory as the user DB (with filename config.textproto).
+	//
+	// Config files are in textproto format. More information on options may
+	// be found in the cpb.Config proto definition.
 	defaultConfig = utils.Config{
 		MAL: utils.MAL{
 			// ClientID is the publically-known MAL API, per
