@@ -58,6 +58,10 @@ func (c *C) Execute(ctx context.Context, f *flag.FlagSet, args ...interface{}) s
 		return subcommands.ExitFailure
 	}
 
+	// Tracker and AuxData are only set if the corpus is known.
+	c.entry.Corpus = fpb.GetCorpus()
+	epb, _ = c.entry.PB()
+
 	if !c.entry.SetQueued {
 		epb.Queued = fpb.GetQueued()
 	}
