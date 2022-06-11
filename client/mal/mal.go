@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/minkezhang/truffle/client/mal/shim"
 	"google.golang.org/grpc/codes"
@@ -25,6 +26,8 @@ var (
 		dpb.Corpus_CORPUS_MANGA:   true,
 		dpb.Corpus_CORPUS_UNKNOWN: true,
 	}
+
+	timeout = time.Duration(5 * time.Second)
 )
 
 type SearchOpts struct {
@@ -39,6 +42,9 @@ type C struct {
 func New(config *cpb.MALConfig) *C { return &C{client: shim.New(config)} }
 
 func (c C) Get(ctx context.Context, id *dpb.LinkedID, opts interface{}) (*dpb.Entry, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	if id.GetApi() != dpb.API_API_MAL {
 		return nil, status.Errorf(codes.InvalidArgument, "cannot use the MAL client to look up non-MAL IDs")
 	}
@@ -69,6 +75,9 @@ func (c C) Get(ctx context.Context, id *dpb.LinkedID, opts interface{}) (*dpb.En
 }
 
 func (c C) Search(ctx context.Context, opts interface{}) ([]*dpb.Entry, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	query, ok := opts.(SearchOpts)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid search opts provided")

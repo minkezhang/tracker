@@ -193,8 +193,10 @@ func (c *C) AnimeSearch(ctx context.Context, title string, corpus dpb.Corpus) ([
 
 	var results []mal.Anime
 	var err error
+	var r *mal.Response
+	var page []mal.Anime
 
-	for page, r, err := f(nil); err == nil && page != nil && len(results) <= int(c.config.GetSearchMaxResults()); page, r, err = f(r) {
+	for page, r, err = f(nil); err == nil && page != nil && len(results) <= int(c.config.GetSearchMaxResults()); page, r, err = f(r) {
 		results = append(results, page...)
 	}
 	if err != nil {
@@ -243,8 +245,10 @@ func (c *C) MangaSearch(ctx context.Context, title string, corpus dpb.Corpus) ([
 
 	var results []mal.Manga
 	var err error
+	var r *mal.Response
+	var page []mal.Manga
 
-	for page, r, err := f(nil); err == nil && page != nil && len(results) <= int(c.config.GetSearchMaxResults()); page, r, err = f(r) {
+	for page, r, err = f(nil); err == nil && page != nil && len(results) <= int(c.config.GetSearchMaxResults()); page, r, err = f(r) {
 		results = append(results, page...)
 	}
 	if err != nil {

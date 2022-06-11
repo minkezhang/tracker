@@ -20,5 +20,8 @@ jobs:
     - name: Build github.com/minkezhang/truffle
       run: go build -v github.com/minkezhang/truffle/...
 
+    - name: Vet github.com/minkezhang/truffle
+      run: go vet -v github.com/minkezhang/truffle/...
+
     - name: Test github.com/minkezhang/truffle
       run: go test -v github.com/minkezhang/truffle/... -bench . -benchmem

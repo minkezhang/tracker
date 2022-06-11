@@ -68,7 +68,13 @@ func (db *DB) Get(ctx context.Context, id *dpb.LinkedID, opts interface{}) (*dpb
 
 			fpb, err := f(ctx, id, nil)
 			if err != nil {
-				return nil, err
+				// We only consider user DB lookup errors to be
+				// fatal.
+				if id.GetApi() == dpb.API_API_TRUFFLE {
+					return nil, err
+				} else {
+					return epb, nil
+				}
 			}
 
 			// Do not override already populated important fields.
@@ -154,7 +160,11 @@ func (db *DB) Search(ctx context.Context, opts interface{}) ([]*dpb.Entry, error
 				Corpus: query.Corpus,
 			},
 		); err != nil {
-			return nil, err
+			// Only return fatal if MAL is the only API being
+			// used; otherwise continue.
+			if len(apis) == 1 {
+				return nil, err
+			}
 		} else {
 			candidates = append(candidates, cs...)
 		}
