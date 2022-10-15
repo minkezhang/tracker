@@ -54,6 +54,8 @@ enum Provider {
 	PROVIDER_HBO_MAX = 10;
 	PROVIDER_FUNIMATION = 11;
 	PROVIDER_STEAM = 12;
+	PROVIDER_BBC = 13;
+	PROVIDER_CHANNEL4 = 14;
 }
 
 message Database {
