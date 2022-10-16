@@ -56,6 +56,7 @@ enum Provider {
 	PROVIDER_STEAM = 12;
 	PROVIDER_BBC = 13;
 	PROVIDER_CHANNEL4 = 14;
+	PROVIDER_APPLE_TV = 15;
 }
 
 message Database {
