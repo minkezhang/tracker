@@ -2,11 +2,11 @@
 //
 // To see how to use the tool, run
 //
-//   truffle help
+//	truffle help
 //
 // To see global flags, run
 //
-//   truffle flags
+//	truffle flags
 package main
 
 import (

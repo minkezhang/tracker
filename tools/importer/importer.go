@@ -3,11 +3,11 @@
 // The format of the CSV file is explicitly described in
 // /tools/importer/formatter/columns/
 //
-// Example
+// # Example
 //
-// go run github.com/minkezhang/truffle/tools/importer \
-//   --input=/path/to/input.csv
-//   --output=/path/to/output.textproto
+//	go run github.com/minkezhang/truffle/tools/importer \
+//	  --input=/path/to/input.csv
+//	  --output=/path/to/output.textproto
 package main
 
 import (

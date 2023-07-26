@@ -6,7 +6,7 @@ input QueryEntryInput {
   pattern: String
   apis: [APIType!]
 
-  nsfw: Boolean!
+  nsfw: Boolean
 }
 
 input MutateEntryInputAPILink {
@@ -43,7 +43,7 @@ input MutateEntryInput {
   id: ID
 
   corpus: CorpusType!
-  queued: Boolean!
+  queued: Boolean
 
   # Custom metadata
   titles: [MutateEntryInputTitle!]
@@ -55,25 +55,10 @@ input MutateEntryInput {
   links: [MutateEntryInputAPILink!]
 }
 
-type Error {
-  code: Int
-  err_strings: [String!]
-}
-
-type QueryEntryOutput {
-  error: Error
-  entries: [Entry!]
-}
-
-type MutateEntryOutput {
-  error: Error
-  entry: Entry
-}
-
 type Query {
-  QueryEntry(input: QueryEntryInput): QueryEntryOutput
+  QueryEntry(input: QueryEntryInput): [Entry!]
 }
 
 type Mutation {
-  MutateEntry(input: MutateEntryInput): MutateEntryOutput
+  MutateEntry(input: MutateEntryInput): Entry
 }

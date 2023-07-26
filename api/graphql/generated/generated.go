@@ -108,12 +108,7 @@ type ComplexityRoot struct {
 		Corpus   func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Metadata func(childComplexity int) int
-		Qeueud   func(childComplexity int) int
-	}
-
-	Error struct {
-		Code       func(childComplexity int) int
-		ErrStrings func(childComplexity int) int
+		Queued   func(childComplexity int) int
 	}
 
 	Metadata struct {
@@ -126,22 +121,12 @@ type ComplexityRoot struct {
 		Titles    func(childComplexity int) int
 	}
 
-	MutateEntryOutput struct {
-		Entry func(childComplexity int) int
-		Error func(childComplexity int) int
-	}
-
 	Mutation struct {
 		MutateEntry func(childComplexity int, input *model.MutateEntryInput) int
 	}
 
 	Query struct {
 		QueryEntry func(childComplexity int, input *model.QueryEntryInput) int
-	}
-
-	QueryEntryOutput struct {
-		Entries func(childComplexity int) int
-		Error   func(childComplexity int) int
 	}
 
 	Title struct {
@@ -151,10 +136,10 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	MutateEntry(ctx context.Context, input *model.MutateEntryInput) (*model.MutateEntryOutput, error)
+	MutateEntry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error)
 }
 type QueryResolver interface {
-	QueryEntry(ctx context.Context, input *model.QueryEntryInput) (*model.QueryEntryOutput, error)
+	QueryEntry(ctx context.Context, input *model.QueryEntryInput) ([]*model.Entry, error)
 }
 
 type executableSchema struct {
@@ -424,26 +409,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entry.Metadata(childComplexity), true
 
-	case "Entry.qeueud":
-		if e.complexity.Entry.Qeueud == nil {
+	case "Entry.queued":
+		if e.complexity.Entry.Queued == nil {
 			break
 		}
 
-		return e.complexity.Entry.Qeueud(childComplexity), true
-
-	case "Error.code":
-		if e.complexity.Error.Code == nil {
-			break
-		}
-
-		return e.complexity.Error.Code(childComplexity), true
-
-	case "Error.err_strings":
-		if e.complexity.Error.ErrStrings == nil {
-			break
-		}
-
-		return e.complexity.Error.ErrStrings(childComplexity), true
+		return e.complexity.Entry.Queued(childComplexity), true
 
 	case "Metadata.api":
 		if e.complexity.Metadata.API == nil {
@@ -494,20 +465,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Metadata.Titles(childComplexity), true
 
-	case "MutateEntryOutput.entry":
-		if e.complexity.MutateEntryOutput.Entry == nil {
-			break
-		}
-
-		return e.complexity.MutateEntryOutput.Entry(childComplexity), true
-
-	case "MutateEntryOutput.error":
-		if e.complexity.MutateEntryOutput.Error == nil {
-			break
-		}
-
-		return e.complexity.MutateEntryOutput.Error(childComplexity), true
-
 	case "Mutation.MutateEntry":
 		if e.complexity.Mutation.MutateEntry == nil {
 			break
@@ -531,20 +488,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.QueryEntry(childComplexity, args["input"].(*model.QueryEntryInput)), true
-
-	case "QueryEntryOutput.entries":
-		if e.complexity.QueryEntryOutput.Entries == nil {
-			break
-		}
-
-		return e.complexity.QueryEntryOutput.Entries(childComplexity), true
-
-	case "QueryEntryOutput.error":
-		if e.complexity.QueryEntryOutput.Error == nil {
-			break
-		}
-
-		return e.complexity.QueryEntryOutput.Error(childComplexity), true
 
 	case "Title.language":
 		if e.complexity.Title.Language == nil {
@@ -789,7 +732,7 @@ type Entry {
   id: ID!
   metadata: [Metadata!]!
   corpus: CorpusType!
-  qeueud: Boolean!
+  queued: Boolean!
 }
 
 type Metadata {
@@ -810,7 +753,7 @@ type Metadata {
   pattern: String
   apis: [APIType!]
 
-  nsfw: Boolean!
+  nsfw: Boolean
 }
 
 input MutateEntryInputAPILink {
@@ -847,7 +790,7 @@ input MutateEntryInput {
   id: ID
 
   corpus: CorpusType!
-  queued: Boolean!
+  queued: Boolean
 
   # Custom metadata
   titles: [MutateEntryInputTitle!]
@@ -859,27 +802,12 @@ input MutateEntryInput {
   links: [MutateEntryInputAPILink!]
 }
 
-type Error {
-  code: Int
-  err_strings: [String!]
-}
-
-type QueryEntryOutput {
-  error: Error
-  entries: [Entry!]
-}
-
-type MutateEntryOutput {
-  error: Error
-  entry: Entry
-}
-
 type Query {
-  QueryEntry(input: QueryEntryInput): QueryEntryOutput
+  QueryEntry(input: QueryEntryInput): [Entry!]
 }
 
 type Mutation {
-  MutateEntry(input: MutateEntryInput): MutateEntryOutput
+  MutateEntry(input: MutateEntryInput): Entry
 }
 `, BuiltIn: false},
 }
@@ -2473,8 +2401,8 @@ func (ec *executionContext) fieldContext_Entry_corpus(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Entry_qeueud(ctx context.Context, field graphql.CollectedField, obj *model.Entry) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Entry_qeueud(ctx, field)
+func (ec *executionContext) _Entry_queued(ctx context.Context, field graphql.CollectedField, obj *model.Entry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Entry_queued(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2487,7 +2415,7 @@ func (ec *executionContext) _Entry_qeueud(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Qeueud, nil
+		return obj.Queued, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2504,7 +2432,7 @@ func (ec *executionContext) _Entry_qeueud(ctx context.Context, field graphql.Col
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Entry_qeueud(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Entry_queued(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Entry",
 		Field:      field,
@@ -2512,88 +2440,6 @@ func (ec *executionContext) fieldContext_Entry_qeueud(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Error_code(ctx context.Context, field graphql.CollectedField, obj *model.Error) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Error_code(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Code, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Error_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Error",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Error_err_strings(ctx context.Context, field graphql.CollectedField, obj *model.Error) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Error_err_strings(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ErrStrings, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Error_err_strings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Error",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2898,104 +2744,6 @@ func (ec *executionContext) fieldContext_Metadata_tags(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _MutateEntryOutput_error(ctx context.Context, field graphql.CollectedField, obj *model.MutateEntryOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MutateEntryOutput_error(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Error, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Error)
-	fc.Result = res
-	return ec.marshalOError2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐError(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_MutateEntryOutput_error(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MutateEntryOutput",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "code":
-				return ec.fieldContext_Error_code(ctx, field)
-			case "err_strings":
-				return ec.fieldContext_Error_err_strings(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Error", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MutateEntryOutput_entry(ctx context.Context, field graphql.CollectedField, obj *model.MutateEntryOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_MutateEntryOutput_entry(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Entry, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Entry)
-	fc.Result = res
-	return ec.marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntry(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_MutateEntryOutput_entry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MutateEntryOutput",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Entry_id(ctx, field)
-			case "metadata":
-				return ec.fieldContext_Entry_metadata(ctx, field)
-			case "corpus":
-				return ec.fieldContext_Entry_corpus(ctx, field)
-			case "qeueud":
-				return ec.fieldContext_Entry_qeueud(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_MutateEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_MutateEntry(ctx, field)
 	if err != nil {
@@ -3019,9 +2767,9 @@ func (ec *executionContext) _Mutation_MutateEntry(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.MutateEntryOutput)
+	res := resTmp.(*model.Entry)
 	fc.Result = res
-	return ec.marshalOMutateEntryOutput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryOutput(ctx, field.Selections, res)
+	return ec.marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_MutateEntry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3032,12 +2780,16 @@ func (ec *executionContext) fieldContext_Mutation_MutateEntry(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "error":
-				return ec.fieldContext_MutateEntryOutput_error(ctx, field)
-			case "entry":
-				return ec.fieldContext_MutateEntryOutput_entry(ctx, field)
+			case "id":
+				return ec.fieldContext_Entry_id(ctx, field)
+			case "metadata":
+				return ec.fieldContext_Entry_metadata(ctx, field)
+			case "corpus":
+				return ec.fieldContext_Entry_corpus(ctx, field)
+			case "queued":
+				return ec.fieldContext_Entry_queued(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type MutateEntryOutput", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
 		},
 	}
 	defer func() {
@@ -3077,9 +2829,9 @@ func (ec *executionContext) _Query_QueryEntry(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.QueryEntryOutput)
+	res := resTmp.([]*model.Entry)
 	fc.Result = res
-	return ec.marshalOQueryEntryOutput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐQueryEntryOutput(ctx, field.Selections, res)
+	return ec.marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_QueryEntry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3090,12 +2842,16 @@ func (ec *executionContext) fieldContext_Query_QueryEntry(ctx context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "error":
-				return ec.fieldContext_QueryEntryOutput_error(ctx, field)
-			case "entries":
-				return ec.fieldContext_QueryEntryOutput_entries(ctx, field)
+			case "id":
+				return ec.fieldContext_Entry_id(ctx, field)
+			case "metadata":
+				return ec.fieldContext_Entry_metadata(ctx, field)
+			case "corpus":
+				return ec.fieldContext_Entry_corpus(ctx, field)
+			case "queued":
+				return ec.fieldContext_Entry_queued(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type QueryEntryOutput", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
 		},
 	}
 	defer func() {
@@ -3236,104 +2992,6 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _QueryEntryOutput_error(ctx context.Context, field graphql.CollectedField, obj *model.QueryEntryOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_QueryEntryOutput_error(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Error, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Error)
-	fc.Result = res
-	return ec.marshalOError2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐError(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_QueryEntryOutput_error(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "QueryEntryOutput",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "code":
-				return ec.fieldContext_Error_code(ctx, field)
-			case "err_strings":
-				return ec.fieldContext_Error_err_strings(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Error", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _QueryEntryOutput_entries(ctx context.Context, field graphql.CollectedField, obj *model.QueryEntryOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_QueryEntryOutput_entries(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Entries, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Entry)
-	fc.Result = res
-	return ec.marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_QueryEntryOutput_entries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "QueryEntryOutput",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Entry_id(ctx, field)
-			case "metadata":
-				return ec.fieldContext_Entry_metadata(ctx, field)
-			case "corpus":
-				return ec.fieldContext_Entry_corpus(ctx, field)
-			case "qeueud":
-				return ec.fieldContext_Entry_qeueud(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
 		},
 	}
 	return fc, nil
@@ -5236,7 +4894,7 @@ func (ec *executionContext) unmarshalInputMutateEntryInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("queued"))
-			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5496,7 +5154,7 @@ func (ec *executionContext) unmarshalInputQueryEntryInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nsfw"))
-			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5985,49 +5643,11 @@ func (ec *executionContext) _Entry(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "qeueud":
-			out.Values[i] = ec._Entry_qeueud(ctx, field, obj)
+		case "queued":
+			out.Values[i] = ec._Entry_queued(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var errorImplementors = []string{"Error"}
-
-func (ec *executionContext) _Error(ctx context.Context, sel ast.SelectionSet, obj *model.Error) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, errorImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Error")
-		case "code":
-			out.Values[i] = ec._Error_code(ctx, field, obj)
-		case "err_strings":
-			out.Values[i] = ec._Error_err_strings(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6082,44 +5702,6 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._Metadata_aux(ctx, field, obj)
 		case "tags":
 			out.Values[i] = ec._Metadata_tags(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var mutateEntryOutputImplementors = []string{"MutateEntryOutput"}
-
-func (ec *executionContext) _MutateEntryOutput(ctx context.Context, sel ast.SelectionSet, obj *model.MutateEntryOutput) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, mutateEntryOutputImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("MutateEntryOutput")
-		case "error":
-			out.Values[i] = ec._MutateEntryOutput_error(ctx, field, obj)
-		case "entry":
-			out.Values[i] = ec._MutateEntryOutput_entry(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6235,44 +5817,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var queryEntryOutputImplementors = []string{"QueryEntryOutput"}
-
-func (ec *executionContext) _QueryEntryOutput(ctx context.Context, sel ast.SelectionSet, obj *model.QueryEntryOutput) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, queryEntryOutputImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("QueryEntryOutput")
-		case "error":
-			out.Values[i] = ec._QueryEntryOutput_error(ctx, field, obj)
-		case "entries":
-			out.Values[i] = ec._QueryEntryOutput_entries(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7248,13 +6792,6 @@ func (ec *executionContext) marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffle
 	return ec._Entry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOError2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐError(ctx context.Context, sel ast.SelectionSet, v *model.Error) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Error(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
 	if v == nil {
 		return nil, nil
@@ -7284,22 +6821,6 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	res := graphql.MarshalID(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalInt(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalInt(*v)
 	return res
 }
 
@@ -7357,13 +6878,6 @@ func (ec *executionContext) unmarshalOMutateEntryInputTitle2ᚕᚖgithubᚗcom�
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) marshalOMutateEntryOutput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryOutput(ctx context.Context, sel ast.SelectionSet, v *model.MutateEntryOutput) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._MutateEntryOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx context.Context, v interface{}) ([]model.ProviderType, error) {
@@ -7439,13 +6953,6 @@ func (ec *executionContext) unmarshalOQueryEntryInput2ᚖgithubᚗcomᚋminkezha
 	}
 	res, err := ec.unmarshalInputQueryEntryInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOQueryEntryOutput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐQueryEntryOutput(ctx context.Context, sel ast.SelectionSet, v *model.QueryEntryOutput) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._QueryEntryOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {

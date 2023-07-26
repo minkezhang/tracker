@@ -36,7 +36,7 @@ type Entry {
   id: ID!
   metadata: [Metadata!]!
   corpus: CorpusType!
-  qeueud: Boolean!
+  queued: Boolean!
 }
 
 type Metadata {

@@ -94,12 +94,7 @@ type Entry struct {
 	ID       string      `json:"id"`
 	Metadata []*Metadata `json:"metadata"`
 	Corpus   CorpusType  `json:"corpus"`
-	Qeueud   bool        `json:"qeueud"`
-}
-
-type Error struct {
-	Code       *int     `json:"code,omitempty"`
-	ErrStrings []string `json:"err_strings,omitempty"`
+	Queued   bool        `json:"queued"`
 }
 
 type Metadata struct {
@@ -115,7 +110,7 @@ type Metadata struct {
 type MutateEntryInput struct {
 	ID        *string                    `json:"id,omitempty"`
 	Corpus    CorpusType                 `json:"corpus"`
-	Queued    bool                       `json:"queued"`
+	Queued    *bool                      `json:"queued,omitempty"`
 	Titles    []*MutateEntryInputTitle   `json:"titles,omitempty"`
 	Score     *float64                   `json:"score,omitempty"`
 	Providers []ProviderType             `json:"providers,omitempty"`
@@ -142,22 +137,12 @@ type MutateEntryInputTitle struct {
 	Title    string `json:"title"`
 }
 
-type MutateEntryOutput struct {
-	Error *Error `json:"error,omitempty"`
-	Entry *Entry `json:"entry,omitempty"`
-}
-
 type QueryEntryInput struct {
 	ID      *string     `json:"id,omitempty"`
 	Corpus  *CorpusType `json:"corpus,omitempty"`
 	Pattern *string     `json:"pattern,omitempty"`
 	Apis    []APIType   `json:"apis,omitempty"`
-	Nsfw    bool        `json:"nsfw"`
-}
-
-type QueryEntryOutput struct {
-	Error   *Error   `json:"error,omitempty"`
-	Entries []*Entry `json:"entries,omitempty"`
+	Nsfw    *bool       `json:"nsfw,omitempty"`
 }
 
 type Title struct {
