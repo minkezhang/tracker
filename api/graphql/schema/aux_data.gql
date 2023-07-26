@@ -25,7 +25,7 @@ type AuxAnimeFilm {
 
 type AuxManga {
   illustrators: [String!]
-  writers: [String!]
+  authors: [String!]
 }
 
 type AuxBook {
@@ -53,7 +53,7 @@ type AuxTV {
 }
 
 type AuxAlbum {
-  studio: [String!]
+  studios: [String!]
   composers: [String!]
   labels: [String!]
   producers: [String!]
@@ -66,6 +66,5 @@ type AuxGame {
   developers: [String!]
   directors: [String!]
   programmers: [String!]
-  publishers: [String!]
   writers: [String!]
 }

@@ -1,0 +1,9 @@
+enum APIType {
+  API_NONE
+
+  API_TRUFFLE
+  API_MAL
+  API_KITSU_API
+  API_STEAM
+  API_SPOTIFY
+}

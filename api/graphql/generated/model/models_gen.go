@@ -13,7 +13,7 @@ type Aux interface {
 }
 
 type AuxAlbum struct {
-	Studio    []string `json:"studio,omitempty"`
+	Studios   []string `json:"studios,omitempty"`
 	Composers []string `json:"composers,omitempty"`
 	Labels    []string `json:"labels,omitempty"`
 	Producers []string `json:"producers,omitempty"`
@@ -62,7 +62,6 @@ type AuxGame struct {
 	Developers  []string `json:"developers,omitempty"`
 	Directors   []string `json:"directors,omitempty"`
 	Programmers []string `json:"programmers,omitempty"`
-	Publishers  []string `json:"publishers,omitempty"`
 	Writers     []string `json:"writers,omitempty"`
 }
 
@@ -70,7 +69,7 @@ func (AuxGame) IsAux() {}
 
 type AuxManga struct {
 	Illustrators []string `json:"illustrators,omitempty"`
-	Writers      []string `json:"writers,omitempty"`
+	Authors      []string `json:"authors,omitempty"`
 }
 
 func (AuxManga) IsAux() {}
@@ -95,38 +94,75 @@ type Entry struct {
 	ID       string      `json:"id"`
 	Metadata []*Metadata `json:"metadata"`
 	Corpus   CorpusType  `json:"corpus"`
+	Qeueud   bool        `json:"qeueud"`
+}
+
+type Error struct {
+	Code       *int     `json:"code,omitempty"`
+	ErrStrings []string `json:"err_strings,omitempty"`
 }
 
 type Metadata struct {
 	API       APIType        `json:"api"`
 	ID        string         `json:"id"`
-	Titles    []*Title       `json:"titles"`
+	Titles    []*Title       `json:"titles,omitempty"`
 	Score     *float64       `json:"score,omitempty"`
 	Providers []ProviderType `json:"providers,omitempty"`
-	Aux       Aux            `json:"aux"`
+	Aux       Aux            `json:"aux,omitempty"`
 	Tags      []string       `json:"tags,omitempty"`
 }
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+type MutateEntryInput struct {
+	ID        *string                    `json:"id,omitempty"`
+	Corpus    CorpusType                 `json:"corpus"`
+	Queued    bool                       `json:"queued"`
+	Titles    []*MutateEntryInputTitle   `json:"titles,omitempty"`
+	Score     *float64                   `json:"score,omitempty"`
+	Providers []ProviderType             `json:"providers,omitempty"`
+	Tags      []string                   `json:"tags,omitempty"`
+	Aux       *MutateEntryInputAux       `json:"aux,omitempty"`
+	Links     []*MutateEntryInputAPILink `json:"links,omitempty"`
+}
+
+type MutateEntryInputAPILink struct {
+	API APIType `json:"api"`
+	ID  string  `json:"id"`
+}
+
+type MutateEntryInputAux struct {
+	Studios    []string `json:"studios,omitempty"`
+	Authors    []string `json:"authors,omitempty"`
+	Composors  []string `json:"composors,omitempty"`
+	Directors  []string `json:"directors,omitempty"`
+	Developers []string `json:"developers,omitempty"`
+}
+
+type MutateEntryInputTitle struct {
+	Language string `json:"language"`
+	Title    string `json:"title"`
+}
+
+type MutateEntryOutput struct {
+	Error *Error `json:"error,omitempty"`
+	Entry *Entry `json:"entry,omitempty"`
+}
+
+type QueryEntryInput struct {
+	ID      *string     `json:"id,omitempty"`
+	Corpus  *CorpusType `json:"corpus,omitempty"`
+	Pattern *string     `json:"pattern,omitempty"`
+	Apis    []APIType   `json:"apis,omitempty"`
+	Nsfw    bool        `json:"nsfw"`
+}
+
+type QueryEntryOutput struct {
+	Error   *Error   `json:"error,omitempty"`
+	Entries []*Entry `json:"entries,omitempty"`
 }
 
 type Title struct {
 	Language string `json:"language"`
 	Title    string `json:"title"`
-}
-
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
-}
-
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
 }
 
 type APIType string

@@ -1,0 +1,79 @@
+input QueryEntryInput {
+  # Entry ID
+  id: ID
+
+  corpus: CorpusType
+  pattern: String
+  apis: [APIType!]
+
+  nsfw: Boolean!
+}
+
+input MutateEntryInputAPILink {
+  api: APIType!
+  id: ID!
+}
+
+# Most fields for the Aux union type are not represented here for simplicity.
+# We will rely on APIs to populate the data instead.
+input MutateEntryInputAux {
+  # Used for populating AuxAnime and AuxAnimeFilm.
+  studios: [String!]
+
+  # Used for populating AuxBook, AuxManga, and AuxShortStory.
+  authors: [String!]
+
+  # Used for populating AuxAlbum.
+  composors: [String!]
+
+  # Used for populating AuxFilm.
+  directors: [String!]
+
+  # Used for populating AuxGame.
+  developers: [String!]
+}
+
+input MutateEntryInputTitle {
+  language: String!
+  title: String!
+}
+
+input MutateEntryInput {
+  # Optional; if ID is null, create the entry.
+  id: ID
+
+  corpus: CorpusType!
+  queued: Boolean!
+
+  # Custom metadata
+  titles: [MutateEntryInputTitle!]
+  score: Float
+  providers: [ProviderType!]
+  tags: [String!]
+  aux: MutateEntryInputAux
+
+  links: [MutateEntryInputAPILink!]
+}
+
+type Error {
+  code: Int
+  err_strings: [String!]
+}
+
+type QueryEntryOutput {
+  error: Error
+  entries: [Entry!]
+}
+
+type MutateEntryOutput {
+  error: Error
+  entry: Entry
+}
+
+type Query {
+  QueryEntry(input: QueryEntryInput): QueryEntryOutput
+}
+
+type Mutation {
+  MutateEntry(input: MutateEntryInput): MutateEntryOutput
+}
