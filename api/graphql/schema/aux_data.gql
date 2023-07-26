@@ -1,0 +1,71 @@
+union Aux =
+    AuxAnime
+  | AuxAnimeFilm
+  | AuxManga
+  | AuxBook
+  | AuxShortStory
+  | AuxFilm
+  | AuxTV
+  | AuxAlbum
+  | AuxGame
+
+type AuxAnime {
+  composors: [String!]
+  directors: [String!]
+  studios: [String!]
+  writers: [String!]
+}
+
+type AuxAnimeFilm {
+  composors: [String!]
+  directors: [String!]
+  studios: [String!]
+  writers: [String!]
+}
+
+type AuxManga {
+  illustrators: [String!]
+  writers: [String!]
+}
+
+type AuxBook {
+  authors: [String!]
+}
+
+type AuxShortStory {
+  authors: [String!]
+}
+
+type AuxFilm {
+  cinematographers: [String!]
+  composors: [String!]
+  directors: [String!]
+  editors: [String!]
+  writers: [String!]
+}
+
+type AuxTV {
+  cinematographers: [String!]
+  creators: [String!]
+  composers: [String!]
+  editors: [String!]
+  writers: [String!]
+}
+
+type AuxAlbum {
+  studio: [String!]
+  composers: [String!]
+  labels: [String!]
+  producers: [String!]
+}
+
+type AuxGame {
+  artists: [String!]
+  composers: [String!]
+  designers: [String!]
+  developers: [String!]
+  directors: [String!]
+  programmers: [String!]
+  publishers: [String!]
+  writers: [String!]
+}

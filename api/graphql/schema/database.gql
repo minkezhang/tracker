@@ -1,0 +1,59 @@
+enum APIType {
+  API_NONE
+
+  API_TRUFFLE
+  API_MAL
+  API_KITSU_API
+  API_STEAM
+  API_SPOTIFY
+}
+
+enum CorpusType {
+  CORPUS_NONE
+
+  CORPUS_ANIME
+  CORPUS_ANIME_FILM
+  CORPUS_MANGA
+  CORPUS_BOOK
+  CORPUS_SHORT_STORY
+  CORPUS_FILM
+  CORPUS_TV
+  CORPUS_ALBUM
+  CORPUS_GAME
+}
+
+enum ProviderType {
+  PROVIDER_NONE
+  PROVIDER_OTHER
+
+  PROVIDER_CRUNCHYROLL
+  PROVIDER_DISNEY_PLUS
+  PROVIDER_HULU
+  PROVIDER_HBO_MAX
+  PROVIDER_NETFLIX
+  PROVIDER_AMAZON_STREAMING
+  PROVIDER_GOOGLE_PLAY
+  PROVIDER_APPLE_TV
+  PROVIDER_STEAM
+}
+
+type Title {
+  language: String!
+  title: String!
+}
+
+type Entry {
+  id: ID!
+  metadata: [Metadata!]!
+  corpus: CorpusType!
+}
+
+type Metadata {
+  api: APIType!
+  id: ID!
+  titles: [Title!]!
+  score: Float
+  providers: [ProviderType!]
+  aux: Aux!
+  tags: [String!]
+}
