@@ -56,7 +56,7 @@ type Entry {
 }
 
 type Metadata {
-  truffle: APIData  # ID is the same as the Entry ID
+  truffle: APIData!  # ID is the same as the Entry ID
 
   sources: [APIData!] @goField(forceResolver: true)
 }

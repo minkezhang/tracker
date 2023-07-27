@@ -127,7 +127,7 @@ type EntryInputTitle struct {
 }
 
 type Metadata struct {
-	Truffle *APIData   `json:"truffle,omitempty"`
+	Truffle *APIData   `json:"truffle"`
 	Sources []*APIData `json:"sources,omitempty"`
 }
 

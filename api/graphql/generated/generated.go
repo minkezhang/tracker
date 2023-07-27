@@ -773,7 +773,7 @@ type Entry {
 }
 
 type Metadata {
-  truffle: APIData  # ID is the same as the Entry ID
+  truffle: APIData!  # ID is the same as the Entry ID
 
   sources: [APIData!] @goField(forceResolver: true)
 }
@@ -2843,11 +2843,14 @@ func (ec *executionContext) _Metadata_truffle(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.APIData)
 	fc.Result = res
-	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
+	return ec.marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Metadata_truffle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5939,6 +5942,9 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = graphql.MarshalString("Metadata")
 		case "truffle":
 			out.Values[i] = ec._Metadata_truffle(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "sources":
 			field := field
 
@@ -6903,13 +6909,6 @@ func (ec *executionContext) marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtr
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx context.Context, sel ast.SelectionSet, v *model.APIData) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._APIData(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPITypeᚄ(ctx context.Context, v interface{}) ([]model.APIType, error) {
