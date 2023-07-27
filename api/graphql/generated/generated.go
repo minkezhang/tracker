@@ -36,6 +36,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Metadata() MetadataResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -130,11 +131,11 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		MutateEntry func(childComplexity int, input *model.MutateEntryInput) int
+		Entry func(childComplexity int, input *model.MutateEntryInput) int
 	}
 
 	Query struct {
-		QueryEntry func(childComplexity int, input *model.QueryEntryInput) int
+		Entry func(childComplexity int, input *model.QueryEntryInput) int
 	}
 
 	Title struct {
@@ -143,11 +144,14 @@ type ComplexityRoot struct {
 	}
 }
 
+type MetadataResolver interface {
+	Mal(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
+}
 type MutationResolver interface {
-	MutateEntry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error)
+	Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error)
 }
 type QueryResolver interface {
-	QueryEntry(ctx context.Context, input *model.QueryEntryInput) ([]*model.Entry, error)
+	Entry(ctx context.Context, input *model.QueryEntryInput) ([]*model.Entry, error)
 }
 
 type executableSchema struct {
@@ -508,29 +512,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Metadata.Truffle(childComplexity), true
 
-	case "Mutation.MutateEntry":
-		if e.complexity.Mutation.MutateEntry == nil {
+	case "Mutation.entry":
+		if e.complexity.Mutation.Entry == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_MutateEntry_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_entry_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MutateEntry(childComplexity, args["input"].(*model.MutateEntryInput)), true
+		return e.complexity.Mutation.Entry(childComplexity, args["input"].(*model.MutateEntryInput)), true
 
-	case "Query.QueryEntry":
-		if e.complexity.Query.QueryEntry == nil {
+	case "Query.entry":
+		if e.complexity.Query.Entry == nil {
 			break
 		}
 
-		args, err := ec.field_Query_QueryEntry_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_entry_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.QueryEntry(childComplexity, args["input"].(*model.QueryEntryInput)), true
+		return e.complexity.Query.Entry(childComplexity, args["input"].(*model.QueryEntryInput)), true
 
 	case "Title.language":
 		if e.complexity.Title.Language == nil {
@@ -554,10 +558,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputEntryInputAPILink,
+		ec.unmarshalInputEntryInputAux,
+		ec.unmarshalInputEntryInputTitle,
 		ec.unmarshalInputMutateEntryInput,
-		ec.unmarshalInputMutateEntryInputAPILink,
-		ec.unmarshalInputMutateEntryInputAux,
-		ec.unmarshalInputMutateEntryInputTitle,
 		ec.unmarshalInputQueryEntryInput,
 	)
 	first := true
@@ -727,7 +731,13 @@ type AuxGame {
   writers: [String!]
 }
 `, BuiltIn: false},
-	{Name: "../schema/database.gql", Input: `enum APIType {
+	{Name: "../schema/database.gql", Input: `directive @goField(
+	forceResolver: Boolean
+	name: String
+  omittable: Boolean
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+enum APIType {
   API_NONE
 
   API_TRUFFLE
@@ -780,7 +790,7 @@ type Entry {
 
 type Metadata {
   truffle: APIData
-  mal: APIData
+  mal: APIData @goField(forceResolver: true)
   spotify: APIData
   kitsu: APIData
   steam: APIData
@@ -807,14 +817,14 @@ type APIData {
   nsfw: Boolean
 }
 
-input MutateEntryInputAPILink {
+input EntryInputAPILink {
   api: APIType!
   id: ID!
 }
 
 # Most fields for the Aux union type are not represented here for simplicity.
 # We will rely on APIs to populate the data instead.
-input MutateEntryInputAux {
+input EntryInputAux {
   # Used for populating AuxAnime and AuxAnimeFilm.
   studios: [String!]
 
@@ -831,7 +841,7 @@ input MutateEntryInputAux {
   developers: [String!]
 }
 
-input MutateEntryInputTitle {
+input EntryInputTitle {
   language: String!
   title: String!
 }
@@ -844,21 +854,21 @@ input MutateEntryInput {
   queued: Boolean
 
   # Custom metadata
-  titles: [MutateEntryInputTitle!]
+  titles: [EntryInputTitle!]
   score: Float
   providers: [ProviderType!]
   tags: [String!]
-  aux: MutateEntryInputAux
+  aux: EntryInputAux
 
-  links: [MutateEntryInputAPILink!]
+  links: [EntryInputAPILink!]
 }
 
 type Query {
-  QueryEntry(input: QueryEntryInput): [Entry!]
+  entry(input: QueryEntryInput): [Entry!]
 }
 
 type Mutation {
-  MutateEntry(input: MutateEntryInput): Entry
+  entry(input: MutateEntryInput): Entry
 }
 `, BuiltIn: false},
 }
@@ -868,28 +878,13 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_MutateEntry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_entry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *model.MutateEntryInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOMutateEntryInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_QueryEntry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *model.QueryEntryInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOQueryEntryInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐQueryEntryInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -910,6 +905,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_entry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.QueryEntryInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOQueryEntryInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐQueryEntryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2862,7 +2872,7 @@ func (ec *executionContext) _Metadata_mal(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Mal, nil
+		return ec.resolvers.Metadata().Mal(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2880,8 +2890,8 @@ func (ec *executionContext) fieldContext_Metadata_mal(ctx context.Context, field
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "api":
@@ -3076,8 +3086,8 @@ func (ec *executionContext) fieldContext_Metadata_steam(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_MutateEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_MutateEntry(ctx, field)
+func (ec *executionContext) _Mutation_entry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_entry(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3090,7 +3100,7 @@ func (ec *executionContext) _Mutation_MutateEntry(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MutateEntry(rctx, fc.Args["input"].(*model.MutateEntryInput))
+		return ec.resolvers.Mutation().Entry(rctx, fc.Args["input"].(*model.MutateEntryInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3104,7 +3114,7 @@ func (ec *executionContext) _Mutation_MutateEntry(ctx context.Context, field gra
 	return ec.marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntry(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_MutateEntry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_entry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -3131,15 +3141,15 @@ func (ec *executionContext) fieldContext_Mutation_MutateEntry(ctx context.Contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_MutateEntry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_entry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_QueryEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_QueryEntry(ctx, field)
+func (ec *executionContext) _Query_entry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_entry(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3152,7 +3162,7 @@ func (ec *executionContext) _Query_QueryEntry(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().QueryEntry(rctx, fc.Args["input"].(*model.QueryEntryInput))
+		return ec.resolvers.Query().Entry(rctx, fc.Args["input"].(*model.QueryEntryInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3166,7 +3176,7 @@ func (ec *executionContext) _Query_QueryEntry(ctx context.Context, field graphql
 	return ec.marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_QueryEntry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_entry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -3193,7 +3203,7 @@ func (ec *executionContext) fieldContext_Query_QueryEntry(ctx context.Context, f
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_QueryEntry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_entry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5190,109 +5200,8 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputMutateEntryInput(ctx context.Context, obj interface{}) (model.MutateEntryInput, error) {
-	var it model.MutateEntryInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"id", "corpus", "queued", "titles", "score", "providers", "tags", "aux", "links"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ID = data
-		case "corpus":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("corpus"))
-			data, err := ec.unmarshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Corpus = data
-		case "queued":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("queued"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Queued = data
-		case "titles":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("titles"))
-			data, err := ec.unmarshalOMutateEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputTitleᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Titles = data
-		case "score":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("score"))
-			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Score = data
-		case "providers":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("providers"))
-			data, err := ec.unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Providers = data
-		case "tags":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Tags = data
-		case "aux":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aux"))
-			data, err := ec.unmarshalOMutateEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputAux(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Aux = data
-		case "links":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("links"))
-			data, err := ec.unmarshalOMutateEntryInputAPILink2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputAPILinkᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Links = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputMutateEntryInputAPILink(ctx context.Context, obj interface{}) (model.MutateEntryInputAPILink, error) {
-	var it model.MutateEntryInputAPILink
+func (ec *executionContext) unmarshalInputEntryInputAPILink(ctx context.Context, obj interface{}) (model.EntryInputAPILink, error) {
+	var it model.EntryInputAPILink
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -5329,8 +5238,8 @@ func (ec *executionContext) unmarshalInputMutateEntryInputAPILink(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputMutateEntryInputAux(ctx context.Context, obj interface{}) (model.MutateEntryInputAux, error) {
-	var it model.MutateEntryInputAux
+func (ec *executionContext) unmarshalInputEntryInputAux(ctx context.Context, obj interface{}) (model.EntryInputAux, error) {
+	var it model.EntryInputAux
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -5394,8 +5303,8 @@ func (ec *executionContext) unmarshalInputMutateEntryInputAux(ctx context.Contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputMutateEntryInputTitle(ctx context.Context, obj interface{}) (model.MutateEntryInputTitle, error) {
-	var it model.MutateEntryInputTitle
+func (ec *executionContext) unmarshalInputEntryInputTitle(ctx context.Context, obj interface{}) (model.EntryInputTitle, error) {
+	var it model.EntryInputTitle
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -5426,6 +5335,107 @@ func (ec *executionContext) unmarshalInputMutateEntryInputTitle(ctx context.Cont
 				return it, err
 			}
 			it.Title = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMutateEntryInput(ctx context.Context, obj interface{}) (model.MutateEntryInput, error) {
+	var it model.MutateEntryInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "corpus", "queued", "titles", "score", "providers", "tags", "aux", "links"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "corpus":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("corpus"))
+			data, err := ec.unmarshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Corpus = data
+		case "queued":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("queued"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Queued = data
+		case "titles":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("titles"))
+			data, err := ec.unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputTitleᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Titles = data
+		case "score":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("score"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Score = data
+		case "providers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("providers"))
+			data, err := ec.unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Providers = data
+		case "tags":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tags = data
+		case "aux":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aux"))
+			data, err := ec.unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAux(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Aux = data
+		case "links":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("links"))
+			data, err := ec.unmarshalOEntryInputAPILink2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPILinkᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Links = data
 		}
 	}
 
@@ -6071,7 +6081,38 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 		case "truffle":
 			out.Values[i] = ec._Metadata_truffle(ctx, field, obj)
 		case "mal":
-			out.Values[i] = ec._Metadata_mal(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Metadata_mal(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "spotify":
 			out.Values[i] = ec._Metadata_spotify(ctx, field, obj)
 		case "kitsu":
@@ -6120,9 +6161,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "MutateEntry":
+		case "entry":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_MutateEntry(ctx, field)
+				return ec._Mutation_entry(ctx, field)
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6166,7 +6207,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "QueryEntry":
+		case "entry":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -6175,7 +6216,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_QueryEntry(ctx, field)
+				res = ec._Query_entry(ctx, field)
 				return res
 			}
 
@@ -6631,6 +6672,16 @@ func (ec *executionContext) marshalNEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffle
 	return ec._Entry(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNEntryInputAPILink2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPILink(ctx context.Context, v interface{}) (*model.EntryInputAPILink, error) {
+	res, err := ec.unmarshalInputEntryInputAPILink(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputTitle(ctx context.Context, v interface{}) (*model.EntryInputTitle, error) {
+	res, err := ec.unmarshalInputEntryInputTitle(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6654,16 +6705,6 @@ func (ec *executionContext) marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruf
 		return graphql.Null
 	}
 	return ec._Metadata(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNMutateEntryInputAPILink2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputAPILink(ctx context.Context, v interface{}) (*model.MutateEntryInputAPILink, error) {
-	res, err := ec.unmarshalInputMutateEntryInputAPILink(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNMutateEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputTitle(ctx context.Context, v interface{}) (*model.MutateEntryInputTitle, error) {
-	res, err := ec.unmarshalInputMutateEntryInputTitle(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐProviderType(ctx context.Context, v interface{}) (model.ProviderType, error) {
@@ -7131,6 +7172,54 @@ func (ec *executionContext) marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffle
 	return ec._Entry(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOEntryInputAPILink2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPILinkᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputAPILink, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.EntryInputAPILink, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNEntryInputAPILink2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPILink(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAux(ctx context.Context, v interface{}) (*model.EntryInputAux, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputEntryInputAux(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputTitleᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputTitle, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.EntryInputTitle, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputTitle(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
 	if v == nil {
 		return nil, nil
@@ -7169,54 +7258,6 @@ func (ec *executionContext) unmarshalOMutateEntryInput2ᚖgithubᚗcomᚋminkezh
 	}
 	res, err := ec.unmarshalInputMutateEntryInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOMutateEntryInputAPILink2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputAPILinkᚄ(ctx context.Context, v interface{}) ([]*model.MutateEntryInputAPILink, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.MutateEntryInputAPILink, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNMutateEntryInputAPILink2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputAPILink(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalOMutateEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputAux(ctx context.Context, v interface{}) (*model.MutateEntryInputAux, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputMutateEntryInputAux(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOMutateEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputTitleᚄ(ctx context.Context, v interface{}) ([]*model.MutateEntryInputTitle, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.MutateEntryInputTitle, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNMutateEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInputTitle(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx context.Context, v interface{}) ([]model.ProviderType, error) {

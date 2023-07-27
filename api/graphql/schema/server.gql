@@ -9,14 +9,14 @@ input QueryEntryInput {
   nsfw: Boolean
 }
 
-input MutateEntryInputAPILink {
+input EntryInputAPILink {
   api: APIType!
   id: ID!
 }
 
 # Most fields for the Aux union type are not represented here for simplicity.
 # We will rely on APIs to populate the data instead.
-input MutateEntryInputAux {
+input EntryInputAux {
   # Used for populating AuxAnime and AuxAnimeFilm.
   studios: [String!]
 
@@ -33,7 +33,7 @@ input MutateEntryInputAux {
   developers: [String!]
 }
 
-input MutateEntryInputTitle {
+input EntryInputTitle {
   language: String!
   title: String!
 }
@@ -46,19 +46,19 @@ input MutateEntryInput {
   queued: Boolean
 
   # Custom metadata
-  titles: [MutateEntryInputTitle!]
+  titles: [EntryInputTitle!]
   score: Float
   providers: [ProviderType!]
   tags: [String!]
-  aux: MutateEntryInputAux
+  aux: EntryInputAux
 
-  links: [MutateEntryInputAPILink!]
+  links: [EntryInputAPILink!]
 }
 
 type Query {
-  QueryEntry(input: QueryEntryInput): [Entry!]
+  entry(input: QueryEntryInput): [Entry!]
 }
 
 type Mutation {
-  MutateEntry(input: MutateEntryInput): Entry
+  entry(input: MutateEntryInput): Entry
 }

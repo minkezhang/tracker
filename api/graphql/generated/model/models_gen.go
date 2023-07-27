@@ -107,6 +107,24 @@ type Entry struct {
 	Queued   bool       `json:"queued"`
 }
 
+type EntryInputAPILink struct {
+	API APIType `json:"api"`
+	ID  string  `json:"id"`
+}
+
+type EntryInputAux struct {
+	Studios    []string `json:"studios,omitempty"`
+	Authors    []string `json:"authors,omitempty"`
+	Composors  []string `json:"composors,omitempty"`
+	Directors  []string `json:"directors,omitempty"`
+	Developers []string `json:"developers,omitempty"`
+}
+
+type EntryInputTitle struct {
+	Language string `json:"language"`
+	Title    string `json:"title"`
+}
+
 type Metadata struct {
 	Truffle *APIData `json:"truffle,omitempty"`
 	Mal     *APIData `json:"mal,omitempty"`
@@ -116,33 +134,15 @@ type Metadata struct {
 }
 
 type MutateEntryInput struct {
-	ID        *string                    `json:"id,omitempty"`
-	Corpus    CorpusType                 `json:"corpus"`
-	Queued    *bool                      `json:"queued,omitempty"`
-	Titles    []*MutateEntryInputTitle   `json:"titles,omitempty"`
-	Score     *float64                   `json:"score,omitempty"`
-	Providers []ProviderType             `json:"providers,omitempty"`
-	Tags      []string                   `json:"tags,omitempty"`
-	Aux       *MutateEntryInputAux       `json:"aux,omitempty"`
-	Links     []*MutateEntryInputAPILink `json:"links,omitempty"`
-}
-
-type MutateEntryInputAPILink struct {
-	API APIType `json:"api"`
-	ID  string  `json:"id"`
-}
-
-type MutateEntryInputAux struct {
-	Studios    []string `json:"studios,omitempty"`
-	Authors    []string `json:"authors,omitempty"`
-	Composors  []string `json:"composors,omitempty"`
-	Directors  []string `json:"directors,omitempty"`
-	Developers []string `json:"developers,omitempty"`
-}
-
-type MutateEntryInputTitle struct {
-	Language string `json:"language"`
-	Title    string `json:"title"`
+	ID        *string              `json:"id,omitempty"`
+	Corpus    CorpusType           `json:"corpus"`
+	Queued    *bool                `json:"queued,omitempty"`
+	Titles    []*EntryInputTitle   `json:"titles,omitempty"`
+	Score     *float64             `json:"score,omitempty"`
+	Providers []ProviderType       `json:"providers,omitempty"`
+	Tags      []string             `json:"tags,omitempty"`
+	Aux       *EntryInputAux       `json:"aux,omitempty"`
+	Links     []*EntryInputAPILink `json:"links,omitempty"`
 }
 
 type QueryEntryInput struct {

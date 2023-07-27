@@ -14,21 +14,21 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-// MutateEntry is the resolver for the MutateEntry field.
-func (r *mutationResolver) MutateEntry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error) {
-	if r.Entry == nil {
-		r.Entry = map[string]*model.Entry{}
+// Entry is the resolver for the Entry field.
+func (r *mutationResolver) Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error) {
+	if r.Entries == nil {
+		r.Entries = map[string]*model.Entry{}
 	}
-	r.Entry[*input.ID] = &model.Entry{
+	r.Entries[*input.ID] = &model.Entry{
 		ID:     *input.ID,
 		Corpus: input.Corpus,
 	}
-	return r.Entry[*input.ID], nil
+	return r.Entries[*input.ID], nil
 }
 
-// QueryEntry is the resolver for the QueryEntry field.
-func (r *queryResolver) QueryEntry(ctx context.Context, input *model.QueryEntryInput) ([]*model.Entry, error) {
-	if e, ok := r.Entry[*input.ID]; !ok {
+// Entry is the resolver for the Entry field.
+func (r *queryResolver) Entry(ctx context.Context, input *model.QueryEntryInput) ([]*model.Entry, error) {
+	if e, ok := r.Entries[*input.ID]; !ok {
 		return nil, &gqlerror.Error{
 			Path:    graphql.GetPath(ctx),
 			Message: fmt.Sprintf("Entry not found: %s", *input.ID),

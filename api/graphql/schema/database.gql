@@ -1,3 +1,9 @@
+directive @goField(
+	forceResolver: Boolean
+	name: String
+  omittable: Boolean
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 enum APIType {
   API_NONE
 
@@ -51,7 +57,7 @@ type Entry {
 
 type Metadata {
   truffle: APIData
-  mal: APIData
+  mal: APIData @goField(forceResolver: true)
   spotify: APIData
   kitsu: APIData
   steam: APIData
