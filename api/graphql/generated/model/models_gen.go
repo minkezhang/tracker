@@ -15,6 +15,7 @@ type Aux interface {
 type APIData struct {
 	API       APIType        `json:"api"`
 	ID        string         `json:"id"`
+	Queued    bool           `json:"queued"`
 	Cached    bool           `json:"cached"`
 	Titles    []*Title       `json:"titles,omitempty"`
 	Score     *float64       `json:"score,omitempty"`
@@ -105,7 +106,6 @@ type Entry struct {
 	ID       string     `json:"id"`
 	Metadata *Metadata  `json:"metadata"`
 	Corpus   CorpusType `json:"corpus"`
-	Queued   bool       `json:"queued"`
 }
 
 type EntryInputAPISource struct {

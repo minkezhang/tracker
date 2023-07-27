@@ -76,7 +76,7 @@ func PUTEntry(q *model.MutateEntryInput, m *model.Entry) error {
 	}
 
 	if q.Queued != nil {
-		m.Queued = *q.Queued
+		m.Metadata.Truffle.Queued = *q.Queued
 	}
 
 	if q.Score != nil {

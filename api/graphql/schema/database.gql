@@ -52,7 +52,6 @@ type Entry {
   id: ID!
   metadata: Metadata!
   corpus: CorpusType!
-  queued: Boolean!
 }
 
 type Metadata {
@@ -64,6 +63,7 @@ type Metadata {
 type APIData {
   api: APIType!
   id: ID!
+  queued: Boolean!
   cached: Boolean!
   titles: [Title!]
   score: Float

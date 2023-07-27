@@ -51,6 +51,7 @@ type ComplexityRoot struct {
 		Cached    func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Providers func(childComplexity int) int
+		Queued    func(childComplexity int) int
 		Score     func(childComplexity int) int
 		Tags      func(childComplexity int) int
 		Titles    func(childComplexity int) int
@@ -120,7 +121,6 @@ type ComplexityRoot struct {
 		Corpus   func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Metadata func(childComplexity int) int
-		Queued   func(childComplexity int) int
 	}
 
 	Metadata struct {
@@ -201,6 +201,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.APIData.Providers(childComplexity), true
+
+	case "APIData.queued":
+		if e.complexity.APIData.Queued == nil {
+			break
+		}
+
+		return e.complexity.APIData.Queued(childComplexity), true
 
 	case "APIData.score":
 		if e.complexity.APIData.Score == nil {
@@ -474,13 +481,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Entry.Metadata(childComplexity), true
-
-	case "Entry.queued":
-		if e.complexity.Entry.Queued == nil {
-			break
-		}
-
-		return e.complexity.Entry.Queued(childComplexity), true
 
 	case "Metadata.sources":
 		if e.complexity.Metadata.Sources == nil {
@@ -769,7 +769,6 @@ type Entry {
   id: ID!
   metadata: Metadata!
   corpus: CorpusType!
-  queued: Boolean!
 }
 
 type Metadata {
@@ -781,6 +780,7 @@ type Metadata {
 type APIData {
   api: APIType!
   id: ID!
+  queued: Boolean!
   cached: Boolean!
   titles: [Title!]
   score: Float
@@ -834,9 +834,9 @@ input MutateEntryInput {
   id: ID
 
   corpus: CorpusType
-  queued: Boolean
 
   # Custom metadata
+  queued: Boolean
   titles: [EntryInputTitle!]
   score: Float
   providers: [ProviderType!]
@@ -1027,6 +1027,50 @@ func (ec *executionContext) fieldContext_APIData_id(ctx context.Context, field g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_queued(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_queued(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Queued, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_queued(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2778,50 +2822,6 @@ func (ec *executionContext) fieldContext_Entry_corpus(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Entry_queued(ctx context.Context, field graphql.CollectedField, obj *model.Entry) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Entry_queued(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Queued, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Entry_queued(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Entry",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Metadata_truffle(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Metadata_truffle(ctx, field)
 	if err != nil {
@@ -2865,6 +2865,8 @@ func (ec *executionContext) fieldContext_Metadata_truffle(ctx context.Context, f
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "queued":
+				return ec.fieldContext_APIData_queued(ctx, field)
 			case "cached":
 				return ec.fieldContext_APIData_cached(ctx, field)
 			case "titles":
@@ -2924,6 +2926,8 @@ func (ec *executionContext) fieldContext_Metadata_sources(ctx context.Context, f
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "queued":
+				return ec.fieldContext_APIData_queued(ctx, field)
 			case "cached":
 				return ec.fieldContext_APIData_cached(ctx, field)
 			case "titles":
@@ -2985,8 +2989,6 @@ func (ec *executionContext) fieldContext_Mutation_entry(ctx context.Context, fie
 				return ec.fieldContext_Entry_metadata(ctx, field)
 			case "corpus":
 				return ec.fieldContext_Entry_corpus(ctx, field)
-			case "queued":
-				return ec.fieldContext_Entry_queued(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
 		},
@@ -3047,8 +3049,6 @@ func (ec *executionContext) fieldContext_Query_entry(ctx context.Context, field 
 				return ec.fieldContext_Entry_metadata(ctx, field)
 			case "corpus":
 				return ec.fieldContext_Entry_corpus(ctx, field)
-			case "queued":
-				return ec.fieldContext_Entry_queued(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
 		},
@@ -5465,6 +5465,11 @@ func (ec *executionContext) _APIData(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "queued":
+			out.Values[i] = ec._APIData_queued(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cached":
 			out.Values[i] = ec._APIData_cached(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -5898,11 +5903,6 @@ func (ec *executionContext) _Entry(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "corpus":
 			out.Values[i] = ec._Entry_corpus(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "queued":
-			out.Values[i] = ec._Entry_queued(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
