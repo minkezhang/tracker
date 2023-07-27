@@ -8,7 +8,7 @@ go run github.com/99designs/gqlgen generate
 
 ```
 mutation {
-  entry(input: {
+  put(input: {
     corpus: CORPUS_ANIME,
     queued: false,
     titles: [{

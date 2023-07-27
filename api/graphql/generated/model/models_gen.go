@@ -131,7 +131,7 @@ type Metadata struct {
 	Sources []*APIData `json:"sources,omitempty"`
 }
 
-type MutateEntryInput struct {
+type PutInput struct {
 	ID        *string                `json:"id,omitempty"`
 	Corpus    *CorpusType            `json:"corpus,omitempty"`
 	Queued    *bool                  `json:"queued,omitempty"`
@@ -143,7 +143,7 @@ type MutateEntryInput struct {
 	Sources   []*EntryInputAPISource `json:"sources,omitempty"`
 }
 
-type QueryEntryInput struct {
+type SearchInput struct {
 	ID      *string     `json:"id,omitempty"`
 	Corpus  *CorpusType `json:"corpus,omitempty"`
 	Pattern *string     `json:"pattern,omitempty"`

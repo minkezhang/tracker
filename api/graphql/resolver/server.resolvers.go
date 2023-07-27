@@ -15,8 +15,8 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-// Entry is the resolver for the Entry field.
-func (r *mutationResolver) Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error) {
+// Put is the resolver for the Put field.
+func (r *mutationResolver) Put(ctx context.Context, input *model.PutInput) (*model.Entry, error) {
 	var id string
 	if input.ID != nil && *input.ID != "" {
 		id = *input.ID
@@ -34,15 +34,15 @@ func (r *mutationResolver) Entry(ctx context.Context, input *model.MutateEntryIn
 		return nil, err
 	}
 
-	// TODO(minkezhang): Save Entry object.
+	// TODO(minkezhang): Save Search object.
 	return m, nil
 }
 
-// Entry is the resolver for the Entry field.
-func (r *queryResolver) Entry(ctx context.Context, input *model.QueryEntryInput) ([]*model.Entry, error) {
+// Search is the resolver for the Search field.
+func (r *queryResolver) Search(ctx context.Context, input *model.SearchInput) ([]*model.Entry, error) {
 	return nil, &gqlerror.Error{
 		Path:    graphql.GetPath(ctx),
-		Message: fmt.Sprintf("Entry not found: %s", *input.ID),
+		Message: fmt.Sprintf("Search not found: %s", *input.ID),
 		Extensions: map[string]interface{}{
 			"code": 404,
 		},

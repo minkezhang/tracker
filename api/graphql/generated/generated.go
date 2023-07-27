@@ -129,11 +129,11 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		Entry func(childComplexity int, input *model.MutateEntryInput) int
+		Put func(childComplexity int, input *model.PutInput) int
 	}
 
 	Query struct {
-		Entry func(childComplexity int, input *model.QueryEntryInput) int
+		Search func(childComplexity int, input *model.SearchInput) int
 	}
 
 	Title struct {
@@ -146,10 +146,10 @@ type MetadataResolver interface {
 	Sources(ctx context.Context, obj *model.Metadata) ([]*model.APIData, error)
 }
 type MutationResolver interface {
-	Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error)
+	Put(ctx context.Context, input *model.PutInput) (*model.Entry, error)
 }
 type QueryResolver interface {
-	Entry(ctx context.Context, input *model.QueryEntryInput) ([]*model.Entry, error)
+	Search(ctx context.Context, input *model.SearchInput) ([]*model.Entry, error)
 }
 
 type executableSchema struct {
@@ -496,29 +496,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Metadata.Truffle(childComplexity), true
 
-	case "Mutation.entry":
-		if e.complexity.Mutation.Entry == nil {
+	case "Mutation.put":
+		if e.complexity.Mutation.Put == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_entry_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_put_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Entry(childComplexity, args["input"].(*model.MutateEntryInput)), true
+		return e.complexity.Mutation.Put(childComplexity, args["input"].(*model.PutInput)), true
 
-	case "Query.entry":
-		if e.complexity.Query.Entry == nil {
+	case "Query.search":
+		if e.complexity.Query.Search == nil {
 			break
 		}
 
-		args, err := ec.field_Query_entry_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_search_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Entry(childComplexity, args["input"].(*model.QueryEntryInput)), true
+		return e.complexity.Query.Search(childComplexity, args["input"].(*model.SearchInput)), true
 
 	case "Title.language":
 		if e.complexity.Title.Language == nil {
@@ -545,8 +545,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputEntryInputAPISource,
 		ec.unmarshalInputEntryInputAux,
 		ec.unmarshalInputEntryInputTitle,
-		ec.unmarshalInputMutateEntryInput,
-		ec.unmarshalInputQueryEntryInput,
+		ec.unmarshalInputPutInput,
+		ec.unmarshalInputSearchInput,
 	)
 	first := true
 
@@ -789,7 +789,7 @@ type APIData {
   tags: [String!]
 }
 `, BuiltIn: false},
-	{Name: "../schema/server.gql", Input: `input QueryEntryInput {
+	{Name: "../schema/server.gql", Input: `input SearchInput {
   # Entry ID
   id: ID
 
@@ -829,7 +829,7 @@ input EntryInputTitle {
   title: String!
 }
 
-input MutateEntryInput {
+input PutInput {
   # Optional; if ID is null, create the entry.
   id: ID
 
@@ -847,11 +847,11 @@ input MutateEntryInput {
 }
 
 type Query {
-  entry(input: QueryEntryInput): [Entry!]
+  search(input: SearchInput): [Entry!]
 }
 
 type Mutation {
-  entry(input: MutateEntryInput): Entry
+  put(input: PutInput): Entry
 }
 `, BuiltIn: false},
 }
@@ -861,13 +861,13 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_entry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_put_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.MutateEntryInput
+	var arg0 *model.PutInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOMutateEntryInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInput(ctx, tmp)
+		arg0, err = ec.unmarshalOPutInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐPutInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -891,13 +891,13 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_entry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_search_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.QueryEntryInput
+	var arg0 *model.SearchInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOQueryEntryInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐQueryEntryInput(ctx, tmp)
+		arg0, err = ec.unmarshalOSearchInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐSearchInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2947,8 +2947,8 @@ func (ec *executionContext) fieldContext_Metadata_sources(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_entry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_entry(ctx, field)
+func (ec *executionContext) _Mutation_put(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_put(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2961,7 +2961,7 @@ func (ec *executionContext) _Mutation_entry(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Entry(rctx, fc.Args["input"].(*model.MutateEntryInput))
+		return ec.resolvers.Mutation().Put(rctx, fc.Args["input"].(*model.PutInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2975,7 +2975,7 @@ func (ec *executionContext) _Mutation_entry(ctx context.Context, field graphql.C
 	return ec.marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntry(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_entry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_put(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -3000,15 +3000,15 @@ func (ec *executionContext) fieldContext_Mutation_entry(ctx context.Context, fie
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_entry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_put_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_entry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_entry(ctx, field)
+func (ec *executionContext) _Query_search(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_search(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3021,7 +3021,7 @@ func (ec *executionContext) _Query_entry(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Entry(rctx, fc.Args["input"].(*model.QueryEntryInput))
+		return ec.resolvers.Query().Search(rctx, fc.Args["input"].(*model.SearchInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3035,7 +3035,7 @@ func (ec *executionContext) _Query_entry(ctx context.Context, field graphql.Coll
 	return ec.marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_entry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_search(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -3060,7 +3060,7 @@ func (ec *executionContext) fieldContext_Query_entry(ctx context.Context, field 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_entry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_search_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5198,8 +5198,8 @@ func (ec *executionContext) unmarshalInputEntryInputTitle(ctx context.Context, o
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputMutateEntryInput(ctx context.Context, obj interface{}) (model.MutateEntryInput, error) {
-	var it model.MutateEntryInput
+func (ec *executionContext) unmarshalInputPutInput(ctx context.Context, obj interface{}) (model.PutInput, error) {
+	var it model.PutInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -5299,8 +5299,8 @@ func (ec *executionContext) unmarshalInputMutateEntryInput(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputQueryEntryInput(ctx context.Context, obj interface{}) (model.QueryEntryInput, error) {
-	var it model.QueryEntryInput
+func (ec *executionContext) unmarshalInputSearchInput(ctx context.Context, obj interface{}) (model.SearchInput, error) {
+	var it model.SearchInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -6020,9 +6020,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "entry":
+		case "put":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_entry(ctx, field)
+				return ec._Mutation_put(ctx, field)
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6066,7 +6066,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "entry":
+		case "search":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -6075,7 +6075,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_entry(ctx, field)
+				res = ec._Query_search(ctx, field)
 				return res
 			}
 
@@ -7161,14 +7161,6 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalOMutateEntryInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMutateEntryInput(ctx context.Context, v interface{}) (*model.MutateEntryInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputMutateEntryInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx context.Context, v interface{}) ([]model.ProviderType, error) {
 	if v == nil {
 		return nil, nil
@@ -7236,11 +7228,19 @@ func (ec *executionContext) marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋ
 	return ret
 }
 
-func (ec *executionContext) unmarshalOQueryEntryInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐQueryEntryInput(ctx context.Context, v interface{}) (*model.QueryEntryInput, error) {
+func (ec *executionContext) unmarshalOPutInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐPutInput(ctx context.Context, v interface{}) (*model.PutInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputQueryEntryInput(ctx, v)
+	res, err := ec.unmarshalInputPutInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOSearchInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐSearchInput(ctx context.Context, v interface{}) (*model.SearchInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSearchInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

@@ -1,4 +1,4 @@
-input QueryEntryInput {
+input SearchInput {
   # Entry ID
   id: ID
 
@@ -38,7 +38,7 @@ input EntryInputTitle {
   title: String!
 }
 
-input MutateEntryInput {
+input PutInput {
   # Optional; if ID is null, create the entry.
   id: ID
 
@@ -56,9 +56,9 @@ input MutateEntryInput {
 }
 
 type Query {
-  entry(input: QueryEntryInput): [Entry!]
+  search(input: SearchInput): [Entry!]
 }
 
 type Mutation {
-  entry(input: MutateEntryInput): Entry
+  put(input: PutInput): Entry
 }
