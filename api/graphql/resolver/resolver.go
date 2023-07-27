@@ -21,8 +21,9 @@ func PUTEntry(q *model.MutateEntryInput, m *model.Entry) error {
 	if m.Metadata == nil {
 		m.Metadata = &model.Metadata{
 			Truffle: &model.APIData{
-				API: model.APITypeAPITruffle,
-				ID:  m.ID,
+				API:    model.APITypeAPITruffle,
+				ID:     m.ID,
+				Cached: true,
 			},
 		}
 	}
@@ -62,12 +63,19 @@ func PUTEntry(q *model.MutateEntryInput, m *model.Entry) error {
 		m.Metadata.Kitsu = nil
 		m.Metadata.Steam = nil
 		for _, l := range q.Links {
+			d := &model.APIData{
+				API: l.API,
+				ID:  l.ID,
+			}
 			switch l.API {
 			case model.APITypeAPIMal:
-				m.Metadata.Mal = &model.APIData{
-					API: model.APITypeAPIMal,
-					ID:  l.ID,
-				}
+				m.Metadata.Mal = d
+			case model.APITypeAPISpotify:
+				m.Metadata.Spotify = d
+			case model.APITypeAPIKitsu:
+				m.Metadata.Kitsu = d
+			case model.APITypeAPISteam:
+				m.Metadata.Steam = d
 			default:
 				return fmt.Errorf("invalid API type: %s", l.API)
 			}

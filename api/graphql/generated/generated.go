@@ -48,6 +48,7 @@ type ComplexityRoot struct {
 	APIData struct {
 		API       func(childComplexity int) int
 		Aux       func(childComplexity int) int
+		Cached    func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Providers func(childComplexity int) int
 		Score     func(childComplexity int) int
@@ -146,6 +147,9 @@ type ComplexityRoot struct {
 
 type MetadataResolver interface {
 	Mal(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
+	Spotify(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
+	Kitsu(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
+	Steam(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
 }
 type MutationResolver interface {
 	Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error)
@@ -182,6 +186,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.APIData.Aux(childComplexity), true
+
+	case "APIData.cached":
+		if e.complexity.APIData.Cached == nil {
+			break
+		}
+
+		return e.complexity.APIData.Cached(childComplexity), true
 
 	case "APIData.id":
 		if e.complexity.APIData.ID == nil {
@@ -742,7 +753,7 @@ enum APIType {
 
   API_TRUFFLE
   API_MAL
-  API_KITSU_API
+  API_KITSU
   API_STEAM
   API_SPOTIFY
 }
@@ -789,16 +800,17 @@ type Entry {
 }
 
 type Metadata {
-  truffle: APIData
-  mal: APIData @goField(forceResolver: true)
-  spotify: APIData
-  kitsu: APIData
-  steam: APIData
+  truffle: APIData  # ID is the same as the Entry ID
+  mal: APIData @goField(forceResolver: true)  # ID is "(anime|manga)/123"
+  spotify: APIData @goField(forceResolver: true)
+  kitsu: APIData @goField(forceResolver: true)
+  steam: APIData @goField(forceResolver: true)
 }
 
 type APIData {
   api: APIType!
   id: ID!
+  cached: Boolean!
   titles: [Title!]
   score: Float
   providers: [ProviderType!]
@@ -850,7 +862,7 @@ input MutateEntryInput {
   # Optional; if ID is null, create the entry.
   id: ID
 
-  corpus: CorpusType!
+  corpus: CorpusType
   queued: Boolean
 
   # Custom metadata
@@ -1044,6 +1056,50 @@ func (ec *executionContext) fieldContext_APIData_id(ctx context.Context, field g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_cached(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_cached(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cached, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_cached(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2841,6 +2897,8 @@ func (ec *executionContext) fieldContext_Metadata_truffle(ctx context.Context, f
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "cached":
+				return ec.fieldContext_APIData_cached(ctx, field)
 			case "titles":
 				return ec.fieldContext_APIData_titles(ctx, field)
 			case "score":
@@ -2898,6 +2956,8 @@ func (ec *executionContext) fieldContext_Metadata_mal(ctx context.Context, field
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "cached":
+				return ec.fieldContext_APIData_cached(ctx, field)
 			case "titles":
 				return ec.fieldContext_APIData_titles(ctx, field)
 			case "score":
@@ -2929,7 +2989,7 @@ func (ec *executionContext) _Metadata_spotify(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Spotify, nil
+		return ec.resolvers.Metadata().Spotify(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2947,14 +3007,16 @@ func (ec *executionContext) fieldContext_Metadata_spotify(ctx context.Context, f
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "api":
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "cached":
+				return ec.fieldContext_APIData_cached(ctx, field)
 			case "titles":
 				return ec.fieldContext_APIData_titles(ctx, field)
 			case "score":
@@ -2986,7 +3048,7 @@ func (ec *executionContext) _Metadata_kitsu(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Kitsu, nil
+		return ec.resolvers.Metadata().Kitsu(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3004,14 +3066,16 @@ func (ec *executionContext) fieldContext_Metadata_kitsu(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "api":
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "cached":
+				return ec.fieldContext_APIData_cached(ctx, field)
 			case "titles":
 				return ec.fieldContext_APIData_titles(ctx, field)
 			case "score":
@@ -3043,7 +3107,7 @@ func (ec *executionContext) _Metadata_steam(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Steam, nil
+		return ec.resolvers.Metadata().Steam(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3061,14 +3125,16 @@ func (ec *executionContext) fieldContext_Metadata_steam(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "api":
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "cached":
+				return ec.fieldContext_APIData_cached(ctx, field)
 			case "titles":
 				return ec.fieldContext_APIData_titles(ctx, field)
 			case "score":
@@ -5368,7 +5434,7 @@ func (ec *executionContext) unmarshalInputMutateEntryInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("corpus"))
-			data, err := ec.unmarshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx, v)
+			data, err := ec.unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5605,6 +5671,11 @@ func (ec *executionContext) _APIData(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "id":
 			out.Values[i] = ec._APIData_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cached":
+			out.Values[i] = ec._APIData_cached(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -6114,11 +6185,104 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "spotify":
-			out.Values[i] = ec._Metadata_spotify(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Metadata_spotify(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "kitsu":
-			out.Values[i] = ec._Metadata_kitsu(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Metadata_kitsu(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "steam":
-			out.Values[i] = ec._Metadata_steam(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Metadata_steam(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

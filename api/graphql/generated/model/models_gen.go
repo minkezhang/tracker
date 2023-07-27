@@ -15,6 +15,7 @@ type Aux interface {
 type APIData struct {
 	API       APIType        `json:"api"`
 	ID        string         `json:"id"`
+	Cached    bool           `json:"cached"`
 	Titles    []*Title       `json:"titles,omitempty"`
 	Score     *float64       `json:"score,omitempty"`
 	Providers []ProviderType `json:"providers,omitempty"`
@@ -135,7 +136,7 @@ type Metadata struct {
 
 type MutateEntryInput struct {
 	ID        *string              `json:"id,omitempty"`
-	Corpus    CorpusType           `json:"corpus"`
+	Corpus    *CorpusType          `json:"corpus,omitempty"`
 	Queued    *bool                `json:"queued,omitempty"`
 	Titles    []*EntryInputTitle   `json:"titles,omitempty"`
 	Score     *float64             `json:"score,omitempty"`
@@ -161,26 +162,26 @@ type Title struct {
 type APIType string
 
 const (
-	APITypeAPINone     APIType = "API_NONE"
-	APITypeAPITruffle  APIType = "API_TRUFFLE"
-	APITypeAPIMal      APIType = "API_MAL"
-	APITypeAPIKitsuAPI APIType = "API_KITSU_API"
-	APITypeAPISteam    APIType = "API_STEAM"
-	APITypeAPISpotify  APIType = "API_SPOTIFY"
+	APITypeAPINone    APIType = "API_NONE"
+	APITypeAPITruffle APIType = "API_TRUFFLE"
+	APITypeAPIMal     APIType = "API_MAL"
+	APITypeAPIKitsu   APIType = "API_KITSU"
+	APITypeAPISteam   APIType = "API_STEAM"
+	APITypeAPISpotify APIType = "API_SPOTIFY"
 )
 
 var AllAPIType = []APIType{
 	APITypeAPINone,
 	APITypeAPITruffle,
 	APITypeAPIMal,
-	APITypeAPIKitsuAPI,
+	APITypeAPIKitsu,
 	APITypeAPISteam,
 	APITypeAPISpotify,
 }
 
 func (e APIType) IsValid() bool {
 	switch e {
-	case APITypeAPINone, APITypeAPITruffle, APITypeAPIMal, APITypeAPIKitsuAPI, APITypeAPISteam, APITypeAPISpotify:
+	case APITypeAPINone, APITypeAPITruffle, APITypeAPIMal, APITypeAPIKitsu, APITypeAPISteam, APITypeAPISpotify:
 		return true
 	}
 	return false

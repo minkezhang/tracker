@@ -14,7 +14,22 @@ import (
 
 // Mal is the resolver for the mal field.
 func (r *metadataResolver) Mal(ctx context.Context, obj *model.Metadata) (*model.APIData, error) {
-	panic(fmt.Errorf("not implemented: Mal - mal"))
+	return obj.Mal, nil
+}
+
+// Spotify is the resolver for the spotify field.
+func (r *metadataResolver) Spotify(ctx context.Context, obj *model.Metadata) (*model.APIData, error) {
+	return obj.Spotify, nil
+}
+
+// Kitsu is the resolver for the kitsu field.
+func (r *metadataResolver) Kitsu(ctx context.Context, obj *model.Metadata) (*model.APIData, error) {
+	return obj.Kitsu, nil
+}
+
+// Steam is the resolver for the steam field.
+func (r *metadataResolver) Steam(ctx context.Context, obj *model.Metadata) (*model.APIData, error) {
+	return obj.Steam, nil
 }
 
 // Metadata returns graph.MetadataResolver implementation.

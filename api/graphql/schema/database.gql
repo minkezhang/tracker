@@ -9,7 +9,7 @@ enum APIType {
 
   API_TRUFFLE
   API_MAL
-  API_KITSU_API
+  API_KITSU
   API_STEAM
   API_SPOTIFY
 }
@@ -58,14 +58,15 @@ type Entry {
 type Metadata {
   truffle: APIData  # ID is the same as the Entry ID
   mal: APIData @goField(forceResolver: true)  # ID is "(anime|manga)/123"
-  spotify: APIData
-  kitsu: APIData
-  steam: APIData
+  spotify: APIData @goField(forceResolver: true)
+  kitsu: APIData @goField(forceResolver: true)
+  steam: APIData @goField(forceResolver: true)
 }
 
 type APIData {
   api: APIType!
   id: ID!
+  cached: Boolean!
   titles: [Title!]
   score: Float
   providers: [ProviderType!]
