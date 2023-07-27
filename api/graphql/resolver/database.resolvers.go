@@ -6,30 +6,15 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	graph "github.com/minkezhang/truffle/api/graphql/generated"
 	"github.com/minkezhang/truffle/api/graphql/generated/model"
 )
 
-// Mal is the resolver for the mal field.
-func (r *metadataResolver) Mal(ctx context.Context, obj *model.Metadata) (*model.APIData, error) {
-	return obj.Mal, nil
-}
-
-// Spotify is the resolver for the spotify field.
-func (r *metadataResolver) Spotify(ctx context.Context, obj *model.Metadata) (*model.APIData, error) {
-	return obj.Spotify, nil
-}
-
-// Kitsu is the resolver for the kitsu field.
-func (r *metadataResolver) Kitsu(ctx context.Context, obj *model.Metadata) (*model.APIData, error) {
-	return obj.Kitsu, nil
-}
-
-// Steam is the resolver for the steam field.
-func (r *metadataResolver) Steam(ctx context.Context, obj *model.Metadata) (*model.APIData, error) {
-	return obj.Steam, nil
+// Sources is the resolver for the sources field.
+func (r *metadataResolver) Sources(ctx context.Context, obj *model.Metadata) ([]*model.APIData, error) {
+	// TODO(minkezhang): Query for sources if data is not cached.
+	return obj.Sources, nil
 }
 
 // Metadata returns graph.MetadataResolver implementation.

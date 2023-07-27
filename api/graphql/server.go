@@ -14,6 +14,51 @@ import (
 
 const defaultPort = "8080"
 
+// Example:
+//
+//	mutation {
+//	  entry(input: {
+//	    corpus: CORPUS_ANIME,
+//	    queued: false,
+//	    titles: [{
+//	        language: "en",
+//	        title: "Neon Genesis Evangelion"
+//	    }],
+//	    providers: [
+//	      PROVIDER_NETFLIX,
+//	    ],
+//	    tags: [
+//	      "mechs", "psychological",
+//	    ]
+//	    sources: [
+//	      {
+//	        api: API_MAL,
+//	        id: "anime/30"
+//	      }
+//	    ]
+//	  }) {
+//	    id
+//	    corpus
+//	    queued
+//	    metadata {
+//	      truffle {
+//	        cached
+//	        api
+//	        id
+//	        titles {
+//	          language
+//	          title
+//	        }
+//	        providers,
+//	        tags,
+//	      }
+//	      sources {
+//	      	id
+//	        cached
+//	      }
+//	    }
+//	  }
+//	}
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {

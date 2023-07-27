@@ -57,28 +57,19 @@ func PUTEntry(q *model.MutateEntryInput, m *model.Entry) error {
 		m.Metadata.Truffle.Tags = q.Tags
 	}
 
-	if q.Links != nil {
-		m.Metadata.Mal = nil
-		m.Metadata.Spotify = nil
-		m.Metadata.Kitsu = nil
-		m.Metadata.Steam = nil
-		for _, l := range q.Links {
-			d := &model.APIData{
-				API: l.API,
-				ID:  l.ID,
-			}
-			switch l.API {
-			case model.APITypeAPIMal:
-				m.Metadata.Mal = d
-			case model.APITypeAPISpotify:
-				m.Metadata.Spotify = d
-			case model.APITypeAPIKitsu:
-				m.Metadata.Kitsu = d
-			case model.APITypeAPISteam:
-				m.Metadata.Steam = d
-			default:
+	if q.Sources != nil {
+		m.Metadata.Sources = nil
+		for _, l := range q.Sources {
+			if l.API == model.APITypeAPINone || l.API == model.APITypeAPITruffle {
 				return fmt.Errorf("invalid API type: %s", l.API)
 			}
+			m.Metadata.Sources = append(
+				m.Metadata.Sources,
+				&model.APIData{
+					API: l.API,
+					ID:  l.ID,
+				},
+			)
 		}
 	}
 

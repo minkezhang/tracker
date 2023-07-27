@@ -9,7 +9,7 @@ input QueryEntryInput {
   nsfw: Boolean
 }
 
-input EntryInputAPILink {
+input EntryInputAPISource {
   api: APIType!
   id: ID!
 }
@@ -52,7 +52,7 @@ input MutateEntryInput {
   tags: [String!]
   aux: EntryInputAux
 
-  links: [EntryInputAPILink!]
+  sources: [EntryInputAPISource!]
 }
 
 type Query {

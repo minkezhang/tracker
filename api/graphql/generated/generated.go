@@ -124,10 +124,7 @@ type ComplexityRoot struct {
 	}
 
 	Metadata struct {
-		Kitsu   func(childComplexity int) int
-		Mal     func(childComplexity int) int
-		Spotify func(childComplexity int) int
-		Steam   func(childComplexity int) int
+		Sources func(childComplexity int) int
 		Truffle func(childComplexity int) int
 	}
 
@@ -146,10 +143,7 @@ type ComplexityRoot struct {
 }
 
 type MetadataResolver interface {
-	Mal(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
-	Spotify(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
-	Kitsu(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
-	Steam(ctx context.Context, obj *model.Metadata) (*model.APIData, error)
+	Sources(ctx context.Context, obj *model.Metadata) ([]*model.APIData, error)
 }
 type MutationResolver interface {
 	Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error)
@@ -488,33 +482,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entry.Queued(childComplexity), true
 
-	case "Metadata.kitsu":
-		if e.complexity.Metadata.Kitsu == nil {
+	case "Metadata.sources":
+		if e.complexity.Metadata.Sources == nil {
 			break
 		}
 
-		return e.complexity.Metadata.Kitsu(childComplexity), true
-
-	case "Metadata.mal":
-		if e.complexity.Metadata.Mal == nil {
-			break
-		}
-
-		return e.complexity.Metadata.Mal(childComplexity), true
-
-	case "Metadata.spotify":
-		if e.complexity.Metadata.Spotify == nil {
-			break
-		}
-
-		return e.complexity.Metadata.Spotify(childComplexity), true
-
-	case "Metadata.steam":
-		if e.complexity.Metadata.Steam == nil {
-			break
-		}
-
-		return e.complexity.Metadata.Steam(childComplexity), true
+		return e.complexity.Metadata.Sources(childComplexity), true
 
 	case "Metadata.truffle":
 		if e.complexity.Metadata.Truffle == nil {
@@ -569,7 +542,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputEntryInputAPILink,
+		ec.unmarshalInputEntryInputAPISource,
 		ec.unmarshalInputEntryInputAux,
 		ec.unmarshalInputEntryInputTitle,
 		ec.unmarshalInputMutateEntryInput,
@@ -801,10 +774,8 @@ type Entry {
 
 type Metadata {
   truffle: APIData  # ID is the same as the Entry ID
-  mal: APIData @goField(forceResolver: true)  # ID is "(anime|manga)/123"
-  spotify: APIData @goField(forceResolver: true)
-  kitsu: APIData @goField(forceResolver: true)
-  steam: APIData @goField(forceResolver: true)
+
+  sources: [APIData!] @goField(forceResolver: true)
 }
 
 type APIData {
@@ -829,7 +800,7 @@ type APIData {
   nsfw: Boolean
 }
 
-input EntryInputAPILink {
+input EntryInputAPISource {
   api: APIType!
   id: ID!
 }
@@ -872,7 +843,7 @@ input MutateEntryInput {
   tags: [String!]
   aux: EntryInputAux
 
-  links: [EntryInputAPILink!]
+  sources: [EntryInputAPISource!]
 }
 
 type Query {
@@ -2754,14 +2725,8 @@ func (ec *executionContext) fieldContext_Entry_metadata(ctx context.Context, fie
 			switch field.Name {
 			case "truffle":
 				return ec.fieldContext_Metadata_truffle(ctx, field)
-			case "mal":
-				return ec.fieldContext_Metadata_mal(ctx, field)
-			case "spotify":
-				return ec.fieldContext_Metadata_spotify(ctx, field)
-			case "kitsu":
-				return ec.fieldContext_Metadata_kitsu(ctx, field)
-			case "steam":
-				return ec.fieldContext_Metadata_steam(ctx, field)
+			case "sources":
+				return ec.fieldContext_Metadata_sources(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Metadata", field.Name)
 		},
@@ -2916,8 +2881,8 @@ func (ec *executionContext) fieldContext_Metadata_truffle(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Metadata_mal(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_mal(ctx, field)
+func (ec *executionContext) _Metadata_sources(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metadata_sources(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2930,7 +2895,7 @@ func (ec *executionContext) _Metadata_mal(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Metadata().Mal(rctx, obj)
+		return ec.resolvers.Metadata().Sources(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2939,189 +2904,12 @@ func (ec *executionContext) _Metadata_mal(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.APIData)
+	res := resTmp.([]*model.APIData)
 	fc.Result = res
-	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
+	return ec.marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIDataᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Metadata_mal(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Metadata",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "api":
-				return ec.fieldContext_APIData_api(ctx, field)
-			case "id":
-				return ec.fieldContext_APIData_id(ctx, field)
-			case "cached":
-				return ec.fieldContext_APIData_cached(ctx, field)
-			case "titles":
-				return ec.fieldContext_APIData_titles(ctx, field)
-			case "score":
-				return ec.fieldContext_APIData_score(ctx, field)
-			case "providers":
-				return ec.fieldContext_APIData_providers(ctx, field)
-			case "aux":
-				return ec.fieldContext_APIData_aux(ctx, field)
-			case "tags":
-				return ec.fieldContext_APIData_tags(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Metadata_spotify(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_spotify(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Metadata().Spotify(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.APIData)
-	fc.Result = res
-	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Metadata_spotify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Metadata",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "api":
-				return ec.fieldContext_APIData_api(ctx, field)
-			case "id":
-				return ec.fieldContext_APIData_id(ctx, field)
-			case "cached":
-				return ec.fieldContext_APIData_cached(ctx, field)
-			case "titles":
-				return ec.fieldContext_APIData_titles(ctx, field)
-			case "score":
-				return ec.fieldContext_APIData_score(ctx, field)
-			case "providers":
-				return ec.fieldContext_APIData_providers(ctx, field)
-			case "aux":
-				return ec.fieldContext_APIData_aux(ctx, field)
-			case "tags":
-				return ec.fieldContext_APIData_tags(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Metadata_kitsu(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_kitsu(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Metadata().Kitsu(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.APIData)
-	fc.Result = res
-	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Metadata_kitsu(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Metadata",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "api":
-				return ec.fieldContext_APIData_api(ctx, field)
-			case "id":
-				return ec.fieldContext_APIData_id(ctx, field)
-			case "cached":
-				return ec.fieldContext_APIData_cached(ctx, field)
-			case "titles":
-				return ec.fieldContext_APIData_titles(ctx, field)
-			case "score":
-				return ec.fieldContext_APIData_score(ctx, field)
-			case "providers":
-				return ec.fieldContext_APIData_providers(ctx, field)
-			case "aux":
-				return ec.fieldContext_APIData_aux(ctx, field)
-			case "tags":
-				return ec.fieldContext_APIData_tags(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Metadata_steam(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_steam(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Metadata().Steam(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.APIData)
-	fc.Result = res
-	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Metadata_steam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Metadata_sources(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
@@ -5266,8 +5054,8 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputEntryInputAPILink(ctx context.Context, obj interface{}) (model.EntryInputAPILink, error) {
-	var it model.EntryInputAPILink
+func (ec *executionContext) unmarshalInputEntryInputAPISource(ctx context.Context, obj interface{}) (model.EntryInputAPISource, error) {
+	var it model.EntryInputAPISource
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -5414,7 +5202,7 @@ func (ec *executionContext) unmarshalInputMutateEntryInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "corpus", "queued", "titles", "score", "providers", "tags", "aux", "links"}
+	fieldsInOrder := [...]string{"id", "corpus", "queued", "titles", "score", "providers", "tags", "aux", "sources"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5493,15 +5281,15 @@ func (ec *executionContext) unmarshalInputMutateEntryInput(ctx context.Context, 
 				return it, err
 			}
 			it.Aux = data
-		case "links":
+		case "sources":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("links"))
-			data, err := ec.unmarshalOEntryInputAPILink2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPILinkᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sources"))
+			data, err := ec.unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPISourceᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Links = data
+			it.Sources = data
 		}
 	}
 
@@ -6151,7 +5939,7 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = graphql.MarshalString("Metadata")
 		case "truffle":
 			out.Values[i] = ec._Metadata_truffle(ctx, field, obj)
-		case "mal":
+		case "sources":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -6160,106 +5948,7 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Metadata_mal(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "spotify":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Metadata_spotify(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "kitsu":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Metadata_kitsu(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "steam":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Metadata_steam(ctx, field, obj)
+				res = ec._Metadata_sources(ctx, field, obj)
 				return res
 			}
 
@@ -6791,6 +6480,16 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx context.Context, sel ast.SelectionSet, v *model.APIData) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._APIData(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx context.Context, v interface{}) (model.APIType, error) {
 	var res model.APIType
 	err := res.UnmarshalGQL(v)
@@ -6836,8 +6535,8 @@ func (ec *executionContext) marshalNEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffle
 	return ec._Entry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNEntryInputAPILink2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPILink(ctx context.Context, v interface{}) (*model.EntryInputAPILink, error) {
-	res, err := ec.unmarshalInputEntryInputAPILink(ctx, v)
+func (ec *executionContext) unmarshalNEntryInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPISource(ctx context.Context, v interface{}) (*model.EntryInputAPISource, error) {
+	res, err := ec.unmarshalInputEntryInputAPISource(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -7159,6 +6858,53 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIDataᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.APIData) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx context.Context, sel ast.SelectionSet, v *model.APIData) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7336,7 +7082,7 @@ func (ec *executionContext) marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffle
 	return ec._Entry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOEntryInputAPILink2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPILinkᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputAPILink, error) {
+func (ec *executionContext) unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPISourceᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputAPISource, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -7345,10 +7091,10 @@ func (ec *executionContext) unmarshalOEntryInputAPILink2ᚕᚖgithubᚗcomᚋmin
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]*model.EntryInputAPILink, len(vSlice))
+	res := make([]*model.EntryInputAPISource, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNEntryInputAPILink2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPILink(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNEntryInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPISource(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}

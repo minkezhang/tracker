@@ -108,7 +108,7 @@ type Entry struct {
 	Queued   bool       `json:"queued"`
 }
 
-type EntryInputAPILink struct {
+type EntryInputAPISource struct {
 	API APIType `json:"api"`
 	ID  string  `json:"id"`
 }
@@ -127,23 +127,20 @@ type EntryInputTitle struct {
 }
 
 type Metadata struct {
-	Truffle *APIData `json:"truffle,omitempty"`
-	Mal     *APIData `json:"mal,omitempty"`
-	Spotify *APIData `json:"spotify,omitempty"`
-	Kitsu   *APIData `json:"kitsu,omitempty"`
-	Steam   *APIData `json:"steam,omitempty"`
+	Truffle *APIData   `json:"truffle,omitempty"`
+	Sources []*APIData `json:"sources,omitempty"`
 }
 
 type MutateEntryInput struct {
-	ID        *string              `json:"id,omitempty"`
-	Corpus    *CorpusType          `json:"corpus,omitempty"`
-	Queued    *bool                `json:"queued,omitempty"`
-	Titles    []*EntryInputTitle   `json:"titles,omitempty"`
-	Score     *float64             `json:"score,omitempty"`
-	Providers []ProviderType       `json:"providers,omitempty"`
-	Tags      []string             `json:"tags,omitempty"`
-	Aux       *EntryInputAux       `json:"aux,omitempty"`
-	Links     []*EntryInputAPILink `json:"links,omitempty"`
+	ID        *string                `json:"id,omitempty"`
+	Corpus    *CorpusType            `json:"corpus,omitempty"`
+	Queued    *bool                  `json:"queued,omitempty"`
+	Titles    []*EntryInputTitle     `json:"titles,omitempty"`
+	Score     *float64               `json:"score,omitempty"`
+	Providers []ProviderType         `json:"providers,omitempty"`
+	Tags      []string               `json:"tags,omitempty"`
+	Aux       *EntryInputAux         `json:"aux,omitempty"`
+	Sources   []*EntryInputAPISource `json:"sources,omitempty"`
 }
 
 type QueryEntryInput struct {
