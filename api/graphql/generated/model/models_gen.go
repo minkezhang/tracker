@@ -12,6 +12,16 @@ type Aux interface {
 	IsAux()
 }
 
+type APIData struct {
+	API       APIType        `json:"api"`
+	ID        string         `json:"id"`
+	Titles    []*Title       `json:"titles,omitempty"`
+	Score     *float64       `json:"score,omitempty"`
+	Providers []ProviderType `json:"providers,omitempty"`
+	Aux       Aux            `json:"aux,omitempty"`
+	Tags      []string       `json:"tags,omitempty"`
+}
+
 type AuxAlbum struct {
 	Studios   []string `json:"studios,omitempty"`
 	Composers []string `json:"composers,omitempty"`
@@ -91,20 +101,18 @@ type AuxTv struct {
 func (AuxTv) IsAux() {}
 
 type Entry struct {
-	ID       string      `json:"id"`
-	Metadata []*Metadata `json:"metadata"`
-	Corpus   CorpusType  `json:"corpus"`
-	Queued   bool        `json:"queued"`
+	ID       string     `json:"id"`
+	Metadata *Metadata  `json:"metadata"`
+	Corpus   CorpusType `json:"corpus"`
+	Queued   bool       `json:"queued"`
 }
 
 type Metadata struct {
-	API       APIType        `json:"api"`
-	ID        string         `json:"id"`
-	Titles    []*Title       `json:"titles,omitempty"`
-	Score     *float64       `json:"score,omitempty"`
-	Providers []ProviderType `json:"providers,omitempty"`
-	Aux       Aux            `json:"aux,omitempty"`
-	Tags      []string       `json:"tags,omitempty"`
+	Truffle *APIData `json:"truffle,omitempty"`
+	Mal     *APIData `json:"mal,omitempty"`
+	Spotify *APIData `json:"spotify,omitempty"`
+	Kitsu   *APIData `json:"kitsu,omitempty"`
+	Steam   *APIData `json:"steam,omitempty"`
 }
 
 type MutateEntryInput struct {

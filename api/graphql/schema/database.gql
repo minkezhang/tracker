@@ -1,3 +1,13 @@
+enum APIType {
+  API_NONE
+
+  API_TRUFFLE
+  API_MAL
+  API_KITSU_API
+  API_STEAM
+  API_SPOTIFY
+}
+
 enum CorpusType {
   CORPUS_NONE
 
@@ -34,12 +44,20 @@ type Title {
 
 type Entry {
   id: ID!
-  metadata: [Metadata!]!
+  metadata: Metadata!
   corpus: CorpusType!
   queued: Boolean!
 }
 
 type Metadata {
+  truffle: APIData
+  mal: APIData
+  spotify: APIData
+  kitsu: APIData
+  steam: APIData
+}
+
+type APIData {
   api: APIType!
   id: ID!
   titles: [Title!]

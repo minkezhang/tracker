@@ -44,6 +44,16 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	APIData struct {
+		API       func(childComplexity int) int
+		Aux       func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Providers func(childComplexity int) int
+		Score     func(childComplexity int) int
+		Tags      func(childComplexity int) int
+		Titles    func(childComplexity int) int
+	}
+
 	AuxAlbum struct {
 		Composers func(childComplexity int) int
 		Labels    func(childComplexity int) int
@@ -112,13 +122,11 @@ type ComplexityRoot struct {
 	}
 
 	Metadata struct {
-		API       func(childComplexity int) int
-		Aux       func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Providers func(childComplexity int) int
-		Score     func(childComplexity int) int
-		Tags      func(childComplexity int) int
-		Titles    func(childComplexity int) int
+		Kitsu   func(childComplexity int) int
+		Mal     func(childComplexity int) int
+		Spotify func(childComplexity int) int
+		Steam   func(childComplexity int) int
+		Truffle func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -156,6 +164,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "APIData.api":
+		if e.complexity.APIData.API == nil {
+			break
+		}
+
+		return e.complexity.APIData.API(childComplexity), true
+
+	case "APIData.aux":
+		if e.complexity.APIData.Aux == nil {
+			break
+		}
+
+		return e.complexity.APIData.Aux(childComplexity), true
+
+	case "APIData.id":
+		if e.complexity.APIData.ID == nil {
+			break
+		}
+
+		return e.complexity.APIData.ID(childComplexity), true
+
+	case "APIData.providers":
+		if e.complexity.APIData.Providers == nil {
+			break
+		}
+
+		return e.complexity.APIData.Providers(childComplexity), true
+
+	case "APIData.score":
+		if e.complexity.APIData.Score == nil {
+			break
+		}
+
+		return e.complexity.APIData.Score(childComplexity), true
+
+	case "APIData.tags":
+		if e.complexity.APIData.Tags == nil {
+			break
+		}
+
+		return e.complexity.APIData.Tags(childComplexity), true
+
+	case "APIData.titles":
+		if e.complexity.APIData.Titles == nil {
+			break
+		}
+
+		return e.complexity.APIData.Titles(childComplexity), true
 
 	case "AuxAlbum.composers":
 		if e.complexity.AuxAlbum.Composers == nil {
@@ -416,54 +473,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entry.Queued(childComplexity), true
 
-	case "Metadata.api":
-		if e.complexity.Metadata.API == nil {
+	case "Metadata.kitsu":
+		if e.complexity.Metadata.Kitsu == nil {
 			break
 		}
 
-		return e.complexity.Metadata.API(childComplexity), true
+		return e.complexity.Metadata.Kitsu(childComplexity), true
 
-	case "Metadata.aux":
-		if e.complexity.Metadata.Aux == nil {
+	case "Metadata.mal":
+		if e.complexity.Metadata.Mal == nil {
 			break
 		}
 
-		return e.complexity.Metadata.Aux(childComplexity), true
+		return e.complexity.Metadata.Mal(childComplexity), true
 
-	case "Metadata.id":
-		if e.complexity.Metadata.ID == nil {
+	case "Metadata.spotify":
+		if e.complexity.Metadata.Spotify == nil {
 			break
 		}
 
-		return e.complexity.Metadata.ID(childComplexity), true
+		return e.complexity.Metadata.Spotify(childComplexity), true
 
-	case "Metadata.providers":
-		if e.complexity.Metadata.Providers == nil {
+	case "Metadata.steam":
+		if e.complexity.Metadata.Steam == nil {
 			break
 		}
 
-		return e.complexity.Metadata.Providers(childComplexity), true
+		return e.complexity.Metadata.Steam(childComplexity), true
 
-	case "Metadata.score":
-		if e.complexity.Metadata.Score == nil {
+	case "Metadata.truffle":
+		if e.complexity.Metadata.Truffle == nil {
 			break
 		}
 
-		return e.complexity.Metadata.Score(childComplexity), true
-
-	case "Metadata.tags":
-		if e.complexity.Metadata.Tags == nil {
-			break
-		}
-
-		return e.complexity.Metadata.Tags(childComplexity), true
-
-	case "Metadata.titles":
-		if e.complexity.Metadata.Titles == nil {
-			break
-		}
-
-		return e.complexity.Metadata.Titles(childComplexity), true
+		return e.complexity.Metadata.Truffle(childComplexity), true
 
 	case "Mutation.MutateEntry":
 		if e.complexity.Mutation.MutateEntry == nil {
@@ -613,16 +656,6 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema/api.gql", Input: `enum APIType {
-  API_NONE
-
-  API_TRUFFLE
-  API_MAL
-  API_KITSU_API
-  API_STEAM
-  API_SPOTIFY
-}
-`, BuiltIn: false},
 	{Name: "../schema/aux_data.gql", Input: `union Aux =
     AuxAnime
   | AuxAnimeFilm
@@ -694,7 +727,17 @@ type AuxGame {
   writers: [String!]
 }
 `, BuiltIn: false},
-	{Name: "../schema/database.gql", Input: `enum CorpusType {
+	{Name: "../schema/database.gql", Input: `enum APIType {
+  API_NONE
+
+  API_TRUFFLE
+  API_MAL
+  API_KITSU_API
+  API_STEAM
+  API_SPOTIFY
+}
+
+enum CorpusType {
   CORPUS_NONE
 
   CORPUS_ANIME
@@ -730,12 +773,20 @@ type Title {
 
 type Entry {
   id: ID!
-  metadata: [Metadata!]!
+  metadata: Metadata!
   corpus: CorpusType!
   queued: Boolean!
 }
 
 type Metadata {
+  truffle: APIData
+  mal: APIData
+  spotify: APIData
+  kitsu: APIData
+  steam: APIData
+}
+
+type APIData {
   api: APIType!
   id: ID!
   titles: [Title!]
@@ -899,6 +950,305 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _APIData_api(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_api(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.API, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.APIType)
+	fc.Result = res
+	return ec.marshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_api(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type APIType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_id(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_titles(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_titles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Titles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Title)
+	fc.Result = res
+	return ec.marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐTitleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_titles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "language":
+				return ec.fieldContext_Title_language(ctx, field)
+			case "title":
+				return ec.fieldContext_Title_title(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Title", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_score(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_score(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Score, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_score(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_providers(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_providers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Providers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]model.ProviderType)
+	fc.Result = res
+	return ec.marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_providers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProviderType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_aux(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_aux(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Aux, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(model.Aux)
+	fc.Result = res
+	return ec.marshalOAux2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAux(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_aux(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Aux does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_tags(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_tags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tags, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _AuxAlbum_studios(ctx context.Context, field graphql.CollectedField, obj *model.AuxAlbum) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AuxAlbum_studios(ctx, field)
@@ -2323,9 +2673,9 @@ func (ec *executionContext) _Entry_metadata(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Metadata)
+	res := resTmp.(*model.Metadata)
 	fc.Result = res
-	return ec.marshalNMetadata2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMetadataᚄ(ctx, field.Selections, res)
+	return ec.marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMetadata(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Entry_metadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2336,20 +2686,16 @@ func (ec *executionContext) fieldContext_Entry_metadata(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "api":
-				return ec.fieldContext_Metadata_api(ctx, field)
-			case "id":
-				return ec.fieldContext_Metadata_id(ctx, field)
-			case "titles":
-				return ec.fieldContext_Metadata_titles(ctx, field)
-			case "score":
-				return ec.fieldContext_Metadata_score(ctx, field)
-			case "providers":
-				return ec.fieldContext_Metadata_providers(ctx, field)
-			case "aux":
-				return ec.fieldContext_Metadata_aux(ctx, field)
-			case "tags":
-				return ec.fieldContext_Metadata_tags(ctx, field)
+			case "truffle":
+				return ec.fieldContext_Metadata_truffle(ctx, field)
+			case "mal":
+				return ec.fieldContext_Metadata_mal(ctx, field)
+			case "spotify":
+				return ec.fieldContext_Metadata_spotify(ctx, field)
+			case "kitsu":
+				return ec.fieldContext_Metadata_kitsu(ctx, field)
+			case "steam":
+				return ec.fieldContext_Metadata_steam(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Metadata", field.Name)
 		},
@@ -2445,8 +2791,8 @@ func (ec *executionContext) fieldContext_Entry_queued(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Metadata_api(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_api(ctx, field)
+func (ec *executionContext) _Metadata_truffle(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metadata_truffle(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2459,95 +2805,7 @@ func (ec *executionContext) _Metadata_api(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.API, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.APIType)
-	fc.Result = res
-	return ec.marshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Metadata_api(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Metadata",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type APIType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Metadata_id(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Metadata_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Metadata",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Metadata_titles(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_titles(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Titles, nil
+		return obj.Truffle, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2556,12 +2814,12 @@ func (ec *executionContext) _Metadata_titles(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Title)
+	res := resTmp.(*model.APIData)
 	fc.Result = res
-	return ec.marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐTitleᚄ(ctx, field.Selections, res)
+	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Metadata_titles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Metadata_truffle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
@@ -2569,19 +2827,29 @@ func (ec *executionContext) fieldContext_Metadata_titles(ctx context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "language":
-				return ec.fieldContext_Title_language(ctx, field)
-			case "title":
-				return ec.fieldContext_Title_title(ctx, field)
+			case "api":
+				return ec.fieldContext_APIData_api(ctx, field)
+			case "id":
+				return ec.fieldContext_APIData_id(ctx, field)
+			case "titles":
+				return ec.fieldContext_APIData_titles(ctx, field)
+			case "score":
+				return ec.fieldContext_APIData_score(ctx, field)
+			case "providers":
+				return ec.fieldContext_APIData_providers(ctx, field)
+			case "aux":
+				return ec.fieldContext_APIData_aux(ctx, field)
+			case "tags":
+				return ec.fieldContext_APIData_tags(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Title", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Metadata_score(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_score(ctx, field)
+func (ec *executionContext) _Metadata_mal(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metadata_mal(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2594,7 +2862,7 @@ func (ec *executionContext) _Metadata_score(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Score, nil
+		return obj.Mal, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2603,26 +2871,42 @@ func (ec *executionContext) _Metadata_score(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*float64)
+	res := resTmp.(*model.APIData)
 	fc.Result = res
-	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Metadata_score(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Metadata_mal(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
+			switch field.Name {
+			case "api":
+				return ec.fieldContext_APIData_api(ctx, field)
+			case "id":
+				return ec.fieldContext_APIData_id(ctx, field)
+			case "titles":
+				return ec.fieldContext_APIData_titles(ctx, field)
+			case "score":
+				return ec.fieldContext_APIData_score(ctx, field)
+			case "providers":
+				return ec.fieldContext_APIData_providers(ctx, field)
+			case "aux":
+				return ec.fieldContext_APIData_aux(ctx, field)
+			case "tags":
+				return ec.fieldContext_APIData_tags(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Metadata_providers(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_providers(ctx, field)
+func (ec *executionContext) _Metadata_spotify(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metadata_spotify(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2635,7 +2919,7 @@ func (ec *executionContext) _Metadata_providers(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Providers, nil
+		return obj.Spotify, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2644,26 +2928,42 @@ func (ec *executionContext) _Metadata_providers(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]model.ProviderType)
+	res := resTmp.(*model.APIData)
 	fc.Result = res
-	return ec.marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Metadata_providers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Metadata_spotify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ProviderType does not have child fields")
+			switch field.Name {
+			case "api":
+				return ec.fieldContext_APIData_api(ctx, field)
+			case "id":
+				return ec.fieldContext_APIData_id(ctx, field)
+			case "titles":
+				return ec.fieldContext_APIData_titles(ctx, field)
+			case "score":
+				return ec.fieldContext_APIData_score(ctx, field)
+			case "providers":
+				return ec.fieldContext_APIData_providers(ctx, field)
+			case "aux":
+				return ec.fieldContext_APIData_aux(ctx, field)
+			case "tags":
+				return ec.fieldContext_APIData_tags(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Metadata_aux(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_aux(ctx, field)
+func (ec *executionContext) _Metadata_kitsu(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metadata_kitsu(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2676,7 +2976,7 @@ func (ec *executionContext) _Metadata_aux(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Aux, nil
+		return obj.Kitsu, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2685,26 +2985,42 @@ func (ec *executionContext) _Metadata_aux(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(model.Aux)
+	res := resTmp.(*model.APIData)
 	fc.Result = res
-	return ec.marshalOAux2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAux(ctx, field.Selections, res)
+	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Metadata_aux(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Metadata_kitsu(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Aux does not have child fields")
+			switch field.Name {
+			case "api":
+				return ec.fieldContext_APIData_api(ctx, field)
+			case "id":
+				return ec.fieldContext_APIData_id(ctx, field)
+			case "titles":
+				return ec.fieldContext_APIData_titles(ctx, field)
+			case "score":
+				return ec.fieldContext_APIData_score(ctx, field)
+			case "providers":
+				return ec.fieldContext_APIData_providers(ctx, field)
+			case "aux":
+				return ec.fieldContext_APIData_aux(ctx, field)
+			case "tags":
+				return ec.fieldContext_APIData_tags(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Metadata_tags(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metadata_tags(ctx, field)
+func (ec *executionContext) _Metadata_steam(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Metadata_steam(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2717,7 +3033,7 @@ func (ec *executionContext) _Metadata_tags(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Tags, nil
+		return obj.Steam, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2726,19 +3042,35 @@ func (ec *executionContext) _Metadata_tags(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.(*model.APIData)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Metadata_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Metadata_steam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Metadata",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "api":
+				return ec.fieldContext_APIData_api(ctx, field)
+			case "id":
+				return ec.fieldContext_APIData_id(ctx, field)
+			case "titles":
+				return ec.fieldContext_APIData_titles(ctx, field)
+			case "score":
+				return ec.fieldContext_APIData_score(ctx, field)
+			case "providers":
+				return ec.fieldContext_APIData_providers(ctx, field)
+			case "aux":
+				return ec.fieldContext_APIData_aux(ctx, field)
+			case "tags":
+				return ec.fieldContext_APIData_tags(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
 		},
 	}
 	return fc, nil
@@ -5245,6 +5577,60 @@ func (ec *executionContext) _Aux(ctx context.Context, sel ast.SelectionSet, obj 
 
 // region    **************************** object.gotpl ****************************
 
+var aPIDataImplementors = []string{"APIData"}
+
+func (ec *executionContext) _APIData(ctx context.Context, sel ast.SelectionSet, obj *model.APIData) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, aPIDataImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("APIData")
+		case "api":
+			out.Values[i] = ec._APIData_api(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "id":
+			out.Values[i] = ec._APIData_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "titles":
+			out.Values[i] = ec._APIData_titles(ctx, field, obj)
+		case "score":
+			out.Values[i] = ec._APIData_score(ctx, field, obj)
+		case "providers":
+			out.Values[i] = ec._APIData_providers(ctx, field, obj)
+		case "aux":
+			out.Values[i] = ec._APIData_aux(ctx, field, obj)
+		case "tags":
+			out.Values[i] = ec._APIData_tags(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var auxAlbumImplementors = []string{"AuxAlbum", "Aux"}
 
 func (ec *executionContext) _AuxAlbum(ctx context.Context, sel ast.SelectionSet, obj *model.AuxAlbum) graphql.Marshaler {
@@ -5682,26 +6068,16 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Metadata")
-		case "api":
-			out.Values[i] = ec._Metadata_api(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "id":
-			out.Values[i] = ec._Metadata_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "titles":
-			out.Values[i] = ec._Metadata_titles(ctx, field, obj)
-		case "score":
-			out.Values[i] = ec._Metadata_score(ctx, field, obj)
-		case "providers":
-			out.Values[i] = ec._Metadata_providers(ctx, field, obj)
-		case "aux":
-			out.Values[i] = ec._Metadata_aux(ctx, field, obj)
-		case "tags":
-			out.Values[i] = ec._Metadata_tags(ctx, field, obj)
+		case "truffle":
+			out.Values[i] = ec._Metadata_truffle(ctx, field, obj)
+		case "mal":
+			out.Values[i] = ec._Metadata_mal(ctx, field, obj)
+		case "spotify":
+			out.Values[i] = ec._Metadata_spotify(ctx, field, obj)
+		case "kitsu":
+			out.Values[i] = ec._Metadata_kitsu(ctx, field, obj)
+		case "steam":
+			out.Values[i] = ec._Metadata_steam(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6270,50 +6646,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNMetadata2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMetadataᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Metadata) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMetadata(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐMetadata(ctx context.Context, sel ast.SelectionSet, v *model.Metadata) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -6620,6 +6952,13 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx context.Context, sel ast.SelectionSet, v *model.APIData) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._APIData(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋgeneratedᚋmodelᚐAPITypeᚄ(ctx context.Context, v interface{}) ([]model.APIType, error) {
