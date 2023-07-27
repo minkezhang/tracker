@@ -30,6 +30,9 @@ const defaultPort = "8080"
 //	    tags: [
 //	      "mechs", "psychological",
 //	    ]
+//	    aux: {
+//	      studios: ["Gainax", "Tatsunoko"]
+//	    }
 //	    sources: [
 //	      {
 //	        api: API_MAL,
@@ -49,6 +52,11 @@ const defaultPort = "8080"
 //	          language
 //	          title
 //	        }
+//	        aux {
+//	          ... on AuxAnime {
+//	            studios
+//	          }
+//	        },
 //	        providers,
 //	        tags,
 //	      }

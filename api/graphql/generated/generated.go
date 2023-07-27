@@ -64,14 +64,14 @@ type ComplexityRoot struct {
 	}
 
 	AuxAnime struct {
-		Composors func(childComplexity int) int
+		Composers func(childComplexity int) int
 		Directors func(childComplexity int) int
 		Studios   func(childComplexity int) int
 		Writers   func(childComplexity int) int
 	}
 
 	AuxAnimeFilm struct {
-		Composors func(childComplexity int) int
+		Composers func(childComplexity int) int
 		Directors func(childComplexity int) int
 		Studios   func(childComplexity int) int
 		Writers   func(childComplexity int) int
@@ -83,7 +83,7 @@ type ComplexityRoot struct {
 
 	AuxFilm struct {
 		Cinematographers func(childComplexity int) int
-		Composors        func(childComplexity int) int
+		Composers        func(childComplexity int) int
 		Directors        func(childComplexity int) int
 		Editors          func(childComplexity int) int
 		Writers          func(childComplexity int) int
@@ -251,12 +251,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuxAlbum.Studios(childComplexity), true
 
-	case "AuxAnime.composors":
-		if e.complexity.AuxAnime.Composors == nil {
+	case "AuxAnime.composers":
+		if e.complexity.AuxAnime.Composers == nil {
 			break
 		}
 
-		return e.complexity.AuxAnime.Composors(childComplexity), true
+		return e.complexity.AuxAnime.Composers(childComplexity), true
 
 	case "AuxAnime.directors":
 		if e.complexity.AuxAnime.Directors == nil {
@@ -279,12 +279,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuxAnime.Writers(childComplexity), true
 
-	case "AuxAnimeFilm.composors":
-		if e.complexity.AuxAnimeFilm.Composors == nil {
+	case "AuxAnimeFilm.composers":
+		if e.complexity.AuxAnimeFilm.Composers == nil {
 			break
 		}
 
-		return e.complexity.AuxAnimeFilm.Composors(childComplexity), true
+		return e.complexity.AuxAnimeFilm.Composers(childComplexity), true
 
 	case "AuxAnimeFilm.directors":
 		if e.complexity.AuxAnimeFilm.Directors == nil {
@@ -321,12 +321,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuxFilm.Cinematographers(childComplexity), true
 
-	case "AuxFilm.composors":
-		if e.complexity.AuxFilm.Composors == nil {
+	case "AuxFilm.composers":
+		if e.complexity.AuxFilm.Composers == nil {
 			break
 		}
 
-		return e.complexity.AuxFilm.Composors(childComplexity), true
+		return e.complexity.AuxFilm.Composers(childComplexity), true
 
 	case "AuxFilm.directors":
 		if e.complexity.AuxFilm.Directors == nil {
@@ -656,14 +656,14 @@ var sources = []*ast.Source{
   | AuxGame
 
 type AuxAnime {
-  composors: [String!]
+  composers: [String!]
   directors: [String!]
   studios: [String!]
   writers: [String!]
 }
 
 type AuxAnimeFilm {
-  composors: [String!]
+  composers: [String!]
   directors: [String!]
   studios: [String!]
   writers: [String!]
@@ -684,7 +684,7 @@ type AuxShortStory {
 
 type AuxFilm {
   cinematographers: [String!]
-  composors: [String!]
+  composers: [String!]
   directors: [String!]
   editors: [String!]
   writers: [String!]
@@ -815,7 +815,7 @@ input EntryInputAux {
   authors: [String!]
 
   # Used for populating AuxAlbum.
-  composors: [String!]
+  composers: [String!]
 
   # Used for populating AuxFilm.
   directors: [String!]
@@ -1451,8 +1451,8 @@ func (ec *executionContext) fieldContext_AuxAlbum_producers(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _AuxAnime_composors(ctx context.Context, field graphql.CollectedField, obj *model.AuxAnime) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AuxAnime_composors(ctx, field)
+func (ec *executionContext) _AuxAnime_composers(ctx context.Context, field graphql.CollectedField, obj *model.AuxAnime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuxAnime_composers(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1465,7 +1465,7 @@ func (ec *executionContext) _AuxAnime_composors(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Composors, nil
+		return obj.Composers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1479,7 +1479,7 @@ func (ec *executionContext) _AuxAnime_composors(ctx context.Context, field graph
 	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AuxAnime_composors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AuxAnime_composers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AuxAnime",
 		Field:      field,
@@ -1615,8 +1615,8 @@ func (ec *executionContext) fieldContext_AuxAnime_writers(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _AuxAnimeFilm_composors(ctx context.Context, field graphql.CollectedField, obj *model.AuxAnimeFilm) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AuxAnimeFilm_composors(ctx, field)
+func (ec *executionContext) _AuxAnimeFilm_composers(ctx context.Context, field graphql.CollectedField, obj *model.AuxAnimeFilm) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuxAnimeFilm_composers(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1629,7 +1629,7 @@ func (ec *executionContext) _AuxAnimeFilm_composors(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Composors, nil
+		return obj.Composers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1643,7 +1643,7 @@ func (ec *executionContext) _AuxAnimeFilm_composors(ctx context.Context, field g
 	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AuxAnimeFilm_composors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AuxAnimeFilm_composers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AuxAnimeFilm",
 		Field:      field,
@@ -1861,8 +1861,8 @@ func (ec *executionContext) fieldContext_AuxFilm_cinematographers(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _AuxFilm_composors(ctx context.Context, field graphql.CollectedField, obj *model.AuxFilm) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AuxFilm_composors(ctx, field)
+func (ec *executionContext) _AuxFilm_composers(ctx context.Context, field graphql.CollectedField, obj *model.AuxFilm) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuxFilm_composers(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1875,7 +1875,7 @@ func (ec *executionContext) _AuxFilm_composors(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Composors, nil
+		return obj.Composers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1889,7 +1889,7 @@ func (ec *executionContext) _AuxFilm_composors(ctx context.Context, field graphq
 	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AuxFilm_composors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AuxFilm_composers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AuxFilm",
 		Field:      field,
@@ -5102,7 +5102,7 @@ func (ec *executionContext) unmarshalInputEntryInputAux(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"studios", "authors", "composors", "directors", "developers"}
+	fieldsInOrder := [...]string{"studios", "authors", "composers", "directors", "developers"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5127,15 +5127,15 @@ func (ec *executionContext) unmarshalInputEntryInputAux(ctx context.Context, obj
 				return it, err
 			}
 			it.Authors = data
-		case "composors":
+		case "composers":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("composors"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("composers"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Composors = data
+			it.Composers = data
 		case "directors":
 			var err error
 
@@ -5556,8 +5556,8 @@ func (ec *executionContext) _AuxAnime(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuxAnime")
-		case "composors":
-			out.Values[i] = ec._AuxAnime_composors(ctx, field, obj)
+		case "composers":
+			out.Values[i] = ec._AuxAnime_composers(ctx, field, obj)
 		case "directors":
 			out.Values[i] = ec._AuxAnime_directors(ctx, field, obj)
 		case "studios":
@@ -5598,8 +5598,8 @@ func (ec *executionContext) _AuxAnimeFilm(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuxAnimeFilm")
-		case "composors":
-			out.Values[i] = ec._AuxAnimeFilm_composors(ctx, field, obj)
+		case "composers":
+			out.Values[i] = ec._AuxAnimeFilm_composers(ctx, field, obj)
 		case "directors":
 			out.Values[i] = ec._AuxAnimeFilm_directors(ctx, field, obj)
 		case "studios":
@@ -5678,8 +5678,8 @@ func (ec *executionContext) _AuxFilm(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = graphql.MarshalString("AuxFilm")
 		case "cinematographers":
 			out.Values[i] = ec._AuxFilm_cinematographers(ctx, field, obj)
-		case "composors":
-			out.Values[i] = ec._AuxFilm_composors(ctx, field, obj)
+		case "composers":
+			out.Values[i] = ec._AuxFilm_composers(ctx, field, obj)
 		case "directors":
 			out.Values[i] = ec._AuxFilm_directors(ctx, field, obj)
 		case "editors":

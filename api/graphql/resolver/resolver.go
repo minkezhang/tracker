@@ -14,7 +14,11 @@ type Resolver struct {
 }
 
 func PUTEntry(q *model.MutateEntryInput, m *model.Entry) error {
-	if q.ID == nil && m.Corpus == model.CorpusTypeCorpusNone {
+	if q.ID == nil {
+		m.Corpus = *q.Corpus
+	}
+
+	if m.Corpus == model.CorpusTypeCorpusNone {
 		return fmt.Errorf("mandatory Corpus type is unspecified")
 	}
 
@@ -25,6 +29,45 @@ func PUTEntry(q *model.MutateEntryInput, m *model.Entry) error {
 				ID:     m.ID,
 				Cached: true,
 			},
+		}
+	}
+
+	if q.Aux != nil {
+		m.Metadata.Truffle.Aux = nil
+		switch m.Corpus {
+		case model.CorpusTypeCorpusAnime:
+			m.Metadata.Truffle.Aux = &model.AuxAnime{
+				Studios: q.Aux.Studios,
+			}
+		case model.CorpusTypeCorpusAnimeFilm:
+			m.Metadata.Truffle.Aux = &model.AuxAnimeFilm{
+				Studios: q.Aux.Studios,
+			}
+		case model.CorpusTypeCorpusManga:
+			m.Metadata.Truffle.Aux = &model.AuxManga{
+				Authors: q.Aux.Authors,
+			}
+		case model.CorpusTypeCorpusBook:
+			m.Metadata.Truffle.Aux = &model.AuxBook{
+				Authors: q.Aux.Authors,
+			}
+		case model.CorpusTypeCorpusShortStory:
+			m.Metadata.Truffle.Aux = &model.AuxShortStory{
+				Authors: q.Aux.Authors,
+			}
+		case model.CorpusTypeCorpusAlbum:
+			m.Metadata.Truffle.Aux = &model.AuxAlbum{
+				Composers: q.Aux.Composers,
+			}
+		case model.CorpusTypeCorpusFilm:
+			m.Metadata.Truffle.Aux = &model.AuxFilm{
+				Directors: q.Aux.Directors,
+			}
+		case model.CorpusTypeCorpusGame:
+			m.Metadata.Truffle.Aux = &model.AuxGame{
+				Developers: q.Aux.Developers,
+			}
+		default:
 		}
 	}
 

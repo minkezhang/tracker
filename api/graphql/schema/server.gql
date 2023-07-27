@@ -24,7 +24,7 @@ input EntryInputAux {
   authors: [String!]
 
   # Used for populating AuxAlbum.
-  composors: [String!]
+  composers: [String!]
 
   # Used for populating AuxFilm.
   directors: [String!]

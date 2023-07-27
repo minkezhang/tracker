@@ -10,14 +10,14 @@ union Aux =
   | AuxGame
 
 type AuxAnime {
-  composors: [String!]
+  composers: [String!]
   directors: [String!]
   studios: [String!]
   writers: [String!]
 }
 
 type AuxAnimeFilm {
-  composors: [String!]
+  composers: [String!]
   directors: [String!]
   studios: [String!]
   writers: [String!]
@@ -38,7 +38,7 @@ type AuxShortStory {
 
 type AuxFilm {
   cinematographers: [String!]
-  composors: [String!]
+  composers: [String!]
   directors: [String!]
   editors: [String!]
   writers: [String!]

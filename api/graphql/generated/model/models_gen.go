@@ -33,7 +33,7 @@ type AuxAlbum struct {
 func (AuxAlbum) IsAux() {}
 
 type AuxAnime struct {
-	Composors []string `json:"composors,omitempty"`
+	Composers []string `json:"composers,omitempty"`
 	Directors []string `json:"directors,omitempty"`
 	Studios   []string `json:"studios,omitempty"`
 	Writers   []string `json:"writers,omitempty"`
@@ -42,7 +42,7 @@ type AuxAnime struct {
 func (AuxAnime) IsAux() {}
 
 type AuxAnimeFilm struct {
-	Composors []string `json:"composors,omitempty"`
+	Composers []string `json:"composers,omitempty"`
 	Directors []string `json:"directors,omitempty"`
 	Studios   []string `json:"studios,omitempty"`
 	Writers   []string `json:"writers,omitempty"`
@@ -58,7 +58,7 @@ func (AuxBook) IsAux() {}
 
 type AuxFilm struct {
 	Cinematographers []string `json:"cinematographers,omitempty"`
-	Composors        []string `json:"composors,omitempty"`
+	Composers        []string `json:"composers,omitempty"`
 	Directors        []string `json:"directors,omitempty"`
 	Editors          []string `json:"editors,omitempty"`
 	Writers          []string `json:"writers,omitempty"`
@@ -116,7 +116,7 @@ type EntryInputAPISource struct {
 type EntryInputAux struct {
 	Studios    []string `json:"studios,omitempty"`
 	Authors    []string `json:"authors,omitempty"`
-	Composors  []string `json:"composors,omitempty"`
+	Composers  []string `json:"composers,omitempty"`
 	Directors  []string `json:"directors,omitempty"`
 	Developers []string `json:"developers,omitempty"`
 }

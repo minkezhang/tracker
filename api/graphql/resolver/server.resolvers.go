@@ -21,11 +21,13 @@ func (r *mutationResolver) Entry(ctx context.Context, input *model.MutateEntryIn
 	if input.ID != nil && *input.ID != "" {
 		id = *input.ID
 	} else {
+		input.ID = nil
 		id = util.UUID()
 	}
 	// TODO(minkezhang): Get Entry object here.
 	m := &model.Entry{
-		ID: id,
+		ID:     id,
+		Corpus: *input.Corpus,
 	}
 
 	if err := PUTEntry(input, m); err != nil {
