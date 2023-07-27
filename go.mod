@@ -7,6 +7,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.6
 	github.com/google/subcommands v1.2.0
+	github.com/google/uuid v1.1.2
 	github.com/nstratos/go-myanimelist v0.9.4
 	github.com/vektah/gqlparser/v2 v2.5.7
 	google.golang.org/grpc v1.47.0

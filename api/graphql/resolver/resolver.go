@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/minkezhang/truffle/api/graphql/generated/model"
 )
 
@@ -11,20 +13,22 @@ import (
 type Resolver struct {
 }
 
-func NewEntry(q *model.MutateEntryInput) (*model.Entry, error) {
-	m := &model.Entry{
-		Corpus: q.Corpus,
-		Metadata: &model.Metadata{
-			Truffle: &model.APIData{
-				API:       model.APITypeAPITruffle,
-				Providers: q.Providers,
-			},
-		},
+func MergeEntry(q *model.MutateEntryInput, m *model.Entry) error {
+	if q.ID == nil && m.Corpus == model.CorpusTypeCorpusNone {
+		return fmt.Errorf("mandatory Corpus type is unspecified")
 	}
 
-	if q.ID != nil {
-		m.ID = *q.ID
-		m.Metadata.Truffle.ID = *q.ID
+	if m.Metadata == nil {
+		m.Metadata = &model.Metadata{
+			Truffle: &model.APIData{
+				API: model.APITypeAPITruffle,
+				ID:  m.ID,
+			},
+		}
+	}
+
+	if q.Providers != nil {
+		m.Metadata.Truffle.Providers = q.Providers
 	}
 
 	if q.Queued != nil {
@@ -35,15 +39,22 @@ func NewEntry(q *model.MutateEntryInput) (*model.Entry, error) {
 		m.Metadata.Truffle.Score = q.Score
 	}
 
-	for _, t := range q.Titles {
-		m.Metadata.Truffle.Titles = append(
-			m.Metadata.Truffle.Titles,
-			&model.Title{
-				Language: t.Language,
-				Title:    t.Title,
-			},
-		)
+	if q.Titles != nil {
+		m.Metadata.Truffle.Titles = nil
+		for _, t := range q.Titles {
+			m.Metadata.Truffle.Titles = append(
+				m.Metadata.Truffle.Titles,
+				&model.Title{
+					Language: t.Language,
+					Title:    t.Title,
+				},
+			)
+		}
 	}
 
-	return m, nil
+	if q.Tags != nil {
+		m.Metadata.Truffle.Tags = q.Tags
+	}
+
+	return nil
 }

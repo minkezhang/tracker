@@ -11,12 +11,29 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	graph "github.com/minkezhang/truffle/api/graphql/generated"
 	"github.com/minkezhang/truffle/api/graphql/generated/model"
+	"github.com/minkezhang/truffle/api/graphql/util"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Entry is the resolver for the Entry field.
 func (r *mutationResolver) Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error) {
-	return NewEntry(input)
+	var id string
+	if input.ID != nil {
+		id = *input.ID
+	} else {
+		id = util.UUID()
+	}
+	// TODO(minkezhang): Get Entry object here.
+	m := &model.Entry{
+		ID: id,
+	}
+
+	if err := MergeEntry(input, m); err != nil {
+		return nil, err
+	}
+
+	// TODO(minkezhang): Save Entry object.
+	return m, nil
 }
 
 // Entry is the resolver for the Entry field.

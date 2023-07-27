@@ -42,7 +42,7 @@ input MutateEntryInput {
   # Optional; if ID is null, create the entry.
   id: ID
 
-  corpus: CorpusType!
+  corpus: CorpusType
   queued: Boolean
 
   # Custom metadata
