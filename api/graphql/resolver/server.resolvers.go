@@ -16,30 +16,17 @@ import (
 
 // Entry is the resolver for the Entry field.
 func (r *mutationResolver) Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error) {
-	if r.Entries == nil {
-		r.Entries = map[string]*model.Entry{}
-	}
-	r.Entries[*input.ID] = &model.Entry{
-		ID:     *input.ID,
-		Corpus: input.Corpus,
-	}
-	return r.Entries[*input.ID], nil
+	return NewEntry(input)
 }
 
 // Entry is the resolver for the Entry field.
 func (r *queryResolver) Entry(ctx context.Context, input *model.QueryEntryInput) ([]*model.Entry, error) {
-	if e, ok := r.Entries[*input.ID]; !ok {
-		return nil, &gqlerror.Error{
-			Path:    graphql.GetPath(ctx),
-			Message: fmt.Sprintf("Entry not found: %s", *input.ID),
-			Extensions: map[string]interface{}{
-				"code": 404,
-			},
-		}
-	} else {
-		return []*model.Entry{
-			e,
-		}, nil
+	return nil, &gqlerror.Error{
+		Path:    graphql.GetPath(ctx),
+		Message: fmt.Sprintf("Entry not found: %s", *input.ID),
+		Extensions: map[string]interface{}{
+			"code": 404,
+		},
 	}
 }
 
