@@ -56,8 +56,8 @@ type Entry {
 }
 
 type Metadata {
-  truffle: APIData
-  mal: APIData @goField(forceResolver: true)
+  truffle: APIData  # ID is the same as the Entry ID
+  mal: APIData @goField(forceResolver: true)  # ID is "(anime|manga)/123"
   spotify: APIData
   kitsu: APIData
   steam: APIData

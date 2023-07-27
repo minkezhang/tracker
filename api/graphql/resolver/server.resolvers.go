@@ -18,7 +18,7 @@ import (
 // Entry is the resolver for the Entry field.
 func (r *mutationResolver) Entry(ctx context.Context, input *model.MutateEntryInput) (*model.Entry, error) {
 	var id string
-	if input.ID != nil {
+	if input.ID != nil && *input.ID != "" {
 		id = *input.ID
 	} else {
 		id = util.UUID()
@@ -28,7 +28,7 @@ func (r *mutationResolver) Entry(ctx context.Context, input *model.MutateEntryIn
 		ID: id,
 	}
 
-	if err := MergeEntry(input, m); err != nil {
+	if err := PUTEntry(input, m); err != nil {
 		return nil, err
 	}
 

@@ -13,7 +13,7 @@ import (
 type Resolver struct {
 }
 
-func MergeEntry(q *model.MutateEntryInput, m *model.Entry) error {
+func PUTEntry(q *model.MutateEntryInput, m *model.Entry) error {
 	if q.ID == nil && m.Corpus == model.CorpusTypeCorpusNone {
 		return fmt.Errorf("mandatory Corpus type is unspecified")
 	}
@@ -54,6 +54,24 @@ func MergeEntry(q *model.MutateEntryInput, m *model.Entry) error {
 
 	if q.Tags != nil {
 		m.Metadata.Truffle.Tags = q.Tags
+	}
+
+	if q.Links != nil {
+		m.Metadata.Mal = nil
+		m.Metadata.Spotify = nil
+		m.Metadata.Kitsu = nil
+		m.Metadata.Steam = nil
+		for _, l := range q.Links {
+			switch l.API {
+			case model.APITypeAPIMal:
+				m.Metadata.Mal = &model.APIData{
+					API: model.APITypeAPIMal,
+					ID:  l.ID,
+				}
+			default:
+				return fmt.Errorf("invalid API type: %s", l.API)
+			}
+		}
 	}
 
 	return nil
