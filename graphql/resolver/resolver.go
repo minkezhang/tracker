@@ -16,7 +16,8 @@ type Resolver struct {
 }
 
 type DB struct {
-	Entry *database.Entry
+	Entry   *database.Entry
+	APIData map[model.APIType]*database.APIData
 }
 
 func PatchEntry(q *model.PatchInput, m *model.Entry) error {

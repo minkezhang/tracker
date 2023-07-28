@@ -43,7 +43,9 @@ func NewManga(o O) *Manga {
 	}
 }
 
-func (c Manga) APIData(m *mal.Manga) *model.APIData {
+func (c *Manga) API() model.APIType { return model.APITypeAPIMal }
+
+func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 	var artists []string
 	var authors []string
 
@@ -87,16 +89,16 @@ func (c Manga) APIData(m *mal.Manga) *model.APIData {
 	}
 }
 
-func (c *Manga) Get(ctx context.Context, s *model.APIData) (*model.APIData, error) {
-	parts := strings.Split(s.ID, "/")
-	id, err := strconv.Atoi(parts[len(parts)-1])
+func (c *Manga) Get(ctx context.Context, id string) (*model.APIData, error) {
+	parts := strings.Split(id, "/")
+	malID, err := strconv.Atoi(parts[len(parts)-1])
 	if err != nil {
 		return nil, err
 	}
 
-	m, resp, err := c.client.Manga.Details(ctx, id, mangaFields)
+	m, resp, err := c.client.Manga.Details(ctx, malID, mangaFields)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get %s:%v (%d)", s.API, s.ID, resp.StatusCode)
+		return nil, fmt.Errorf("cannot get %s:%v (%d)", c.API(), id, resp.StatusCode)
 	}
 	return c.APIData(m), nil
 }

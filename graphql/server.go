@@ -8,6 +8,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/minkezhang/truffle/api/graphql/model"
+	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/graphql/resolver"
 
@@ -25,6 +27,15 @@ func main() {
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{
 		DB: &resolver.DB{
 			Entry: database.NewEntry(),
+			APIData: map[model.APIType]*database.APIData{
+				model.APITypeAPIMal: database.NewAPIData(
+					mal.NewManga(
+						mal.O{
+							ClientID: mal.CLIENT_ID,
+						},
+					),
+				),
+			},
 		},
 	}}))
 

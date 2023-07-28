@@ -26,7 +26,7 @@ func (r *mutationResolver) Patch(ctx context.Context, input *model.PatchInput) (
 		// TODO(minkezhang): Check for duplicate.
 	}
 
-	m, err := r.DB.Entry.Get(id)
+	m, err := r.DB.Entry.Get(ctx, id)
 	if err != nil {
 		m = &model.Entry{
 			ID:     id,
@@ -37,13 +37,13 @@ func (r *mutationResolver) Patch(ctx context.Context, input *model.PatchInput) (
 		return nil, err
 	}
 
-	return r.DB.Entry.Put(m)
+	return r.DB.Entry.Put(ctx, m)
 }
 
 // List is the resolver for the list field.
 func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*model.Entry, error) {
 	if input.ID != nil {
-		e, err := r.DB.Entry.Get(*input.ID)
+		e, err := r.DB.Entry.Get(ctx, *input.ID)
 		if err != nil {
 			return nil, nil
 		}
