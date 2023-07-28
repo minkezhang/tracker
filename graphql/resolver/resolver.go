@@ -3,7 +3,7 @@ package resolver
 import (
 	"fmt"
 
-	"github.com/minkezhang/truffle/graphql/generated/model"
+	"github.com/minkezhang/truffle/api/graphql/model"
 )
 
 // This file will not be regenerated automatically.

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/minkezhang/truffle/graphql/generated/model"
+	"github.com/minkezhang/truffle/api/graphql/model"
 	"github.com/nstratos/go-myanimelist/mal"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/minkezhang/truffle/graphql/generated/model"
+	"github.com/minkezhang/truffle/api/graphql/model"
 )
 
 type Client interface {

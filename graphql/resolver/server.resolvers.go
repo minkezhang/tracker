@@ -9,8 +9,8 @@ import (
 	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
-	graph "github.com/minkezhang/truffle/graphql/generated"
-	"github.com/minkezhang/truffle/graphql/generated/model"
+	graph "github.com/minkezhang/truffle/api/graphql"
+	"github.com/minkezhang/truffle/api/graphql/model"
 	"github.com/minkezhang/truffle/util"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )

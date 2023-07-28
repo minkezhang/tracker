@@ -9,7 +9,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/minkezhang/truffle/graphql/resolver"
 
-	graph "github.com/minkezhang/truffle/graphql/generated"
+	graph "github.com/minkezhang/truffle/api/graphql"
 )
 
 const defaultPort = "8080"

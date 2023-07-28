@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/minkezhang/truffle/graphql/generated/model"
+	"github.com/minkezhang/truffle/api/graphql/model"
 )
 
 func TestMangaGet(t *testing.T) {

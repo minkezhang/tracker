@@ -7,8 +7,8 @@ package resolver
 import (
 	"context"
 
-	graph "github.com/minkezhang/truffle/graphql/generated"
-	"github.com/minkezhang/truffle/graphql/generated/model"
+	graph "github.com/minkezhang/truffle/api/graphql"
+	"github.com/minkezhang/truffle/api/graphql/model"
 )
 
 // Sources is the resolver for the sources field.

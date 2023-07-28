@@ -13,7 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/minkezhang/truffle/graphql/generated/model"
+	"github.com/minkezhang/truffle/api/graphql/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -644,7 +644,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../../api/aux_data.gql", Input: `union Aux =
+	{Name: "../aux_data.gql", Input: `union Aux =
     AuxAnime
   | AuxAnimeFilm
   | AuxManga
@@ -715,7 +715,7 @@ type AuxGame {
   writers: [String!]
 }
 `, BuiltIn: false},
-	{Name: "../../api/database.gql", Input: `directive @goField(
+	{Name: "../database.gql", Input: `directive @goField(
 	forceResolver: Boolean
 	name: String
   omittable: Boolean
@@ -789,7 +789,7 @@ type APIData {
   tags: [String!]
 }
 `, BuiltIn: false},
-	{Name: "../../api/server.gql", Input: `input SearchInput {
+	{Name: "../server.gql", Input: `input SearchInput {
   # Entry ID
   id: ID
 
@@ -867,7 +867,7 @@ func (ec *executionContext) field_Mutation_put_args(ctx context.Context, rawArgs
 	var arg0 *model.PutInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOPutInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐPutInput(ctx, tmp)
+		arg0, err = ec.unmarshalOPutInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPutInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -897,7 +897,7 @@ func (ec *executionContext) field_Query_search_args(ctx context.Context, rawArgs
 	var arg0 *model.SearchInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOSearchInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐSearchInput(ctx, tmp)
+		arg0, err = ec.unmarshalOSearchInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐSearchInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -972,7 +972,7 @@ func (ec *executionContext) _APIData_api(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(model.APIType)
 	fc.Result = res
-	return ec.marshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx, field.Selections, res)
+	return ec.marshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_APIData_api(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1145,7 +1145,7 @@ func (ec *executionContext) _APIData_titles(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model.Title)
 	fc.Result = res
-	return ec.marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐTitleᚄ(ctx, field.Selections, res)
+	return ec.marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐTitleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_APIData_titles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1233,7 +1233,7 @@ func (ec *executionContext) _APIData_providers(ctx context.Context, field graphq
 	}
 	res := resTmp.([]model.ProviderType)
 	fc.Result = res
-	return ec.marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_APIData_providers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1274,7 +1274,7 @@ func (ec *executionContext) _APIData_aux(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(model.Aux)
 	fc.Result = res
-	return ec.marshalOAux2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAux(ctx, field.Selections, res)
+	return ec.marshalOAux2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAux(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_APIData_aux(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2756,7 +2756,7 @@ func (ec *executionContext) _Entry_metadata(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Metadata)
 	fc.Result = res
-	return ec.marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐMetadata(ctx, field.Selections, res)
+	return ec.marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐMetadata(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Entry_metadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2806,7 +2806,7 @@ func (ec *executionContext) _Entry_corpus(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(model.CorpusType)
 	fc.Result = res
-	return ec.marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx, field.Selections, res)
+	return ec.marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Entry_corpus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2850,7 +2850,7 @@ func (ec *executionContext) _Metadata_truffle(ctx context.Context, field graphql
 	}
 	res := resTmp.(*model.APIData)
 	fc.Result = res
-	return ec.marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, field.Selections, res)
+	return ec.marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Metadata_truffle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2911,7 +2911,7 @@ func (ec *executionContext) _Metadata_sources(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.APIData)
 	fc.Result = res
-	return ec.marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIDataᚄ(ctx, field.Selections, res)
+	return ec.marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIDataᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Metadata_sources(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2972,7 +2972,7 @@ func (ec *executionContext) _Mutation_put(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*model.Entry)
 	fc.Result = res
-	return ec.marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntry(ctx, field.Selections, res)
+	return ec.marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_put(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3032,7 +3032,7 @@ func (ec *executionContext) _Query_search(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*model.Entry)
 	fc.Result = res
-	return ec.marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryᚄ(ctx, field.Selections, res)
+	return ec.marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_search(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5075,7 +5075,7 @@ func (ec *executionContext) unmarshalInputEntryInputAPISource(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("api"))
-			data, err := ec.unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx, v)
+			data, err := ec.unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5225,7 +5225,7 @@ func (ec *executionContext) unmarshalInputPutInput(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("corpus"))
-			data, err := ec.unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx, v)
+			data, err := ec.unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5243,7 +5243,7 @@ func (ec *executionContext) unmarshalInputPutInput(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("titles"))
-			data, err := ec.unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputTitleᚄ(ctx, v)
+			data, err := ec.unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputTitleᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5261,7 +5261,7 @@ func (ec *executionContext) unmarshalInputPutInput(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("providers"))
-			data, err := ec.unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx, v)
+			data, err := ec.unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderTypeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5279,7 +5279,7 @@ func (ec *executionContext) unmarshalInputPutInput(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aux"))
-			data, err := ec.unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAux(ctx, v)
+			data, err := ec.unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAux(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5288,7 +5288,7 @@ func (ec *executionContext) unmarshalInputPutInput(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sources"))
-			data, err := ec.unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPISourceᚄ(ctx, v)
+			data, err := ec.unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAPISourceᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5326,7 +5326,7 @@ func (ec *executionContext) unmarshalInputSearchInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("corpus"))
-			data, err := ec.unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx, v)
+			data, err := ec.unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5344,7 +5344,7 @@ func (ec *executionContext) unmarshalInputSearchInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("apis"))
-			data, err := ec.unmarshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPITypeᚄ(ctx, v)
+			data, err := ec.unmarshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPITypeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6486,7 +6486,7 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx context.Context, sel ast.SelectionSet, v *model.APIData) graphql.Marshaler {
+func (ec *executionContext) marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIData(ctx context.Context, sel ast.SelectionSet, v *model.APIData) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -6496,13 +6496,13 @@ func (ec *executionContext) marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruff
 	return ec._APIData(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx context.Context, v interface{}) (model.APIType, error) {
+func (ec *executionContext) unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIType(ctx context.Context, v interface{}) (model.APIType, error) {
 	var res model.APIType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx context.Context, sel ast.SelectionSet, v model.APIType) graphql.Marshaler {
+func (ec *executionContext) marshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIType(ctx context.Context, sel ast.SelectionSet, v model.APIType) graphql.Marshaler {
 	return v
 }
 
@@ -6521,17 +6521,17 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx context.Context, v interface{}) (model.CorpusType, error) {
+func (ec *executionContext) unmarshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx context.Context, v interface{}) (model.CorpusType, error) {
 	var res model.CorpusType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx context.Context, sel ast.SelectionSet, v model.CorpusType) graphql.Marshaler {
+func (ec *executionContext) marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx context.Context, sel ast.SelectionSet, v model.CorpusType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntry(ctx context.Context, sel ast.SelectionSet, v *model.Entry) graphql.Marshaler {
+func (ec *executionContext) marshalNEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntry(ctx context.Context, sel ast.SelectionSet, v *model.Entry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -6541,12 +6541,12 @@ func (ec *executionContext) marshalNEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffle
 	return ec._Entry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNEntryInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPISource(ctx context.Context, v interface{}) (*model.EntryInputAPISource, error) {
+func (ec *executionContext) unmarshalNEntryInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAPISource(ctx context.Context, v interface{}) (*model.EntryInputAPISource, error) {
 	res, err := ec.unmarshalInputEntryInputAPISource(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputTitle(ctx context.Context, v interface{}) (*model.EntryInputTitle, error) {
+func (ec *executionContext) unmarshalNEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputTitle(ctx context.Context, v interface{}) (*model.EntryInputTitle, error) {
 	res, err := ec.unmarshalInputEntryInputTitle(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -6566,7 +6566,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐMetadata(ctx context.Context, sel ast.SelectionSet, v *model.Metadata) graphql.Marshaler {
+func (ec *executionContext) marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐMetadata(ctx context.Context, sel ast.SelectionSet, v *model.Metadata) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -6576,13 +6576,13 @@ func (ec *executionContext) marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruf
 	return ec._Metadata(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐProviderType(ctx context.Context, v interface{}) (model.ProviderType, error) {
+func (ec *executionContext) unmarshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderType(ctx context.Context, v interface{}) (model.ProviderType, error) {
 	var res model.ProviderType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐProviderType(ctx context.Context, sel ast.SelectionSet, v model.ProviderType) graphql.Marshaler {
+func (ec *executionContext) marshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderType(ctx context.Context, sel ast.SelectionSet, v model.ProviderType) graphql.Marshaler {
 	return v
 }
 
@@ -6601,7 +6601,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐTitle(ctx context.Context, sel ast.SelectionSet, v *model.Title) graphql.Marshaler {
+func (ec *executionContext) marshalNTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐTitle(ctx context.Context, sel ast.SelectionSet, v *model.Title) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -6864,7 +6864,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIDataᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.APIData) graphql.Marshaler {
+func (ec *executionContext) marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIDataᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.APIData) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -6891,7 +6891,7 @@ func (ec *executionContext) marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIData(ctx, sel, v[i])
+			ret[i] = ec.marshalNAPIData2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIData(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6911,7 +6911,7 @@ func (ec *executionContext) marshalOAPIData2ᚕᚖgithubᚗcomᚋminkezhangᚋtr
 	return ret
 }
 
-func (ec *executionContext) unmarshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPITypeᚄ(ctx context.Context, v interface{}) ([]model.APIType, error) {
+func (ec *executionContext) unmarshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPITypeᚄ(ctx context.Context, v interface{}) ([]model.APIType, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -6923,7 +6923,7 @@ func (ec *executionContext) unmarshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtru
 	res := make([]model.APIType, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIType(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -6931,7 +6931,7 @@ func (ec *executionContext) unmarshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtru
 	return res, nil
 }
 
-func (ec *executionContext) marshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPITypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.APIType) graphql.Marshaler {
+func (ec *executionContext) marshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPITypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.APIType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -6958,7 +6958,7 @@ func (ec *executionContext) marshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruff
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAPIType(ctx, sel, v[i])
+			ret[i] = ec.marshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6978,7 +6978,7 @@ func (ec *executionContext) marshalOAPIType2ᚕgithubᚗcomᚋminkezhangᚋtruff
 	return ret
 }
 
-func (ec *executionContext) marshalOAux2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐAux(ctx context.Context, sel ast.SelectionSet, v model.Aux) graphql.Marshaler {
+func (ec *executionContext) marshalOAux2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAux(ctx context.Context, sel ast.SelectionSet, v model.Aux) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7011,7 +7011,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx context.Context, v interface{}) (*model.CorpusType, error) {
+func (ec *executionContext) unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx context.Context, v interface{}) (*model.CorpusType, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -7020,14 +7020,14 @@ func (ec *executionContext) unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐCorpusType(ctx context.Context, sel ast.SelectionSet, v *model.CorpusType) graphql.Marshaler {
+func (ec *executionContext) marshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx context.Context, sel ast.SelectionSet, v *model.CorpusType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Entry) graphql.Marshaler {
+func (ec *executionContext) marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Entry) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7054,7 +7054,7 @@ func (ec *executionContext) marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruf
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntry(ctx, sel, v[i])
+			ret[i] = ec.marshalNEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntry(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7074,14 +7074,14 @@ func (ec *executionContext) marshalOEntry2ᚕᚖgithubᚗcomᚋminkezhangᚋtruf
 	return ret
 }
 
-func (ec *executionContext) marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntry(ctx context.Context, sel ast.SelectionSet, v *model.Entry) graphql.Marshaler {
+func (ec *executionContext) marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntry(ctx context.Context, sel ast.SelectionSet, v *model.Entry) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Entry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPISourceᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputAPISource, error) {
+func (ec *executionContext) unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAPISourceᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputAPISource, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -7093,7 +7093,7 @@ func (ec *executionContext) unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋm
 	res := make([]*model.EntryInputAPISource, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNEntryInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAPISource(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNEntryInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAPISource(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -7101,7 +7101,7 @@ func (ec *executionContext) unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋm
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputAux(ctx context.Context, v interface{}) (*model.EntryInputAux, error) {
+func (ec *executionContext) unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAux(ctx context.Context, v interface{}) (*model.EntryInputAux, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -7109,7 +7109,7 @@ func (ec *executionContext) unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhang
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputTitleᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputTitle, error) {
+func (ec *executionContext) unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputTitleᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputTitle, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -7121,7 +7121,7 @@ func (ec *executionContext) unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminke
 	res := make([]*model.EntryInputTitle, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐEntryInputTitle(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputTitle(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -7161,7 +7161,7 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx context.Context, v interface{}) ([]model.ProviderType, error) {
+func (ec *executionContext) unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderTypeᚄ(ctx context.Context, v interface{}) ([]model.ProviderType, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -7173,7 +7173,7 @@ func (ec *executionContext) unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhang�
 	res := make([]model.ProviderType, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐProviderType(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderType(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -7181,7 +7181,7 @@ func (ec *executionContext) unmarshalOProviderType2ᚕgithubᚗcomᚋminkezhang�
 	return res, nil
 }
 
-func (ec *executionContext) marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐProviderTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProviderType) graphql.Marshaler {
+func (ec *executionContext) marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProviderType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7208,7 +7208,7 @@ func (ec *executionContext) marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐProviderType(ctx, sel, v[i])
+			ret[i] = ec.marshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7228,7 +7228,7 @@ func (ec *executionContext) marshalOProviderType2ᚕgithubᚗcomᚋminkezhangᚋ
 	return ret
 }
 
-func (ec *executionContext) unmarshalOPutInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐPutInput(ctx context.Context, v interface{}) (*model.PutInput, error) {
+func (ec *executionContext) unmarshalOPutInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPutInput(ctx context.Context, v interface{}) (*model.PutInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -7236,7 +7236,7 @@ func (ec *executionContext) unmarshalOPutInput2ᚖgithubᚗcomᚋminkezhangᚋtr
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSearchInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐSearchInput(ctx context.Context, v interface{}) (*model.SearchInput, error) {
+func (ec *executionContext) unmarshalOSearchInput2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐSearchInput(ctx context.Context, v interface{}) (*model.SearchInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -7298,7 +7298,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐTitleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Title) graphql.Marshaler {
+func (ec *executionContext) marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐTitleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Title) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7325,7 +7325,7 @@ func (ec *executionContext) marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruf
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋgraphqlᚋgeneratedᚋmodelᚐTitle(ctx, sel, v[i])
+			ret[i] = ec.marshalNTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐTitle(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
