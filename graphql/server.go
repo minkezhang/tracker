@@ -1,3 +1,4 @@
+// TODO(minkezhang): Delete package.
 package main
 
 import (
