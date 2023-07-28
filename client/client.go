@@ -2,22 +2,23 @@ package client
 
 import (
 	"context"
+	"fmt"
 
-	dpb "github.com/minkezhang/truffle/api/go/database"
+	"github.com/minkezhang/truffle/graphql/generated/model"
 )
 
-type WO interface {
-	Add(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error)
-	Put(ctx context.Context, epb *dpb.Entry) (*dpb.Entry, error)
-	Delete(ctx context.Context, id *dpb.LinkedID) (*dpb.Entry, error)
+type Client interface {
+	Get(ctx context.Context, s *model.APIData) (*model.APIData, error)
+	Search(ctx context.Context, q *model.SearchInput) ([]*model.APIData, error)
 }
 
-type RO interface {
-	Get(ctx context.Context, id *dpb.LinkedID, opts any) (*dpb.Entry, error)
-	Search(ctx context.Context, query any) ([]*dpb.Entry, error)
+type Cache struct {
 }
 
-type RW interface {
-	RO
-	WO
+func (c Cache) Get(ctx context.Context, s *model.APIData) (*model.APIData, error) {
+	return s, nil
+}
+
+func (c Cache) Search(ctx context.Context, q *model.SearchInput) ([]*model.APIData, error) {
+	return nil, fmt.Errorf("unimplemented")
 }
