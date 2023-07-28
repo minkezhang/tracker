@@ -644,7 +644,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../aux_data.gql", Input: `union Aux =
+	{Name: "../aux.gql", Input: `union Aux =
     AuxAnime
   | AuxAnimeFilm
   | AuxManga
