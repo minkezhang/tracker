@@ -44,7 +44,7 @@ enum ProviderType {
 }
 
 type Title {
-  language: String!
+  locale: String!
   title: String!
 }
 

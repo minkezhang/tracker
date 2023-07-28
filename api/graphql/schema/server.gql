@@ -34,7 +34,7 @@ input EntryInputAux {
 }
 
 input EntryInputTitle {
-  language: String!
+  locale: String!
   title: String!
 }
 

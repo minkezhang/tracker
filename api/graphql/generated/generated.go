@@ -101,8 +101,8 @@ type ComplexityRoot struct {
 	}
 
 	AuxManga struct {
-		Authors      func(childComplexity int) int
-		Illustrators func(childComplexity int) int
+		Artists func(childComplexity int) int
+		Authors func(childComplexity int) int
 	}
 
 	AuxShortStory struct {
@@ -137,8 +137,8 @@ type ComplexityRoot struct {
 	}
 
 	Title struct {
-		Language func(childComplexity int) int
-		Title    func(childComplexity int) int
+		Locale func(childComplexity int) int
+		Title  func(childComplexity int) int
 	}
 }
 
@@ -405,19 +405,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuxGame.Writers(childComplexity), true
 
+	case "AuxManga.artists":
+		if e.complexity.AuxManga.Artists == nil {
+			break
+		}
+
+		return e.complexity.AuxManga.Artists(childComplexity), true
+
 	case "AuxManga.authors":
 		if e.complexity.AuxManga.Authors == nil {
 			break
 		}
 
 		return e.complexity.AuxManga.Authors(childComplexity), true
-
-	case "AuxManga.illustrators":
-		if e.complexity.AuxManga.Illustrators == nil {
-			break
-		}
-
-		return e.complexity.AuxManga.Illustrators(childComplexity), true
 
 	case "AuxShortStory.authors":
 		if e.complexity.AuxShortStory.Authors == nil {
@@ -520,12 +520,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Search(childComplexity, args["input"].(*model.SearchInput)), true
 
-	case "Title.language":
-		if e.complexity.Title.Language == nil {
+	case "Title.locale":
+		if e.complexity.Title.Locale == nil {
 			break
 		}
 
-		return e.complexity.Title.Language(childComplexity), true
+		return e.complexity.Title.Locale(childComplexity), true
 
 	case "Title.title":
 		if e.complexity.Title.Title == nil {
@@ -670,7 +670,7 @@ type AuxAnimeFilm {
 }
 
 type AuxManga {
-  illustrators: [String!]
+  artists: [String!]
   authors: [String!]
 }
 
@@ -761,7 +761,7 @@ enum ProviderType {
 }
 
 type Title {
-  language: String!
+  locale: String!
   title: String!
 }
 
@@ -825,7 +825,7 @@ input EntryInputAux {
 }
 
 input EntryInputTitle {
-  language: String!
+  locale: String!
   title: String!
 }
 
@@ -1156,8 +1156,8 @@ func (ec *executionContext) fieldContext_APIData_titles(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "language":
-				return ec.fieldContext_Title_language(ctx, field)
+			case "locale":
+				return ec.fieldContext_Title_locale(ctx, field)
 			case "title":
 				return ec.fieldContext_Title_title(ctx, field)
 			}
@@ -2356,8 +2356,8 @@ func (ec *executionContext) fieldContext_AuxGame_writers(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _AuxManga_illustrators(ctx context.Context, field graphql.CollectedField, obj *model.AuxManga) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AuxManga_illustrators(ctx, field)
+func (ec *executionContext) _AuxManga_artists(ctx context.Context, field graphql.CollectedField, obj *model.AuxManga) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuxManga_artists(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2370,7 +2370,7 @@ func (ec *executionContext) _AuxManga_illustrators(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Illustrators, nil
+		return obj.Artists, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2384,7 +2384,7 @@ func (ec *executionContext) _AuxManga_illustrators(ctx context.Context, field gr
 	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AuxManga_illustrators(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AuxManga_artists(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AuxManga",
 		Field:      field,
@@ -3196,8 +3196,8 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Title_language(ctx context.Context, field graphql.CollectedField, obj *model.Title) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Title_language(ctx, field)
+func (ec *executionContext) _Title_locale(ctx context.Context, field graphql.CollectedField, obj *model.Title) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Title_locale(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3210,7 +3210,7 @@ func (ec *executionContext) _Title_language(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Language, nil
+		return obj.Locale, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3227,7 +3227,7 @@ func (ec *executionContext) _Title_language(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Title_language(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Title_locale(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Title",
 		Field:      field,
@@ -5167,22 +5167,22 @@ func (ec *executionContext) unmarshalInputEntryInputTitle(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"language", "title"}
+	fieldsInOrder := [...]string{"locale", "title"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "language":
+		case "locale":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("language"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locale"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Language = data
+			it.Locale = data
 		case "title":
 			var err error
 
@@ -5773,8 +5773,8 @@ func (ec *executionContext) _AuxManga(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuxManga")
-		case "illustrators":
-			out.Values[i] = ec._AuxManga_illustrators(ctx, field, obj)
+		case "artists":
+			out.Values[i] = ec._AuxManga_artists(ctx, field, obj)
 		case "authors":
 			out.Values[i] = ec._AuxManga_authors(ctx, field, obj)
 		default:
@@ -6127,8 +6127,8 @@ func (ec *executionContext) _Title(ctx context.Context, sel ast.SelectionSet, ob
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Title")
-		case "language":
-			out.Values[i] = ec._Title_language(ctx, field, obj)
+		case "locale":
+			out.Values[i] = ec._Title_locale(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

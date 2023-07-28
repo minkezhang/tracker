@@ -80,8 +80,8 @@ type AuxGame struct {
 func (AuxGame) IsAux() {}
 
 type AuxManga struct {
-	Illustrators []string `json:"illustrators,omitempty"`
-	Authors      []string `json:"authors,omitempty"`
+	Artists []string `json:"artists,omitempty"`
+	Authors []string `json:"authors,omitempty"`
 }
 
 func (AuxManga) IsAux() {}
@@ -122,8 +122,8 @@ type EntryInputAux struct {
 }
 
 type EntryInputTitle struct {
-	Language string `json:"language"`
-	Title    string `json:"title"`
+	Locale string `json:"locale"`
+	Title  string `json:"title"`
 }
 
 type Metadata struct {
@@ -152,8 +152,8 @@ type SearchInput struct {
 }
 
 type Title struct {
-	Language string `json:"language"`
-	Title    string `json:"title"`
+	Locale string `json:"locale"`
+	Title  string `json:"title"`
 }
 
 type APIType string

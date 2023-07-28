@@ -8,17 +8,17 @@ import (
 )
 
 type Client interface {
-	Get(ctx context.Context, corpus model.CorpusType, s *model.APIData) (*model.APIData, error)
-	Search(ctx context.Context, q *model.QueryEntryInput) ([]*model.APIData, error)
+	Get(ctx context.Context, s *model.APIData) (*model.APIData, error)
+	Search(ctx context.Context, q *model.SearchInput) ([]*model.APIData, error)
 }
 
 type Cache struct {
 }
 
-func (c Cache) Get(ctx context.Context, corpus model.CorpusType, s *model.APIData) (*model.APIData, error) {
+func (c Cache) Get(ctx context.Context, s *model.APIData) (*model.APIData, error) {
 	return s, nil
 }
 
-func (c Cache) Search(ctx context.Context, q *model.QueryEntryInput) ([]*model.APIData, error) {
+func (c Cache) Search(ctx context.Context, q *model.SearchInput) ([]*model.APIData, error) {
 	return nil, fmt.Errorf("unimplemented")
 }

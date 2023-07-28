@@ -24,7 +24,7 @@ type AuxAnimeFilm {
 }
 
 type AuxManga {
-  illustrators: [String!]
+  artists: [String!]
   authors: [String!]
 }
 

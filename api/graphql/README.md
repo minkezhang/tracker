@@ -12,8 +12,8 @@ mutation {
     corpus: CORPUS_ANIME,
     queued: false,
     titles: [{
-        language: "en",
-        title: "Neon Genesis Evangelion"
+   		locale: "en",
+    	title: "Neon Genesis Evangelion"
     }],
     providers: [
       PROVIDER_NETFLIX,
@@ -36,13 +36,13 @@ mutation {
     metadata {
       truffle {
         cached
+        queued
         api
         id
         titles {
-          language
+          locale
           title
         }
-        queued
         aux {
           ... on AuxAnime {
             studios
@@ -52,7 +52,7 @@ mutation {
         tags,
       }
       sources {
-        id
+      	id
         cached
       }
     }

@@ -89,8 +89,8 @@ func PUTEntry(q *model.PutInput, m *model.Entry) error {
 			m.Metadata.Truffle.Titles = append(
 				m.Metadata.Truffle.Titles,
 				&model.Title{
-					Language: t.Language,
-					Title:    t.Title,
+					Locale: t.Locale,
+					Title:  t.Title,
 				},
 			)
 		}
