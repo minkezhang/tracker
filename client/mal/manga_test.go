@@ -2,13 +2,22 @@ package mal
 
 import (
 	"context"
+	"net/http"
 	"testing"
+
+	"github.com/nstratos/go-myanimelist/mal"
 )
 
 func TestMangaGet(t *testing.T) {
-	m := NewManga(O{
-		ClientID: CLIENT_ID,
-	})
+	m := NewManga(
+		mal.NewClient(
+			&http.Client{
+				Transport: &transport{
+					ClientID: CLIENT_ID,
+				},
+			},
+		),
+	)
 	_, err := m.Get(context.Background(), "698")
 
 	if err != nil {

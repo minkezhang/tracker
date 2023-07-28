@@ -3,7 +3,6 @@ package mal
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -19,9 +18,11 @@ var (
 		"alternative_titles",
 		"mean",
 		"authors{first_name,last_name}",
+		"my_list_status",
+		"genres",
 	}
 
-	queuedLookup = map[mal.MangaStatus]bool{
+	mangaQueuedLookup = map[mal.MangaStatus]bool{
 		mal.MangaStatusReading:    true,
 		mal.MangaStatusPlanToRead: true,
 	}
@@ -31,15 +32,9 @@ type Manga struct {
 	client *mal.Client
 }
 
-func NewManga(o O) *Manga {
+func NewManga(c *mal.Client) *Manga {
 	return &Manga{
-		client: mal.NewClient(
-			&http.Client{
-				Transport: &transport{
-					ClientID: o.ClientID,
-				},
-			},
-		),
+		client: c,
 	}
 }
 
@@ -59,8 +54,13 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 		}
 	}
 
+	var genres []string
+	for _, g := range m.Genres {
+		genres = append(genres, g.Name)
+	}
+
 	return &model.APIData{
-		API:    model.APITypeAPIMal,
+		API:    c.API(),
 		ID:     fmt.Sprintf("manga/%d", m.ID),
 		Cached: true,
 		Titles: []*model.Title{
@@ -77,15 +77,13 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 				Title:  m.AlternativeTitles.Ja,
 			},
 		},
-		Queued: queuedLookup[m.MyListStatus.Status],
+		Queued: mangaQueuedLookup[m.MyListStatus.Status],
 		Score:  &m.Mean,
 		Aux: &model.AuxManga{
 			Authors: authors,
 			Artists: artists,
 		},
-		Tags: []string{
-			m.MediaType,
-		},
+		Tags: append(genres, m.MediaType),
 	}
 }
 
