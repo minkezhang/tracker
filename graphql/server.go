@@ -29,7 +29,7 @@ func main() {
 			Entry: database.NewEntry(),
 			APIData: map[model.APIType]*database.APIData{
 				model.APITypeAPIMal: database.NewAPIData(
-					mal.NewManga(
+					mal.New(
 						mal.O{
 							ClientID: mal.CLIENT_ID,
 						},

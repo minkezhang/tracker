@@ -90,8 +90,7 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 }
 
 func (c *Manga) Get(ctx context.Context, id string) (*model.APIData, error) {
-	parts := strings.Split(id, "/")
-	malID, err := strconv.Atoi(parts[len(parts)-1])
+	malID, err := strconv.Atoi(id)
 	if err != nil {
 		return nil, err
 	}
