@@ -8,6 +8,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/graphql/resolver"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
@@ -21,7 +22,9 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{}}))
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{
+		DB: database.New(),
+	}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

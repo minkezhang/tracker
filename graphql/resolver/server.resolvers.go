@@ -23,23 +23,33 @@ func (r *mutationResolver) Patch(ctx context.Context, input *model.PatchInput) (
 	} else {
 		input.ID = nil
 		id = util.UUID()
-	}
-	// TODO(minkezhang): Get Entry object here.
-	m := &model.Entry{
-		ID:     id,
-		Corpus: *input.Corpus,
+		// TODO(minkezhang): Check for duplicate.
 	}
 
+	m, err := r.DB.Get(id)
+	if err != nil {
+		m = &model.Entry{
+			ID:     id,
+			Corpus: *input.Corpus,
+		}
+	}
 	if err := PatchEntry(input, m); err != nil {
 		return nil, err
 	}
 
-	// TODO(minkezhang): Save Search object.
-	return m, nil
+	return r.DB.Put(m)
 }
 
 // List is the resolver for the list field.
 func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*model.Entry, error) {
+	if input.ID != nil {
+		e, err := r.DB.Get(*input.ID)
+		if err != nil {
+			return nil, nil
+		}
+		return []*model.Entry{e}, nil
+	}
+
 	return nil, &gqlerror.Error{
 		Path:    graphql.GetPath(ctx),
 		Message: fmt.Sprintf("Search not found: %s", *input.ID),
