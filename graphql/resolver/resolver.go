@@ -13,7 +13,7 @@ import (
 type Resolver struct {
 }
 
-func PUTEntry(q *model.PutInput, m *model.Entry) error {
+func PatchEntry(q *model.PatchInput, m *model.Entry) error {
 	if q.ID == nil {
 		m.Corpus = *q.Corpus
 	}

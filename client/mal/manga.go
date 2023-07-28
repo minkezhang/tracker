@@ -101,6 +101,6 @@ func (c *Manga) Get(ctx context.Context, s *model.APIData) (*model.APIData, erro
 	return c.APIData(m), nil
 }
 
-func (c *Manga) Search(ctx context.Context, q *model.SearchInput) ([]*model.APIData, error) {
+func (c *Manga) List(ctx context.Context, q *model.ListInput) ([]*model.APIData, error) {
 	return nil, fmt.Errorf("unimplemented")
 }

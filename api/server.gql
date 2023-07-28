@@ -1,4 +1,4 @@
-input SearchInput {
+input ListInput {
   # Entry ID
   id: ID
 
@@ -38,7 +38,7 @@ input EntryInputTitle {
   title: String!
 }
 
-input PutInput {
+input PatchInput {
   # Optional; if ID is null, create the entry.
   id: ID
 
@@ -56,9 +56,9 @@ input PutInput {
 }
 
 type Query {
-  search(input: SearchInput): [Entry!]
+  list(input: ListInput): [Entry!]
 }
 
 type Mutation {
-  put(input: PutInput): Entry
+  patch(input: PatchInput): Entry
 }

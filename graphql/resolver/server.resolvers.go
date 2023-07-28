@@ -15,8 +15,8 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-// Put is the resolver for the Put field.
-func (r *mutationResolver) Put(ctx context.Context, input *model.PutInput) (*model.Entry, error) {
+// Patch is the resolver for the Patch field.
+func (r *mutationResolver) Patch(ctx context.Context, input *model.PatchInput) (*model.Entry, error) {
 	var id string
 	if input.ID != nil && *input.ID != "" {
 		id = *input.ID
@@ -30,7 +30,7 @@ func (r *mutationResolver) Put(ctx context.Context, input *model.PutInput) (*mod
 		Corpus: *input.Corpus,
 	}
 
-	if err := PUTEntry(input, m); err != nil {
+	if err := PatchEntry(input, m); err != nil {
 		return nil, err
 	}
 
@@ -38,8 +38,8 @@ func (r *mutationResolver) Put(ctx context.Context, input *model.PutInput) (*mod
 	return m, nil
 }
 
-// Search is the resolver for the Search field.
-func (r *queryResolver) Search(ctx context.Context, input *model.SearchInput) ([]*model.Entry, error) {
+// List is the resolver for the list field.
+func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*model.Entry, error) {
 	return nil, &gqlerror.Error{
 		Path:    graphql.GetPath(ctx),
 		Message: fmt.Sprintf("Search not found: %s", *input.ID),

@@ -4,7 +4,7 @@
 
 ```
 mutation {
-  put(input: {
+  patch(input: {
     corpus: CORPUS_ANIME,
     queued: false,
     titles: [{

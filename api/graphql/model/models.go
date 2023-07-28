@@ -126,12 +126,20 @@ type EntryInputTitle struct {
 	Title  string `json:"title"`
 }
 
+type ListInput struct {
+	ID      *string     `json:"id,omitempty"`
+	Corpus  *CorpusType `json:"corpus,omitempty"`
+	Pattern *string     `json:"pattern,omitempty"`
+	Apis    []APIType   `json:"apis,omitempty"`
+	Nsfw    *bool       `json:"nsfw,omitempty"`
+}
+
 type Metadata struct {
 	Truffle *APIData   `json:"truffle"`
 	Sources []*APIData `json:"sources,omitempty"`
 }
 
-type PutInput struct {
+type PatchInput struct {
 	ID        *string                `json:"id,omitempty"`
 	Corpus    *CorpusType            `json:"corpus,omitempty"`
 	Queued    *bool                  `json:"queued,omitempty"`
@@ -141,14 +149,6 @@ type PutInput struct {
 	Tags      []string               `json:"tags,omitempty"`
 	Aux       *EntryInputAux         `json:"aux,omitempty"`
 	Sources   []*EntryInputAPISource `json:"sources,omitempty"`
-}
-
-type SearchInput struct {
-	ID      *string     `json:"id,omitempty"`
-	Corpus  *CorpusType `json:"corpus,omitempty"`
-	Pattern *string     `json:"pattern,omitempty"`
-	Apis    []APIType   `json:"apis,omitempty"`
-	Nsfw    *bool       `json:"nsfw,omitempty"`
 }
 
 type Title struct {
