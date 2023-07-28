@@ -17,6 +17,7 @@ import (
 func (r *metadataResolver) Sources(ctx context.Context, obj *model.Metadata) ([]*model.APIData, error) {
 	var sources []*model.APIData
 	var errs []error
+
 	for _, s := range obj.Sources {
 		db, ok := r.DB.APIData[s.API]
 		if !ok {

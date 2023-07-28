@@ -6,6 +6,7 @@
 mutation {
   patch(input: {
     corpus: CORPUS_ANIME,
+    id: "",
     queued: false,
     titles: [{
    		locale: "en",
@@ -31,26 +32,30 @@ mutation {
     corpus
     metadata {
       truffle {
-        cached
-        queued
-        api
-        id
-        titles {
-          locale
-          title
-        }
-        aux {
-          ... on AuxAnime {
-            studios
-          }
-        },
-        providers,
-        tags,
+        ...APIDataParts
       }
       sources {
-      	id
-        cached
+      	...APIDataParts
       }
+    }
+  }
+}
+
+fragment APIDataParts on APIData {
+  cached
+  queued
+  titles {
+    title
+  }
+  providers
+  tags
+  aux {
+    ... on AuxAnime {
+      studios
+    }
+    ... on AuxManga {
+      authors
+      artists
     }
   }
 }
