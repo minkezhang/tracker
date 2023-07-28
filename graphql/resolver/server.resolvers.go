@@ -40,6 +40,11 @@ func (r *mutationResolver) Patch(ctx context.Context, input *model.PatchInput) (
 	return r.DB.Entry.Put(ctx, m)
 }
 
+// Delete is the resolver for the delete field.
+func (r *mutationResolver) Delete(ctx context.Context, input string) (*model.Entry, error) {
+	return r.DB.Entry.Delete(ctx, input)
+}
+
 // List is the resolver for the list field.
 func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*model.Entry, error) {
 	if input.ID != nil {

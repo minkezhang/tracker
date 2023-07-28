@@ -61,4 +61,5 @@ type Query {
 
 type Mutation {
   patch(input: PatchInput): Entry
+  delete(input: ID!): Entry
 }
