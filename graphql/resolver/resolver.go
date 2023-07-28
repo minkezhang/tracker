@@ -12,7 +12,11 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB *database.DB
+	DB *DB
+}
+
+type DB struct {
+	Entry *database.Entry
 }
 
 func PatchEntry(q *model.PatchInput, m *model.Entry) error {
