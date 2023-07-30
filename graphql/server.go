@@ -19,6 +19,7 @@ import (
 const (
 	defaultPort         = "8080"
 	ENTRY_DATABASE_PATH = "/home/mzhang/minkezhang/truffle/data/entry.json"
+	MAL_DATABASE_PATH   = "/home/mzhang/minkezhang/truffle/data/mal.json"
 )
 
 func main() {
@@ -37,6 +38,7 @@ func main() {
 							ClientID: mal.CLIENT_ID,
 						},
 					),
+					MAL_DATABASE_PATH,
 				),
 			},
 		},

@@ -15,14 +15,14 @@ type Entry struct {
 }
 
 func NewEntry(fn string) *Entry {
-	e := &Entry{
+	db := &Entry{
 		data: map[string]*model.Entry{},
 		fn:   fn,
 	}
-	if err := e.load(e.fn); err != nil {
+	if err := db.load(db.fn); err != nil {
 		panic(err)
 	}
-	return e
+	return db
 }
 
 func (db *Entry) Get(ctx context.Context, id string) (*model.Entry, error) {
@@ -67,7 +67,3 @@ func (db *Entry) load(fn string) error {
 
 func (db *Entry) marshal() ([]byte, error)    { return json.MarshalIndent(db.data, "", "  ") }
 func (db *Entry) unmarshal(data []byte) error { return json.Unmarshal(data, db) }
-
-func (db *Entry) List(ctx context.Context) (*model.Entry, error) {
-	return nil, fmt.Errorf("unimplemented")
-}
