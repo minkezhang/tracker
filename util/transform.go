@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/minkezhang/truffle/api/graphql/model"
 )
@@ -60,7 +61,6 @@ func PatchEntry(m *model.Entry, q *model.PatchInput) error {
 			m.Metadata.Truffle.Aux = &model.AuxGame{
 				Developers: q.Aux.Developers,
 			}
-		default:
 		}
 	}
 
@@ -91,6 +91,36 @@ func PatchEntry(m *model.Entry, q *model.PatchInput) error {
 
 	if q.Tags != nil {
 		m.Metadata.Truffle.Tags = q.Tags
+	}
+
+	if q.Tracker != nil {
+		t := time.Now()
+		m.Metadata.Truffle.Tracker = nil
+		switch m.Corpus {
+		case model.CorpusTypeCorpusAnime:
+			m.Metadata.Truffle.Tracker = &model.TrackerAnime{
+				Season:      q.Tracker.Season,
+				Episode:     q.Tracker.Episode,
+				LastUpdated: &t,
+			}
+		case model.CorpusTypeCorpusTv:
+			m.Metadata.Truffle.Tracker = &model.TrackerTv{
+				Season:      q.Tracker.Season,
+				Episode:     q.Tracker.Episode,
+				LastUpdated: &t,
+			}
+		case model.CorpusTypeCorpusManga:
+			m.Metadata.Truffle.Tracker = &model.TrackerManga{
+				Volume:      q.Tracker.Volume,
+				Chapter:     q.Tracker.Chapter,
+				LastUpdated: &t,
+			}
+		case model.CorpusTypeCorpusBook:
+			m.Metadata.Truffle.Tracker = &model.TrackerBook{
+				Volume:      q.Tracker.Volume,
+				LastUpdated: &t,
+			}
+		}
 	}
 
 	if q.Sources != nil {

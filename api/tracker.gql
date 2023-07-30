@@ -1,0 +1,30 @@
+scalar Time
+
+union Tracker =
+    TrackerAnime
+  | TrackerManga
+  | TrackerTV
+  | TrackerBook
+
+type TrackerAnime {
+  season: String
+  episode: String
+  last_updated: Time
+}
+
+type TrackerTV {
+  season: String
+  episode: String
+  last_updated: Time
+}
+
+type TrackerManga {
+  volume: String
+  chapter: String
+  last_updated: Time
+}
+
+type TrackerBook {
+  volume: String
+  last_updated: Time
+}

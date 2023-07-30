@@ -9,50 +9,63 @@ input ListInput {
   nsfw: Boolean
 }
 
-input EntryInputAPISource {
+input PatchInputAPISource {
   api: APIType!
   id: ID!
 }
 
 # Most fields for the Aux union type are not represented here for simplicity.
 # We will rely on APIs to populate the data instead.
-input EntryInputAux {
-  # Used for populating AuxAnime and AuxAnimeFilm.
+input PatchInputAux {
+  # Used for populating AuxAnime and AuxAnimeFilm
   studios: [String!]
 
-  # Used for populating AuxBook, AuxManga, and AuxShortStory.
+  # Used for populating AuxBook, AuxManga, and AuxShortStory
   authors: [String!]
 
-  # Used for populating AuxAlbum.
+  # Used for populating AuxAlbum
   composers: [String!]
 
-  # Used for populating AuxFilm.
+  # Used for populating AuxFilm
   directors: [String!]
 
-  # Used for populating AuxGame.
+  # Used for populating AuxGame
   developers: [String!]
 }
 
-input EntryInputTitle {
+input PatchInputTitle {
   locale: String!
   title: String!
 }
 
+input PatchInputTracker {
+  # Used for populating TrackerAnime and TrackerTV
+  season: String
+  episode: String
+
+  # Used for populating TrackerManga and TrackerBook
+  volume: String
+
+  # Used for populating TrackerManga
+  chapter: String
+}
+
 input PatchInput {
-  # Optional; if ID is null, create the entry.
+  # Optional; if ID is null, create the entry
   id: ID
 
   corpus: CorpusType
 
   # Custom metadata
   queued: Boolean
-  titles: [EntryInputTitle!]
+  titles: [PatchInputTitle!]
   score: Float
   providers: [ProviderType!]
   tags: [String!]
-  aux: EntryInputAux
+  aux: PatchInputAux
+  tracker: PatchInputTracker
 
-  sources: [EntryInputAPISource!]
+  sources: [PatchInputAPISource!]
 }
 
 type Query {

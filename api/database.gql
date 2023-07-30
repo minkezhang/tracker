@@ -49,9 +49,10 @@ type Title {
 }
 
 type Entry {
-  id: ID!
-  metadata: Metadata!
   corpus: CorpusType!
+  id: ID!
+
+  metadata: Metadata!
 }
 
 type Metadata {
@@ -62,12 +63,21 @@ type Metadata {
 
 type APIData {
   api: APIType!
-  id: ID!
+  id: ID!  # ID is unique to the API.
+
   queued: Boolean!
   cached: Boolean!
-  titles: [Title!]
+
+  # The work is considered whole, and the user has already consumed this piece
+  # of media at least once.
+  completed: Boolean!
+
   score: Float
+
+  titles: [Title!]
   providers: [ProviderType!]
-  aux: Aux
   tags: [String!]
+
+  aux: Aux
+  tracker: Tracker
 }

@@ -6,10 +6,15 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
 type Aux interface {
 	IsAux()
+}
+
+type Tracker interface {
+	IsTracker()
 }
 
 type APIData struct {
@@ -17,11 +22,13 @@ type APIData struct {
 	ID        string         `json:"id"`
 	Queued    bool           `json:"queued"`
 	Cached    bool           `json:"cached"`
-	Titles    []*Title       `json:"titles,omitempty"`
+	Completed bool           `json:"completed"`
 	Score     *float64       `json:"score,omitempty"`
+	Titles    []*Title       `json:"titles,omitempty"`
 	Providers []ProviderType `json:"providers,omitempty"`
-	Aux       Aux            `json:"aux,omitempty"`
 	Tags      []string       `json:"tags,omitempty"`
+	Aux       Aux            `json:"aux,omitempty"`
+	Tracker   Tracker        `json:"tracker,omitempty"`
 }
 
 type AuxAlbum struct {
@@ -103,27 +110,9 @@ type AuxTv struct {
 func (AuxTv) IsAux() {}
 
 type Entry struct {
+	Corpus   CorpusType `json:"corpus"`
 	ID       string     `json:"id"`
 	Metadata *Metadata  `json:"metadata"`
-	Corpus   CorpusType `json:"corpus"`
-}
-
-type EntryInputAPISource struct {
-	API APIType `json:"api"`
-	ID  string  `json:"id"`
-}
-
-type EntryInputAux struct {
-	Studios    []string `json:"studios,omitempty"`
-	Authors    []string `json:"authors,omitempty"`
-	Composers  []string `json:"composers,omitempty"`
-	Directors  []string `json:"directors,omitempty"`
-	Developers []string `json:"developers,omitempty"`
-}
-
-type EntryInputTitle struct {
-	Locale string `json:"locale"`
-	Title  string `json:"title"`
 }
 
 type ListInput struct {
@@ -143,18 +132,75 @@ type PatchInput struct {
 	ID        *string                `json:"id,omitempty"`
 	Corpus    *CorpusType            `json:"corpus,omitempty"`
 	Queued    *bool                  `json:"queued,omitempty"`
-	Titles    []*EntryInputTitle     `json:"titles,omitempty"`
+	Titles    []*PatchInputTitle     `json:"titles,omitempty"`
 	Score     *float64               `json:"score,omitempty"`
 	Providers []ProviderType         `json:"providers,omitempty"`
 	Tags      []string               `json:"tags,omitempty"`
-	Aux       *EntryInputAux         `json:"aux,omitempty"`
-	Sources   []*EntryInputAPISource `json:"sources,omitempty"`
+	Aux       *PatchInputAux         `json:"aux,omitempty"`
+	Tracker   *PatchInputTracker     `json:"tracker,omitempty"`
+	Sources   []*PatchInputAPISource `json:"sources,omitempty"`
+}
+
+type PatchInputAPISource struct {
+	API APIType `json:"api"`
+	ID  string  `json:"id"`
+}
+
+type PatchInputAux struct {
+	Studios    []string `json:"studios,omitempty"`
+	Authors    []string `json:"authors,omitempty"`
+	Composers  []string `json:"composers,omitempty"`
+	Directors  []string `json:"directors,omitempty"`
+	Developers []string `json:"developers,omitempty"`
+}
+
+type PatchInputTitle struct {
+	Locale string `json:"locale"`
+	Title  string `json:"title"`
+}
+
+type PatchInputTracker struct {
+	Season  *string `json:"season,omitempty"`
+	Episode *string `json:"episode,omitempty"`
+	Volume  *string `json:"volume,omitempty"`
+	Chapter *string `json:"chapter,omitempty"`
 }
 
 type Title struct {
 	Locale string `json:"locale"`
 	Title  string `json:"title"`
 }
+
+type TrackerAnime struct {
+	Season      *string    `json:"season,omitempty"`
+	Episode     *string    `json:"episode,omitempty"`
+	LastUpdated *time.Time `json:"last_updated,omitempty"`
+}
+
+func (TrackerAnime) IsTracker() {}
+
+type TrackerBook struct {
+	Volume      *string    `json:"volume,omitempty"`
+	LastUpdated *time.Time `json:"last_updated,omitempty"`
+}
+
+func (TrackerBook) IsTracker() {}
+
+type TrackerManga struct {
+	Volume      *string    `json:"volume,omitempty"`
+	Chapter     *string    `json:"chapter,omitempty"`
+	LastUpdated *time.Time `json:"last_updated,omitempty"`
+}
+
+func (TrackerManga) IsTracker() {}
+
+type TrackerTv struct {
+	Season      *string    `json:"season,omitempty"`
+	Episode     *string    `json:"episode,omitempty"`
+	LastUpdated *time.Time `json:"last_updated,omitempty"`
+}
+
+func (TrackerTv) IsTracker() {}
 
 type APIType string
 

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -49,12 +50,14 @@ type ComplexityRoot struct {
 		API       func(childComplexity int) int
 		Aux       func(childComplexity int) int
 		Cached    func(childComplexity int) int
+		Completed func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Providers func(childComplexity int) int
 		Queued    func(childComplexity int) int
 		Score     func(childComplexity int) int
 		Tags      func(childComplexity int) int
 		Titles    func(childComplexity int) int
+		Tracker   func(childComplexity int) int
 	}
 
 	AuxAlbum struct {
@@ -141,6 +144,29 @@ type ComplexityRoot struct {
 		Locale func(childComplexity int) int
 		Title  func(childComplexity int) int
 	}
+
+	TrackerAnime struct {
+		Episode     func(childComplexity int) int
+		LastUpdated func(childComplexity int) int
+		Season      func(childComplexity int) int
+	}
+
+	TrackerBook struct {
+		LastUpdated func(childComplexity int) int
+		Volume      func(childComplexity int) int
+	}
+
+	TrackerManga struct {
+		Chapter     func(childComplexity int) int
+		LastUpdated func(childComplexity int) int
+		Volume      func(childComplexity int) int
+	}
+
+	TrackerTV struct {
+		Episode     func(childComplexity int) int
+		LastUpdated func(childComplexity int) int
+		Season      func(childComplexity int) int
+	}
 }
 
 type MetadataResolver interface {
@@ -190,6 +216,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.APIData.Cached(childComplexity), true
 
+	case "APIData.completed":
+		if e.complexity.APIData.Completed == nil {
+			break
+		}
+
+		return e.complexity.APIData.Completed(childComplexity), true
+
 	case "APIData.id":
 		if e.complexity.APIData.ID == nil {
 			break
@@ -231,6 +264,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.APIData.Titles(childComplexity), true
+
+	case "APIData.tracker":
+		if e.complexity.APIData.Tracker == nil {
+			break
+		}
+
+		return e.complexity.APIData.Tracker(childComplexity), true
 
 	case "AuxAlbum.composers":
 		if e.complexity.AuxAlbum.Composers == nil {
@@ -548,6 +588,83 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Title.Title(childComplexity), true
 
+	case "TrackerAnime.episode":
+		if e.complexity.TrackerAnime.Episode == nil {
+			break
+		}
+
+		return e.complexity.TrackerAnime.Episode(childComplexity), true
+
+	case "TrackerAnime.last_updated":
+		if e.complexity.TrackerAnime.LastUpdated == nil {
+			break
+		}
+
+		return e.complexity.TrackerAnime.LastUpdated(childComplexity), true
+
+	case "TrackerAnime.season":
+		if e.complexity.TrackerAnime.Season == nil {
+			break
+		}
+
+		return e.complexity.TrackerAnime.Season(childComplexity), true
+
+	case "TrackerBook.last_updated":
+		if e.complexity.TrackerBook.LastUpdated == nil {
+			break
+		}
+
+		return e.complexity.TrackerBook.LastUpdated(childComplexity), true
+
+	case "TrackerBook.volume":
+		if e.complexity.TrackerBook.Volume == nil {
+			break
+		}
+
+		return e.complexity.TrackerBook.Volume(childComplexity), true
+
+	case "TrackerManga.chapter":
+		if e.complexity.TrackerManga.Chapter == nil {
+			break
+		}
+
+		return e.complexity.TrackerManga.Chapter(childComplexity), true
+
+	case "TrackerManga.last_updated":
+		if e.complexity.TrackerManga.LastUpdated == nil {
+			break
+		}
+
+		return e.complexity.TrackerManga.LastUpdated(childComplexity), true
+
+	case "TrackerManga.volume":
+		if e.complexity.TrackerManga.Volume == nil {
+			break
+		}
+
+		return e.complexity.TrackerManga.Volume(childComplexity), true
+
+	case "TrackerTV.episode":
+		if e.complexity.TrackerTV.Episode == nil {
+			break
+		}
+
+		return e.complexity.TrackerTV.Episode(childComplexity), true
+
+	case "TrackerTV.last_updated":
+		if e.complexity.TrackerTV.LastUpdated == nil {
+			break
+		}
+
+		return e.complexity.TrackerTV.LastUpdated(childComplexity), true
+
+	case "TrackerTV.season":
+		if e.complexity.TrackerTV.Season == nil {
+			break
+		}
+
+		return e.complexity.TrackerTV.Season(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -556,11 +673,12 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputEntryInputAPISource,
-		ec.unmarshalInputEntryInputAux,
-		ec.unmarshalInputEntryInputTitle,
 		ec.unmarshalInputListInput,
 		ec.unmarshalInputPatchInput,
+		ec.unmarshalInputPatchInputAPISource,
+		ec.unmarshalInputPatchInputAux,
+		ec.unmarshalInputPatchInputTitle,
+		ec.unmarshalInputPatchInputTracker,
 	)
 	first := true
 
@@ -780,9 +898,10 @@ type Title {
 }
 
 type Entry {
-  id: ID!
-  metadata: Metadata!
   corpus: CorpusType!
+  id: ID!
+
+  metadata: Metadata!
 }
 
 type Metadata {
@@ -793,14 +912,23 @@ type Metadata {
 
 type APIData {
   api: APIType!
-  id: ID!
+  id: ID!  # ID is unique to the API.
+
   queued: Boolean!
   cached: Boolean!
-  titles: [Title!]
+
+  # The work is considered whole, and the user has already consumed this piece
+  # of media at least once.
+  completed: Boolean!
+
   score: Float
+
+  titles: [Title!]
   providers: [ProviderType!]
-  aux: Aux
   tags: [String!]
+
+  aux: Aux
+  tracker: Tracker
 }
 `, BuiltIn: false},
 	{Name: "../server.gql", Input: `input ListInput {
@@ -814,50 +942,63 @@ type APIData {
   nsfw: Boolean
 }
 
-input EntryInputAPISource {
+input PatchInputAPISource {
   api: APIType!
   id: ID!
 }
 
 # Most fields for the Aux union type are not represented here for simplicity.
 # We will rely on APIs to populate the data instead.
-input EntryInputAux {
-  # Used for populating AuxAnime and AuxAnimeFilm.
+input PatchInputAux {
+  # Used for populating AuxAnime and AuxAnimeFilm
   studios: [String!]
 
-  # Used for populating AuxBook, AuxManga, and AuxShortStory.
+  # Used for populating AuxBook, AuxManga, and AuxShortStory
   authors: [String!]
 
-  # Used for populating AuxAlbum.
+  # Used for populating AuxAlbum
   composers: [String!]
 
-  # Used for populating AuxFilm.
+  # Used for populating AuxFilm
   directors: [String!]
 
-  # Used for populating AuxGame.
+  # Used for populating AuxGame
   developers: [String!]
 }
 
-input EntryInputTitle {
+input PatchInputTitle {
   locale: String!
   title: String!
 }
 
+input PatchInputTracker {
+  # Used for populating TrackerAnime and TrackerTV
+  season: String
+  episode: String
+
+  # Used for populating TrackerManga and TrackerBook
+  volume: String
+
+  # Used for populating TrackerManga
+  chapter: String
+}
+
 input PatchInput {
-  # Optional; if ID is null, create the entry.
+  # Optional; if ID is null, create the entry
   id: ID
 
   corpus: CorpusType
 
   # Custom metadata
   queued: Boolean
-  titles: [EntryInputTitle!]
+  titles: [PatchInputTitle!]
   score: Float
   providers: [ProviderType!]
   tags: [String!]
-  aux: EntryInputAux
+  aux: PatchInputAux
+  tracker: PatchInputTracker
 
-  sources: [EntryInputAPISource!]
+  sources: [PatchInputAPISource!]
 }
 
 type Query {
@@ -867,6 +1008,37 @@ type Query {
 type Mutation {
   patch(input: PatchInput): Entry
   delete(input: ID!): Entry
+}
+`, BuiltIn: false},
+	{Name: "../tracker.gql", Input: `scalar Time
+
+union Tracker =
+    TrackerAnime
+  | TrackerManga
+  | TrackerTV
+  | TrackerBook
+
+type TrackerAnime {
+  season: String
+  episode: String
+  last_updated: Time
+}
+
+type TrackerTV {
+  season: String
+  episode: String
+  last_updated: Time
+}
+
+type TrackerManga {
+  volume: String
+  chapter: String
+  last_updated: Time
+}
+
+type TrackerBook {
+  volume: String
+  last_updated: Time
 }
 `, BuiltIn: false},
 }
@@ -1150,6 +1322,91 @@ func (ec *executionContext) fieldContext_APIData_cached(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _APIData_completed(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_completed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Completed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_completed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_score(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_score(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Score, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_score(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _APIData_titles(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_APIData_titles(ctx, field)
 	if err != nil {
@@ -1197,47 +1454,6 @@ func (ec *executionContext) fieldContext_APIData_titles(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _APIData_score(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_APIData_score(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Score, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*float64)
-	fc.Result = res
-	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_APIData_score(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "APIData",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _APIData_providers(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_APIData_providers(ctx, field)
 	if err != nil {
@@ -1274,6 +1490,47 @@ func (ec *executionContext) fieldContext_APIData_providers(ctx context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ProviderType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_tags(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_tags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tags, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1320,8 +1577,8 @@ func (ec *executionContext) fieldContext_APIData_aux(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _APIData_tags(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_APIData_tags(ctx, field)
+func (ec *executionContext) _APIData_tracker(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_tracker(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1334,7 +1591,7 @@ func (ec *executionContext) _APIData_tags(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Tags, nil
+		return obj.Tracker, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1343,19 +1600,19 @@ func (ec *executionContext) _APIData_tags(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.(model.Tracker)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalOTracker2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐTracker(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_APIData_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_APIData_tracker(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "APIData",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Tracker does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2714,6 +2971,50 @@ func (ec *executionContext) fieldContext_AuxTV_writers(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Entry_corpus(ctx context.Context, field graphql.CollectedField, obj *model.Entry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Entry_corpus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Corpus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.CorpusType)
+	fc.Result = res
+	return ec.marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Entry_corpus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Entry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CorpusType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Entry_id(ctx context.Context, field graphql.CollectedField, obj *model.Entry) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Entry_id(ctx, field)
 	if err != nil {
@@ -2808,50 +3109,6 @@ func (ec *executionContext) fieldContext_Entry_metadata(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Entry_corpus(ctx context.Context, field graphql.CollectedField, obj *model.Entry) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Entry_corpus(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Corpus, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.CorpusType)
-	fc.Result = res
-	return ec.marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Entry_corpus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Entry",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type CorpusType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Metadata_truffle(ctx context.Context, field graphql.CollectedField, obj *model.Metadata) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Metadata_truffle(ctx, field)
 	if err != nil {
@@ -2899,16 +3156,20 @@ func (ec *executionContext) fieldContext_Metadata_truffle(ctx context.Context, f
 				return ec.fieldContext_APIData_queued(ctx, field)
 			case "cached":
 				return ec.fieldContext_APIData_cached(ctx, field)
-			case "titles":
-				return ec.fieldContext_APIData_titles(ctx, field)
+			case "completed":
+				return ec.fieldContext_APIData_completed(ctx, field)
 			case "score":
 				return ec.fieldContext_APIData_score(ctx, field)
+			case "titles":
+				return ec.fieldContext_APIData_titles(ctx, field)
 			case "providers":
 				return ec.fieldContext_APIData_providers(ctx, field)
-			case "aux":
-				return ec.fieldContext_APIData_aux(ctx, field)
 			case "tags":
 				return ec.fieldContext_APIData_tags(ctx, field)
+			case "aux":
+				return ec.fieldContext_APIData_aux(ctx, field)
+			case "tracker":
+				return ec.fieldContext_APIData_tracker(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
 		},
@@ -2960,16 +3221,20 @@ func (ec *executionContext) fieldContext_Metadata_sources(ctx context.Context, f
 				return ec.fieldContext_APIData_queued(ctx, field)
 			case "cached":
 				return ec.fieldContext_APIData_cached(ctx, field)
-			case "titles":
-				return ec.fieldContext_APIData_titles(ctx, field)
+			case "completed":
+				return ec.fieldContext_APIData_completed(ctx, field)
 			case "score":
 				return ec.fieldContext_APIData_score(ctx, field)
+			case "titles":
+				return ec.fieldContext_APIData_titles(ctx, field)
 			case "providers":
 				return ec.fieldContext_APIData_providers(ctx, field)
-			case "aux":
-				return ec.fieldContext_APIData_aux(ctx, field)
 			case "tags":
 				return ec.fieldContext_APIData_tags(ctx, field)
+			case "aux":
+				return ec.fieldContext_APIData_aux(ctx, field)
+			case "tracker":
+				return ec.fieldContext_APIData_tracker(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type APIData", field.Name)
 		},
@@ -3013,12 +3278,12 @@ func (ec *executionContext) fieldContext_Mutation_patch(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "corpus":
+				return ec.fieldContext_Entry_corpus(ctx, field)
 			case "id":
 				return ec.fieldContext_Entry_id(ctx, field)
 			case "metadata":
 				return ec.fieldContext_Entry_metadata(ctx, field)
-			case "corpus":
-				return ec.fieldContext_Entry_corpus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
 		},
@@ -3073,12 +3338,12 @@ func (ec *executionContext) fieldContext_Mutation_delete(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "corpus":
+				return ec.fieldContext_Entry_corpus(ctx, field)
 			case "id":
 				return ec.fieldContext_Entry_id(ctx, field)
 			case "metadata":
 				return ec.fieldContext_Entry_metadata(ctx, field)
-			case "corpus":
-				return ec.fieldContext_Entry_corpus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
 		},
@@ -3133,12 +3398,12 @@ func (ec *executionContext) fieldContext_Query_list(ctx context.Context, field g
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "corpus":
+				return ec.fieldContext_Entry_corpus(ctx, field)
 			case "id":
 				return ec.fieldContext_Entry_id(ctx, field)
 			case "metadata":
 				return ec.fieldContext_Entry_metadata(ctx, field)
-			case "corpus":
-				return ec.fieldContext_Entry_corpus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Entry", field.Name)
 		},
@@ -3369,6 +3634,457 @@ func (ec *executionContext) fieldContext_Title_title(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerAnime_season(ctx context.Context, field graphql.CollectedField, obj *model.TrackerAnime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerAnime_season(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Season, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerAnime_season(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerAnime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerAnime_episode(ctx context.Context, field graphql.CollectedField, obj *model.TrackerAnime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerAnime_episode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Episode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerAnime_episode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerAnime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerAnime_last_updated(ctx context.Context, field graphql.CollectedField, obj *model.TrackerAnime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerAnime_last_updated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastUpdated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerAnime_last_updated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerAnime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerBook_volume(ctx context.Context, field graphql.CollectedField, obj *model.TrackerBook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerBook_volume(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Volume, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerBook_volume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerBook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerBook_last_updated(ctx context.Context, field graphql.CollectedField, obj *model.TrackerBook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerBook_last_updated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastUpdated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerBook_last_updated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerBook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerManga_volume(ctx context.Context, field graphql.CollectedField, obj *model.TrackerManga) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerManga_volume(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Volume, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerManga_volume(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerManga",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerManga_chapter(ctx context.Context, field graphql.CollectedField, obj *model.TrackerManga) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerManga_chapter(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Chapter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerManga_chapter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerManga",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerManga_last_updated(ctx context.Context, field graphql.CollectedField, obj *model.TrackerManga) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerManga_last_updated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastUpdated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerManga_last_updated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerManga",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerTV_season(ctx context.Context, field graphql.CollectedField, obj *model.TrackerTv) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerTV_season(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Season, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerTV_season(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerTV",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerTV_episode(ctx context.Context, field graphql.CollectedField, obj *model.TrackerTv) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerTV_episode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Episode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerTV_episode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerTV",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TrackerTV_last_updated(ctx context.Context, field graphql.CollectedField, obj *model.TrackerTv) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TrackerTV_last_updated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastUpdated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TrackerTV_last_updated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TrackerTV",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5147,147 +5863,6 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputEntryInputAPISource(ctx context.Context, obj interface{}) (model.EntryInputAPISource, error) {
-	var it model.EntryInputAPISource
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"api", "id"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "api":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("api"))
-			data, err := ec.unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.API = data
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			data, err := ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ID = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputEntryInputAux(ctx context.Context, obj interface{}) (model.EntryInputAux, error) {
-	var it model.EntryInputAux
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"studios", "authors", "composers", "directors", "developers"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "studios":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("studios"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Studios = data
-		case "authors":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authors"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Authors = data
-		case "composers":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("composers"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Composers = data
-		case "directors":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directors"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Directors = data
-		case "developers":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("developers"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Developers = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputEntryInputTitle(ctx context.Context, obj interface{}) (model.EntryInputTitle, error) {
-	var it model.EntryInputTitle
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"locale", "title"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "locale":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locale"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Locale = data
-		case "title":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Title = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputListInput(ctx context.Context, obj interface{}) (model.ListInput, error) {
 	var it model.ListInput
 	asMap := map[string]interface{}{}
@@ -5360,7 +5935,7 @@ func (ec *executionContext) unmarshalInputPatchInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "corpus", "queued", "titles", "score", "providers", "tags", "aux", "sources"}
+	fieldsInOrder := [...]string{"id", "corpus", "queued", "titles", "score", "providers", "tags", "aux", "tracker", "sources"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5398,7 +5973,7 @@ func (ec *executionContext) unmarshalInputPatchInput(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("titles"))
-			data, err := ec.unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputTitleᚄ(ctx, v)
+			data, err := ec.unmarshalOPatchInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputTitleᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5434,20 +6009,226 @@ func (ec *executionContext) unmarshalInputPatchInput(ctx context.Context, obj in
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aux"))
-			data, err := ec.unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAux(ctx, v)
+			data, err := ec.unmarshalOPatchInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputAux(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Aux = data
+		case "tracker":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tracker"))
+			data, err := ec.unmarshalOPatchInputTracker2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputTracker(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tracker = data
 		case "sources":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sources"))
-			data, err := ec.unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAPISourceᚄ(ctx, v)
+			data, err := ec.unmarshalOPatchInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputAPISourceᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Sources = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPatchInputAPISource(ctx context.Context, obj interface{}) (model.PatchInputAPISource, error) {
+	var it model.PatchInputAPISource
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"api", "id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "api":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("api"))
+			data, err := ec.unmarshalNAPIType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐAPIType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.API = data
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPatchInputAux(ctx context.Context, obj interface{}) (model.PatchInputAux, error) {
+	var it model.PatchInputAux
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"studios", "authors", "composers", "directors", "developers"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "studios":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("studios"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Studios = data
+		case "authors":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authors"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Authors = data
+		case "composers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("composers"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Composers = data
+		case "directors":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directors"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Directors = data
+		case "developers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("developers"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Developers = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPatchInputTitle(ctx context.Context, obj interface{}) (model.PatchInputTitle, error) {
+	var it model.PatchInputTitle
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"locale", "title"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "locale":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locale"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Locale = data
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Title = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPatchInputTracker(ctx context.Context, obj interface{}) (model.PatchInputTracker, error) {
+	var it model.PatchInputTracker
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"season", "episode", "volume", "chapter"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "season":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("season"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Season = data
+		case "episode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episode"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Episode = data
+		case "volume":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("volume"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Volume = data
+		case "chapter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("chapter"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Chapter = data
 		}
 	}
 
@@ -5530,6 +6311,43 @@ func (ec *executionContext) _Aux(ctx context.Context, sel ast.SelectionSet, obj 
 	}
 }
 
+func (ec *executionContext) _Tracker(ctx context.Context, sel ast.SelectionSet, obj model.Tracker) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case model.TrackerAnime:
+		return ec._TrackerAnime(ctx, sel, &obj)
+	case *model.TrackerAnime:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._TrackerAnime(ctx, sel, obj)
+	case model.TrackerManga:
+		return ec._TrackerManga(ctx, sel, &obj)
+	case *model.TrackerManga:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._TrackerManga(ctx, sel, obj)
+	case model.TrackerTv:
+		return ec._TrackerTV(ctx, sel, &obj)
+	case *model.TrackerTv:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._TrackerTV(ctx, sel, obj)
+	case model.TrackerBook:
+		return ec._TrackerBook(ctx, sel, &obj)
+	case *model.TrackerBook:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._TrackerBook(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -5565,16 +6383,23 @@ func (ec *executionContext) _APIData(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "titles":
-			out.Values[i] = ec._APIData_titles(ctx, field, obj)
+		case "completed":
+			out.Values[i] = ec._APIData_completed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "score":
 			out.Values[i] = ec._APIData_score(ctx, field, obj)
+		case "titles":
+			out.Values[i] = ec._APIData_titles(ctx, field, obj)
 		case "providers":
 			out.Values[i] = ec._APIData_providers(ctx, field, obj)
-		case "aux":
-			out.Values[i] = ec._APIData_aux(ctx, field, obj)
 		case "tags":
 			out.Values[i] = ec._APIData_tags(ctx, field, obj)
+		case "aux":
+			out.Values[i] = ec._APIData_aux(ctx, field, obj)
+		case "tracker":
+			out.Values[i] = ec._APIData_tracker(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5981,6 +6806,11 @@ func (ec *executionContext) _Entry(ctx context.Context, sel ast.SelectionSet, ob
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Entry")
+		case "corpus":
+			out.Values[i] = ec._Entry_corpus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "id":
 			out.Values[i] = ec._Entry_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -5988,11 +6818,6 @@ func (ec *executionContext) _Entry(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "metadata":
 			out.Values[i] = ec._Entry_metadata(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "corpus":
-			out.Values[i] = ec._Entry_corpus(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -6231,6 +7056,164 @@ func (ec *executionContext) _Title(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var trackerAnimeImplementors = []string{"TrackerAnime", "Tracker"}
+
+func (ec *executionContext) _TrackerAnime(ctx context.Context, sel ast.SelectionSet, obj *model.TrackerAnime) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, trackerAnimeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TrackerAnime")
+		case "season":
+			out.Values[i] = ec._TrackerAnime_season(ctx, field, obj)
+		case "episode":
+			out.Values[i] = ec._TrackerAnime_episode(ctx, field, obj)
+		case "last_updated":
+			out.Values[i] = ec._TrackerAnime_last_updated(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var trackerBookImplementors = []string{"TrackerBook", "Tracker"}
+
+func (ec *executionContext) _TrackerBook(ctx context.Context, sel ast.SelectionSet, obj *model.TrackerBook) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, trackerBookImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TrackerBook")
+		case "volume":
+			out.Values[i] = ec._TrackerBook_volume(ctx, field, obj)
+		case "last_updated":
+			out.Values[i] = ec._TrackerBook_last_updated(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var trackerMangaImplementors = []string{"TrackerManga", "Tracker"}
+
+func (ec *executionContext) _TrackerManga(ctx context.Context, sel ast.SelectionSet, obj *model.TrackerManga) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, trackerMangaImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TrackerManga")
+		case "volume":
+			out.Values[i] = ec._TrackerManga_volume(ctx, field, obj)
+		case "chapter":
+			out.Values[i] = ec._TrackerManga_chapter(ctx, field, obj)
+		case "last_updated":
+			out.Values[i] = ec._TrackerManga_last_updated(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var trackerTVImplementors = []string{"TrackerTV", "Tracker"}
+
+func (ec *executionContext) _TrackerTV(ctx context.Context, sel ast.SelectionSet, obj *model.TrackerTv) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, trackerTVImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TrackerTV")
+		case "season":
+			out.Values[i] = ec._TrackerTV_season(ctx, field, obj)
+		case "episode":
+			out.Values[i] = ec._TrackerTV_episode(ctx, field, obj)
+		case "last_updated":
+			out.Values[i] = ec._TrackerTV_last_updated(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6635,16 +7618,6 @@ func (ec *executionContext) marshalNEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffle
 	return ec._Entry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNEntryInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAPISource(ctx context.Context, v interface{}) (*model.EntryInputAPISource, error) {
-	res, err := ec.unmarshalInputEntryInputAPISource(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputTitle(ctx context.Context, v interface{}) (*model.EntryInputTitle, error) {
-	res, err := ec.unmarshalInputEntryInputTitle(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6668,6 +7641,16 @@ func (ec *executionContext) marshalNMetadata2ᚖgithubᚗcomᚋminkezhangᚋtruf
 		return graphql.Null
 	}
 	return ec._Metadata(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPatchInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputAPISource(ctx context.Context, v interface{}) (*model.PatchInputAPISource, error) {
+	res, err := ec.unmarshalInputPatchInputAPISource(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNPatchInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputTitle(ctx context.Context, v interface{}) (*model.PatchInputTitle, error) {
+	res, err := ec.unmarshalInputPatchInputTitle(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNProviderType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐProviderType(ctx context.Context, v interface{}) (model.ProviderType, error) {
@@ -7175,54 +8158,6 @@ func (ec *executionContext) marshalOEntry2ᚖgithubᚗcomᚋminkezhangᚋtruffle
 	return ec._Entry(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOEntryInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAPISourceᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputAPISource, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.EntryInputAPISource, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNEntryInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAPISource(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalOEntryInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputAux(ctx context.Context, v interface{}) (*model.EntryInputAux, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputEntryInputAux(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOEntryInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputTitleᚄ(ctx context.Context, v interface{}) ([]*model.EntryInputTitle, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.EntryInputTitle, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNEntryInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐEntryInputTitle(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
 	if v == nil {
 		return nil, nil
@@ -7268,6 +8203,62 @@ func (ec *executionContext) unmarshalOPatchInput2ᚖgithubᚗcomᚋminkezhangᚋ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputPatchInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOPatchInputAPISource2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputAPISourceᚄ(ctx context.Context, v interface{}) ([]*model.PatchInputAPISource, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.PatchInputAPISource, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNPatchInputAPISource2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputAPISource(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOPatchInputAux2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputAux(ctx context.Context, v interface{}) (*model.PatchInputAux, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPatchInputAux(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOPatchInputTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputTitleᚄ(ctx context.Context, v interface{}) ([]*model.PatchInputTitle, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.PatchInputTitle, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNPatchInputTitle2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputTitle(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOPatchInputTracker2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐPatchInputTracker(ctx context.Context, v interface{}) (*model.PatchInputTracker, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPatchInputTracker(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -7392,6 +8383,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalTime(*v)
+	return res
+}
+
 func (ec *executionContext) marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐTitleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Title) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7437,6 +8444,13 @@ func (ec *executionContext) marshalOTitle2ᚕᚖgithubᚗcomᚋminkezhangᚋtruf
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOTracker2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐTracker(ctx context.Context, sel ast.SelectionSet, v model.Tracker) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Tracker(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

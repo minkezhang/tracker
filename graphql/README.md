@@ -6,7 +6,6 @@
 mutation {
   patch(input: {
     corpus: CORPUS_ANIME,
-    id: "",
     queued: false,
     titles: [{
    		locale: "en",
@@ -17,16 +16,20 @@ mutation {
     ],
     tags: [
       "mechs", "psychological",
-    ]
+    ],
     aux: {
       studios: ["Gainax", "Tatsunoko"]
-    }
+    },
     sources: [
       {
         api: API_MAL,
         id: "anime/30"
       }
-    ]
+    ],
+    tracker: {
+      season: "1"
+      episode: "10"
+    }
   }) {
     id
     corpus
@@ -56,6 +59,18 @@ fragment APIDataParts on APIData {
     ... on AuxManga {
       authors
       artists
+    }
+  }
+  tracker {
+    ... on TrackerAnime {
+      season
+      episode
+      last_updated
+    }
+    ... on TrackerManga {
+      volume
+      chapter
+      last_updated
     }
   }
 }
