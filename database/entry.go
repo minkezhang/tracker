@@ -66,4 +66,4 @@ func (db *Entry) load(fn string) error {
 }
 
 func (db *Entry) marshal() ([]byte, error)    { return json.MarshalIndent(db.data, "", "  ") }
-func (db *Entry) unmarshal(data []byte) error { return json.Unmarshal(data, db) }
+func (db *Entry) unmarshal(data []byte) error { return json.Unmarshal(data, &db.data) }
