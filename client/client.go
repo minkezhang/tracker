@@ -10,8 +10,3 @@ type C interface {
 	API() model.APIType
 	Get(ctx context.Context, id string) (*model.APIData, error)
 }
-
-/*
-	List(ctx context.Context, q *model.ListInput) ([]*model.APIData, error)
-}
-*/

@@ -16,7 +16,10 @@ import (
 	graph "github.com/minkezhang/truffle/api/graphql"
 )
 
-const defaultPort = "8080"
+const (
+	defaultPort         = "8080"
+	ENTRY_DATABASE_PATH = "/home/mzhang/minkezhang/truffle/data/entry.json"
+)
 
 func main() {
 	port := os.Getenv("PORT")
@@ -26,7 +29,7 @@ func main() {
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{
 		DB: &resolver.DB{
-			Entry: database.NewEntry(),
+			Entry: database.NewEntry(ENTRY_DATABASE_PATH),
 			APIData: map[model.APIType]*database.APIData{
 				model.APITypeAPIMal: database.NewAPIData(
 					mal.New(
