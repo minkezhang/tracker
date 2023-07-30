@@ -64,4 +64,4 @@ func (db *APIData) load(fn string) error {
 }
 
 func (db *APIData) marshal() ([]byte, error)    { return json.MarshalIndent(db.data, "", "  ") }
-func (db *APIData) unmarshal(data []byte) error { return json.Unmarshal(data, db.data) }
+func (db *APIData) unmarshal(data []byte) error { return json.Unmarshal(data, &db.data) }
