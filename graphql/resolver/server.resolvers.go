@@ -33,7 +33,7 @@ func (r *mutationResolver) Patch(ctx context.Context, input *model.PatchInput) (
 			Corpus: *input.Corpus,
 		}
 	}
-	if err := PatchEntry(input, m); err != nil {
+	if err := util.PatchEntry(m, input); err != nil {
 		return nil, err
 	}
 
