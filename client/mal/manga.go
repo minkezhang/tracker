@@ -127,3 +127,7 @@ func (c *Manga) Put(ctx context.Context, d *model.APIData) error {
 func (c *Manga) List(ctx context.Context, q *model.ListInput) ([]*model.APIData, error) {
 	return nil, fmt.Errorf("unimplemented")
 }
+
+func (c *Manga) Remove(ctx context.Context, id string) error {
+	return fmt.Errorf("unimplemented")
+}
