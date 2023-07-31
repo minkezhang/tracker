@@ -67,6 +67,17 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 		score = float64(m.MyListStatus.Score)
 	}
 
+	var t *model.TrackerManga
+	if m.MyListStatus.NumVolumesRead > 0 || m.MyListStatus.NumChaptersRead > 0 {
+		v := fmt.Sprintf("%d", m.MyListStatus.NumVolumesRead)
+		ch := fmt.Sprintf("%d", m.MyListStatus.NumChaptersRead)
+		t = &model.TrackerManga{
+			Volume:      &v,
+			Chapter:     &ch,
+			LastUpdated: &m.MyListStatus.UpdatedAt,
+		}
+	}
+
 	return &model.APIData{
 		API:    c.API(),
 		ID:     fmt.Sprintf("manga/%d", m.ID),
@@ -91,7 +102,8 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 			Authors: authors,
 			Artists: artists,
 		},
-		Tags: tags,
+		Tags:    tags,
+		Tracker: t,
 	}
 }
 
