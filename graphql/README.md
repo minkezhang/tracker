@@ -45,8 +45,9 @@ mutation {
 }
 
 fragment APIDataParts on APIData {
+  api
+  id
   cached
-  queued
   titles {
     title
   }
