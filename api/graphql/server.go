@@ -1036,6 +1036,9 @@ type TrackerManga {
   last_updated: Time
 }
 
+# Modern books are not typically serialized by the chapter and therefore do not
+# require chapter markers. Physical and virtual bookmarks exist for this
+# purpose.
 type TrackerBook {
   volume: String
   last_updated: Time
