@@ -1,3 +1,6 @@
+// Package model adds supplementary plugin behavior for the auto-generated
+// GraphQL code. This must reside in the same directory as the auto-generated
+// code, since it contains logic which adds custom instance methods.
 package model
 
 import (
