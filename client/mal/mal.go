@@ -42,3 +42,11 @@ func (c *MAL) Get(ctx context.Context, id string) (*model.APIData, error) {
 	}
 	return nil, fmt.Errorf("unimplemented MAL corpus: %s", corpus)
 }
+
+func (c *MAL) Put(ctx context.Context, d *model.APIData) error {
+	return fmt.Errorf("unimplemented")
+}
+
+func (c *MAL) List(ctx context.Context, q *model.ListInput) ([]*model.APIData, error) {
+	return nil, fmt.Errorf("unimplemented")
+}

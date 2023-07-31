@@ -51,6 +51,14 @@ func (c *Anime) APIData(a *mal.Anime) *model.APIData {
 		genres = append(genres, g.Name)
 	}
 
+	tags := append(genres, a.MediaType)
+	tags = append(tags, a.MyListStatus.Tags...)
+
+	score := a.Mean
+	if a.MyListStatus.Score > 0 {
+		score = float64(a.MyListStatus.Score)
+	}
+
 	return &model.APIData{
 		API:    c.API(),
 		ID:     fmt.Sprintf("anime/%d", a.ID),
@@ -70,11 +78,11 @@ func (c *Anime) APIData(a *mal.Anime) *model.APIData {
 			},
 		},
 		Queued: animeQueuedLookup[a.MyListStatus.Status],
-		Score:  &a.Mean,
+		Score:  &score,
 		Aux: &model.AuxAnime{
 			Studios: studios,
 		},
-		Tags: append(genres, a.MediaType),
+		Tags: tags,
 	}
 }
 
@@ -89,6 +97,10 @@ func (c *Anime) Get(ctx context.Context, id string) (*model.APIData, error) {
 		return nil, fmt.Errorf("cannot get %s:%v (%d)", c.API(), id, resp.StatusCode)
 	}
 	return c.APIData(m), nil
+}
+
+func (c *Anime) Put(ctx context.Context, d *model.APIData) error {
+	return fmt.Errorf("unimplemented")
 }
 
 func (c *Anime) List(ctx context.Context, q *model.ListInput) ([]*model.APIData, error) {
