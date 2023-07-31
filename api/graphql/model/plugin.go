@@ -24,9 +24,18 @@ var (
 		reflect.TypeOf(AuxShortStory{}).Name(): func() Aux { return &AuxShortStory{} },
 		reflect.TypeOf(AuxGame{}).Name():       func() Aux { return &AuxGame{} },
 	}
+
+	// TrackerLookup are Tracker type constructors. There should be one per
+	// Tracker type. This list needs to be manually maintained.
+	TrackerLookup = map[string]func() Tracker{
+		reflect.TypeOf(TrackerAnime{}).Name(): func() Tracker { return &TrackerAnime{} },
+		reflect.TypeOf(TrackerBook{}).Name():  func() Tracker { return &TrackerBook{} },
+		reflect.TypeOf(TrackerManga{}).Name(): func() Tracker { return &TrackerManga{} },
+		reflect.TypeOf(TrackerTv{}).Name():    func() Tracker { return &TrackerTv{} },
+	}
 )
 
-// APIDataAux embeds the concrete Aux type into the APIData JSON output. We are
+// APIDataUnion embeds the concrete Aux type into the APIData JSON output. We are
 // adding an annotation to the parent class instead of adding a __typename field
 // to the Aux concrete type because of human scalability.
 //
@@ -39,8 +48,9 @@ var (
 //	  },
 //	  "__truffle_aux_typename": "AuxManga"
 //	}
-type APIDataAux struct {
-	Typename string `json:"__truffle_aux_typename"`
+type APIDataUnion struct {
+	AuxTypename     string `json:"__truffle_aux_typename"`
+	TrackerTypename string `json:"__truffle_tracker_typename"`
 }
 
 type PartialAPIData struct {
@@ -53,14 +63,22 @@ type PartialAPIData struct {
 	Titles    []*Title       `json:"titles,omitempty"`
 	Providers []ProviderType `json:"providers,omitempty"`
 	Tags      []string       `json:"tags,omitempty"`
-	Tracker   Tracker        `json:"tracker,omitempty"`
 }
 
 // MarshalJSON is a custom truffle encoder. This function needs to reside in the
 // same directory as the dynamically generated model.
 func (a APIData) MarshalJSON() ([]byte, error) {
 	type FakeAPIData APIData
+	type MarshalData struct {
+		FakeAPIData
+		APIDataUnion
+	}
 
+	f := &MarshalData{
+		FakeAPIData: FakeAPIData(a),
+	}
+
+	// Add AuxTypename annotation.
 	if a.Aux != nil {
 		var t string
 		// The underlying name of pointer types must be explicitly
@@ -70,22 +88,21 @@ func (a APIData) MarshalJSON() ([]byte, error) {
 		} else {
 			t = reflect.TypeOf(a.Aux).Name()
 		}
-		return json.Marshal(struct {
-			FakeAPIData
-			APIDataAux
-		}{
-			FakeAPIData: FakeAPIData(a),
-			APIDataAux: APIDataAux{
-				Typename: t,
-			},
-		})
-	} else {
-		return json.Marshal(struct {
-			FakeAPIData
-		}{
-			FakeAPIData: FakeAPIData(a),
-		})
+		f.APIDataUnion.AuxTypename = t
 	}
+
+	// Add TrackerTypename annotation.
+	if a.Tracker != nil {
+		var t string
+		if k := reflect.ValueOf(a.Tracker).Kind(); k == reflect.Ptr || k == reflect.Interface {
+			t = reflect.TypeOf(a.Tracker).Elem().Name()
+		} else {
+			t = reflect.TypeOf(a.Tracker).Name()
+		}
+		f.APIDataUnion.TrackerTypename = t
+	}
+
+	return json.Marshal(f)
 }
 
 func (a *APIData) UnmarshalJSON(data []byte) error {
@@ -98,19 +115,27 @@ func (a *APIData) UnmarshalJSON(data []byte) error {
 		reflect.ValueOf(a).Elem().FieldByName(f.Name).Set(reflect.ValueOf(p).FieldByName(f.Name))
 	}
 
-	// Look for the concrete Aux type.
-	t := APIDataAux{}
+	t := APIDataUnion{}
 	if err := json.Unmarshal(data, &t); err != nil {
 		return err
 	}
 
-	if f, ok := AuxLookup[t.Typename]; ok {
+	// Look for the concrete Aux type.
+	if f, ok := AuxLookup[t.AuxTypename]; ok {
 		a.Aux = f()
 		return json.Unmarshal(data, a.Aux)
 	}
+	if t.AuxTypename != "" {
+		return fmt.Errorf("Invalid __truffle_aux_typename: %s", t.AuxTypename)
+	}
 
-	if t.Typename != "" {
-		return fmt.Errorf("Invalid __truffle_aux_typename: %s", t.Typename)
+	// Look for the concrete Tracker type.
+	if f, ok := TrackerLookup[t.TrackerTypename]; ok {
+		a.Tracker = f()
+		return json.Unmarshal(data, a.Tracker)
+	}
+	if t.TrackerTypename != "" {
+		return fmt.Errorf("Invalid __truffle_tracker_typename: %s", t.TrackerTypename)
 	}
 
 	return nil
