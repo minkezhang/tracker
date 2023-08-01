@@ -6,7 +6,17 @@ import (
 	"github.com/minkezhang/truffle/api/graphql/model"
 )
 
+type AuthType int
+
+const (
+	AuthTypeNone   AuthType = 0
+	AuthTypePublic AuthType = 1 << iota
+	AuthTypePrivateRead
+	AuthTypePrivateWrite
+)
+
 type C interface {
+	Auth() AuthType
 	API() model.APIType
 
 	// Get all info from the client.

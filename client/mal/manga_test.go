@@ -8,19 +8,17 @@ import (
 	"github.com/nstratos/go-myanimelist/mal"
 )
 
-func TestMangaGet(t *testing.T) {
+func TestMangaGet(u *testing.T) {
 	m := NewManga(
-		mal.NewClient(
-			&http.Client{
-				Transport: &transport{
-					ClientID: CLIENT_ID,
-				},
+		mal.NewClient(&http.Client{
+			Transport: &t{
+				cid: CLIENT_ID,
 			},
-		),
+		}),
 	)
 	_, err := m.Get(context.Background(), "698")
 
 	if err != nil {
-		t.Errorf("Get() got unexpected error: %s", err)
+		u.Errorf("Get() got unexpected error: %s", err)
 	}
 }

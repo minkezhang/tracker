@@ -7,27 +7,34 @@ import (
 	"strings"
 
 	"github.com/minkezhang/truffle/api/graphql/model"
+	"github.com/minkezhang/truffle/client"
 	"github.com/nstratos/go-myanimelist/mal"
+)
+
+var (
+	_ client.C = &MAL{}
 )
 
 type MAL struct {
 	manga *Manga
 	anime *Anime
+	auth  client.AuthType
 }
 
 func New(o O) *MAL {
 	c := mal.NewClient(
 		&http.Client{
-			Transport: &transport{
-				ClientID: o.ClientID,
-			},
+			Transport: o.transport,
 		},
 	)
 	return &MAL{
 		manga: NewManga(c),
 		anime: NewAnime(c),
+		auth:  o.auth,
 	}
 }
+
+func (c *MAL) Auth() client.AuthType { return c.auth }
 
 func (c *MAL) API() model.APIType { return model.APITypeAPIMal }
 

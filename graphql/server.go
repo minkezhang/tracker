@@ -33,11 +33,7 @@ func main() {
 			Entry: database.NewEntry(ENTRY_DATABASE_PATH),
 			APIData: map[model.APIType]*database.APIData{
 				model.APITypeAPIMal: database.NewAPIData(
-					mal.New(
-						mal.O{
-							ClientID: mal.CLIENT_ID,
-						},
-					),
+					mal.New(mal.WithPublicAPIKey()),
 					MAL_DATABASE_PATH,
 				),
 			},
