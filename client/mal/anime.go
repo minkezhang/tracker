@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/minkezhang/truffle/api/graphql/model"
+	"github.com/minkezhang/truffle/client"
 	"github.com/nstratos/go-myanimelist/mal"
 )
 
@@ -28,16 +29,18 @@ var (
 )
 
 type Anime struct {
+	client.Base
+
 	client *mal.Client
 }
 
-func NewAnime(c *mal.Client) *Anime {
+func NewAnime(c *mal.Client, auth client.AuthType) *Anime {
 	return &Anime{
+		Base: *client.New(model.APITypeAPIMal, auth),
+
 		client: c,
 	}
 }
-
-func (c *Anime) API() model.APIType { return model.APITypeAPIMal }
 
 func (c *Anime) APIData(a *mal.Anime) *model.APIData {
 	var studios []string
@@ -52,11 +55,13 @@ func (c *Anime) APIData(a *mal.Anime) *model.APIData {
 	}
 
 	tags := append(genres, a.MediaType)
-	tags = append(tags, a.MyListStatus.Tags...)
-
 	score := a.Mean
-	if a.MyListStatus.Score > 0 {
-		score = float64(a.MyListStatus.Score)
+
+	if c.Auth().Check(client.AuthTypePrivateRead) {
+		tags = append(tags, a.MyListStatus.Tags...)
+		if a.MyListStatus.Score > 0 {
+			score = float64(a.MyListStatus.Score)
+		}
 	}
 
 	return &model.APIData{
@@ -97,16 +102,4 @@ func (c *Anime) Get(ctx context.Context, id string) (*model.APIData, error) {
 		return nil, fmt.Errorf("cannot get %s:%v (%d)", c.API(), id, resp.StatusCode)
 	}
 	return c.APIData(m), nil
-}
-
-func (c *Anime) Put(ctx context.Context, d *model.APIData) error {
-	return fmt.Errorf("unimplemented")
-}
-
-func (c *Anime) List(ctx context.Context, q *model.ListInput) ([]*model.APIData, error) {
-	return nil, fmt.Errorf("unimplemented")
-}
-
-func (c *Anime) Remove(ctx context.Context, id string) error {
-	return fmt.Errorf("unimplemented")
 }

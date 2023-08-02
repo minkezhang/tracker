@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/minkezhang/truffle/client"
 	"github.com/nstratos/go-myanimelist/mal"
 )
 
@@ -15,6 +16,7 @@ func TestMangaGet(u *testing.T) {
 				cid: CLIENT_ID,
 			},
 		}),
+		client.AuthTypePublic,
 	)
 	_, err := m.Get(context.Background(), "698")
 

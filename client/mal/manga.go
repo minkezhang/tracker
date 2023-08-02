@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/minkezhang/truffle/api/graphql/model"
+	"github.com/minkezhang/truffle/client"
 	"github.com/nstratos/go-myanimelist/mal"
 )
 
@@ -29,16 +30,18 @@ var (
 )
 
 type Manga struct {
+	client.Base
+
 	client *mal.Client
 }
 
-func NewManga(c *mal.Client) *Manga {
+func NewManga(c *mal.Client, auth client.AuthType) *Manga {
 	return &Manga{
+		Base: *client.New(model.APITypeAPIMal, auth),
+
 		client: c,
 	}
 }
-
-func (c *Manga) API() model.APIType { return model.APITypeAPIMal }
 
 func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 	var artists []string
@@ -60,21 +63,22 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 	}
 
 	tags := append(genres, m.MediaType)
-	tags = append(tags, m.MyListStatus.Tags...)
-
 	score := m.Mean
-	if m.MyListStatus.Score > 0 {
-		score = float64(m.MyListStatus.Score)
-	}
-
 	var t *model.TrackerManga
-	if m.MyListStatus.NumVolumesRead > 0 || m.MyListStatus.NumChaptersRead > 0 {
-		v := fmt.Sprintf("%d", m.MyListStatus.NumVolumesRead)
-		ch := fmt.Sprintf("%d", m.MyListStatus.NumChaptersRead)
-		t = &model.TrackerManga{
-			Volume:      &v,
-			Chapter:     &ch,
-			LastUpdated: &m.MyListStatus.UpdatedAt,
+
+	if c.Auth().Check(client.AuthTypePrivateRead) {
+		tags = append(tags, m.MyListStatus.Tags...)
+		if m.MyListStatus.Score > 0 {
+			score = float64(m.MyListStatus.Score)
+		}
+		if m.MyListStatus.NumVolumesRead > 0 || m.MyListStatus.NumChaptersRead > 0 {
+			v := fmt.Sprintf("%d", m.MyListStatus.NumVolumesRead)
+			ch := fmt.Sprintf("%d", m.MyListStatus.NumChaptersRead)
+			t = &model.TrackerManga{
+				Volume:      &v,
+				Chapter:     &ch,
+				LastUpdated: &m.MyListStatus.UpdatedAt,
+			}
 		}
 	}
 
@@ -118,16 +122,4 @@ func (c *Manga) Get(ctx context.Context, id string) (*model.APIData, error) {
 		return nil, fmt.Errorf("cannot get %s:%v (%d)", c.API(), id, resp.StatusCode)
 	}
 	return c.APIData(m), nil
-}
-
-func (c *Manga) Put(ctx context.Context, d *model.APIData) error {
-	return fmt.Errorf("unimplemented")
-}
-
-func (c *Manga) List(ctx context.Context, q *model.ListInput) ([]*model.APIData, error) {
-	return nil, fmt.Errorf("unimplemented")
-}
-
-func (c *Manga) Remove(ctx context.Context, id string) error {
-	return fmt.Errorf("unimplemented")
 }

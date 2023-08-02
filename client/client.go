@@ -15,6 +15,8 @@ const (
 	AuthTypePrivateWrite
 )
 
+func (a AuthType) Check(b AuthType) bool { return a&b == b }
+
 type C interface {
 	Auth() AuthType
 	API() model.APIType
