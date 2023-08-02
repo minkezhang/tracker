@@ -3,7 +3,7 @@ input ListInput {
   id: ID
 
   corpus: CorpusType
-  pattern: String
+  title: String
   apis: [APIType!]
 
   nsfw: Boolean

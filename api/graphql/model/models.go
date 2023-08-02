@@ -116,11 +116,11 @@ type Entry struct {
 }
 
 type ListInput struct {
-	ID      *string     `json:"id,omitempty"`
-	Corpus  *CorpusType `json:"corpus,omitempty"`
-	Pattern *string     `json:"pattern,omitempty"`
-	Apis    []APIType   `json:"apis,omitempty"`
-	Nsfw    *bool       `json:"nsfw,omitempty"`
+	ID     *string     `json:"id,omitempty"`
+	Corpus *CorpusType `json:"corpus,omitempty"`
+	Title  *string     `json:"title,omitempty"`
+	Apis   []APIType   `json:"apis,omitempty"`
+	Nsfw   *bool       `json:"nsfw,omitempty"`
 }
 
 type Metadata struct {

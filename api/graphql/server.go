@@ -936,7 +936,7 @@ type APIData {
   id: ID
 
   corpus: CorpusType
-  pattern: String
+  title: String
   apis: [APIType!]
 
   nsfw: Boolean
@@ -5873,7 +5873,7 @@ func (ec *executionContext) unmarshalInputListInput(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "corpus", "pattern", "apis", "nsfw"}
+	fieldsInOrder := [...]string{"id", "corpus", "title", "apis", "nsfw"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5898,15 +5898,15 @@ func (ec *executionContext) unmarshalInputListInput(ctx context.Context, obj int
 				return it, err
 			}
 			it.Corpus = data
-		case "pattern":
+		case "title":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pattern"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Pattern = data
+			it.Title = data
 		case "apis":
 			var err error
 
