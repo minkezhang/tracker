@@ -1,9 +1,0 @@
-type ConfigMAL {
-  client_id: String!
-  popularity_cutoff: Int!
-  search_max_results: Int!
-}
-
-type Config {
-  mal: ConfigMAL
-}
