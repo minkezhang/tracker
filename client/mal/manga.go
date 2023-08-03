@@ -128,9 +128,36 @@ func (c *Manga) Get(ctx context.Context, id string) (*model.APIData, error) {
 		return nil, err
 	}
 
-	m, resp, err := c.client.Manga.Details(ctx, malID, mangaFields)
+	d, resp, err := c.client.Manga.Details(ctx, malID, mangaFields)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get %s:%v (%d)", c.API(), id, resp.StatusCode)
 	}
-	return c.APIData(m), nil
+	return c.APIData(d), nil
+}
+
+func (c *Manga) List(ctx context.Context, query *model.ListInput) ([]*model.APIData, error) {
+	opts := []mal.Option{
+		mal.Fields(mangaFields),
+		mal.Limit(1),
+	}
+	var nsfw bool
+	if query.Mal != nil {
+		nsfw = query.Mal.Nsfw
+	}
+	opts = append(opts, mal.NSFW(nsfw))
+
+	var q string
+	if query.Title != nil {
+		q = *query.Title
+	}
+	ds, resp, err := c.client.Manga.List(ctx, q, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query %s: %d", c.API(), resp.StatusCode)
+	}
+
+	var data []*model.APIData
+	for _, d := range ds {
+		data = append(data, c.APIData(&d))
+	}
+	return data, nil
 }

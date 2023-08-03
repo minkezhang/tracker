@@ -66,3 +66,19 @@ func (c *MAL) Get(ctx context.Context, id string) (*model.APIData, error) {
 	}
 	return nil, fmt.Errorf("unimplemented MAL corpus: %s", corpus)
 }
+
+func (c *MAL) List(ctx context.Context, query *model.ListInput) ([]*model.APIData, error) {
+	if !c.Auth().Check(client.AuthTypePublic) {
+		return nil, nil
+	}
+
+	d, err := c.manga.List(ctx, query)
+	if err != nil {
+		return nil, nil
+	}
+	e, err := c.anime.List(ctx, query)
+	if err != nil {
+		return nil, nil
+	}
+	return append(d, e...), nil
+}

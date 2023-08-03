@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
 	"github.com/minkezhang/truffle/api/graphql/model"
@@ -62,6 +63,11 @@ func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*mo
 		}
 	}
 
+	corpora := map[model.CorpusType]bool{}
+	for _, c := range input.Corpora {
+		corpora[c] = true
+	}
+
 	// Query all APIs.
 	data := []*model.APIData{}
 	for _, api := range input.Apis {
@@ -81,9 +87,16 @@ func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*mo
 			}
 		}
 
+		// Filter out corpora.
+		if _, ok := corpora[d.Corpus]; !ok {
+			continue
+		}
+
+		fmt.Printf("d = %#v\n", d)
 		pseudo = append(pseudo, &model.Entry{
 			ID: "",
 			Metadata: &model.Metadata{
+				Truffle: &model.APIData{},
 				Sources: []*model.APIData{d},
 			},
 		})

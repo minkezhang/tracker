@@ -7,7 +7,11 @@ input ListInput {
   corpora: [CorpusType!]
   apis: [APIType!]
 
-  nsfw: Boolean
+  mal: ListInputMAL
+}
+
+input ListInputMAL {
+  nsfw: Boolean!
 }
 
 input PatchInputAPISource {

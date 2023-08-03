@@ -674,6 +674,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputListInput,
+		ec.unmarshalInputListInputMAL,
 		ec.unmarshalInputPatchInput,
 		ec.unmarshalInputPatchInputAPISource,
 		ec.unmarshalInputPatchInputAux,
@@ -940,7 +941,11 @@ type APIData {
   corpora: [CorpusType!]
   apis: [APIType!]
 
-  nsfw: Boolean
+  mal: ListInputMAL
+}
+
+input ListInputMAL {
+  nsfw: Boolean!
 }
 
 input PatchInputAPISource {
@@ -988,9 +993,8 @@ input PatchInput {
   # Optional; if ID is null, create the entry
   id: ID
 
-  corpus: CorpusType
-
   # Custom metadata
+  corpus: CorpusType
   queued: Boolean
   titles: [PatchInputTitle!]
   score: Float
@@ -5872,7 +5876,7 @@ func (ec *executionContext) unmarshalInputListInput(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "corpus", "title", "corpora", "apis", "nsfw"}
+	fieldsInOrder := [...]string{"id", "corpus", "title", "corpora", "apis", "mal"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5924,11 +5928,40 @@ func (ec *executionContext) unmarshalInputListInput(ctx context.Context, obj int
 				return it, err
 			}
 			it.Apis = data
+		case "mal":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mal"))
+			data, err := ec.unmarshalOListInputMAL2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐListInputMal(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Mal = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputListInputMAL(ctx context.Context, obj interface{}) (model.ListInputMal, error) {
+	var it model.ListInputMal
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"nsfw"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
 		case "nsfw":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nsfw"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8273,6 +8306,14 @@ func (ec *executionContext) unmarshalOListInput2ᚖgithubᚗcomᚋminkezhangᚋt
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputListInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOListInputMAL2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐListInputMal(ctx context.Context, v interface{}) (*model.ListInputMal, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputListInputMAL(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

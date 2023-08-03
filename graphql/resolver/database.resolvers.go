@@ -19,6 +19,15 @@ func (r *metadataResolver) Sources(ctx context.Context, obj *model.Metadata) ([]
 	var errs []error
 
 	for _, s := range obj.Sources {
+		// Avoid checking local cache if the data is already populated
+		// in e.g. the case of search results.
+		//
+		// TODO(minkzhang): Change API Get to accept APIData struct.
+		if s.Cached {
+			sources = append(sources, s)
+			continue
+		}
+
 		db, ok := r.DB.APIData[s.API]
 		if !ok {
 			errs = append(errs, fmt.Errorf("unsupported API: %s", s.API))

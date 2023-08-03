@@ -108,9 +108,36 @@ func (c *Anime) Get(ctx context.Context, id string) (*model.APIData, error) {
 		return nil, err
 	}
 
-	m, resp, err := c.client.Anime.Details(ctx, malID, animeFields)
+	d, resp, err := c.client.Anime.Details(ctx, malID, animeFields)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get %s:%v (%d)", c.API(), id, resp.StatusCode)
 	}
-	return c.APIData(m), nil
+	return c.APIData(d), nil
+}
+
+func (c *Anime) List(ctx context.Context, query *model.ListInput) ([]*model.APIData, error) {
+	var q string
+	opts := []mal.Option{
+		mal.Fields(animeFields),
+		mal.Limit(1),
+	}
+	var nsfw bool
+	if query.Mal != nil {
+		nsfw = query.Mal.Nsfw
+	}
+	opts = append(opts, mal.NSFW(nsfw))
+
+	if query.Title != nil {
+		q = *query.Title
+	}
+	ds, resp, err := c.client.Anime.List(ctx, q, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query %s: %d", c.API(), resp.StatusCode)
+	}
+
+	var data []*model.APIData
+	for _, d := range ds {
+		data = append(data, c.APIData(&d))
+	}
+	return data, nil
 }

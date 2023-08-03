@@ -116,12 +116,16 @@ type Entry struct {
 }
 
 type ListInput struct {
-	ID      *string      `json:"id,omitempty"`
-	Corpus  *CorpusType  `json:"corpus,omitempty"`
-	Title   *string      `json:"title,omitempty"`
-	Corpora []CorpusType `json:"corpora,omitempty"`
-	Apis    []APIType    `json:"apis,omitempty"`
-	Nsfw    *bool        `json:"nsfw,omitempty"`
+	ID      *string       `json:"id,omitempty"`
+	Corpus  *CorpusType   `json:"corpus,omitempty"`
+	Title   *string       `json:"title,omitempty"`
+	Corpora []CorpusType  `json:"corpora,omitempty"`
+	Apis    []APIType     `json:"apis,omitempty"`
+	Mal     *ListInputMal `json:"mal,omitempty"`
+}
+
+type ListInputMal struct {
+	Nsfw bool `json:"nsfw"`
 }
 
 type Metadata struct {
