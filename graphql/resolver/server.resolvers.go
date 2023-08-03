@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
 	"github.com/minkezhang/truffle/api/graphql/model"
@@ -24,7 +23,9 @@ func (r *mutationResolver) Patch(ctx context.Context, input *model.PatchInput) (
 		// TODO(minkezhang): Check for duplicate.
 	}
 
-	m, err := r.DB.Entry.Get(ctx, id)
+	m, err := r.DB.Entry.Get(ctx, &model.Entry{
+		ID: id,
+	})
 	if err != nil {
 		m = &model.Entry{
 			ID: id,
@@ -45,7 +46,9 @@ func (r *mutationResolver) Delete(ctx context.Context, input string) (*model.Ent
 // List is the resolver for the list field.
 func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*model.Entry, error) {
 	if input.ID != nil {
-		e, err := r.DB.Entry.Get(ctx, *input.ID)
+		e, err := r.DB.Entry.Get(ctx, &model.Entry{
+			ID: *input.ID,
+		})
 		if err != nil {
 			return nil, nil
 		}
@@ -92,7 +95,6 @@ func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*mo
 			continue
 		}
 
-		fmt.Printf("d = %#v\n", d)
 		pseudo = append(pseudo, &model.Entry{
 			ID: "",
 			Metadata: &model.Metadata{

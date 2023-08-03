@@ -29,13 +29,19 @@ func NewAPIData(c client.C, fn string) *APIData {
 
 func (db *APIData) API() model.APIType { return db.client.API() }
 
-func (db *APIData) Get(ctx context.Context, id string) (*model.APIData, error) {
-	if d, ok := db.data[id]; !ok || ok && !d.Cached {
-		d, err := db.client.Get(ctx, id)
+func (db *APIData) Get(ctx context.Context, q *model.APIData) (*model.APIData, error) {
+	// Avoid checking local cache if the data is already populated in e.g.
+	// the case of search results.
+	if q.Cached {
+		return q, nil
+	}
+
+	if d, ok := db.data[q.ID]; !ok || ok && !d.Cached {
+		d, err := db.client.Get(ctx, q.ID)
 		if err != nil {
 			return nil, err
 		}
-		db.data[id] = d
+		db.data[q.ID] = d
 		return d, db.dump(db.fn)
 	} else {
 		return d, nil

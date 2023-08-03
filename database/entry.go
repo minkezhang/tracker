@@ -26,9 +26,9 @@ func NewEntry(fn string) *Entry {
 	return db
 }
 
-func (db *Entry) Get(ctx context.Context, id string) (*model.Entry, error) {
-	if e, ok := db.data[id]; !ok {
-		return nil, fmt.Errorf("cannot find entry: %s", id)
+func (db *Entry) Get(ctx context.Context, q *model.Entry) (*model.Entry, error) {
+	if e, ok := db.data[q.ID]; !ok {
+		return nil, fmt.Errorf("cannot find entry: %s", q.ID)
 	} else {
 		return e, nil
 	}
