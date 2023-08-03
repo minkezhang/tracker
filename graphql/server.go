@@ -12,6 +12,7 @@ import (
 	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/graphql/resolver"
+	"github.com/minkezhang/truffle/util"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
 )
@@ -20,6 +21,7 @@ const (
 	defaultPort         = "8080"
 	ENTRY_DATABASE_PATH = "/home/mzhang/minkezhang/truffle/data/entry.json"
 	MAL_DATABASE_PATH   = "/home/mzhang/minkezhang/truffle/data/mal.json"
+	CONFIG_PATH         = "/home/mzhang/minkezhang/truffle/data/config.json"
 )
 
 func main() {
@@ -28,12 +30,15 @@ func main() {
 		port = defaultPort
 	}
 
+	config := &model.Config{}
+	util.GenerateConfig(config)
+
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{
 		DB: &resolver.DB{
 			Entry: database.NewEntry(ENTRY_DATABASE_PATH),
 			APIData: map[model.APIType]*database.APIData{
 				model.APITypeAPIMal: database.NewAPIData(
-					mal.New(mal.WithPublicAPIKey()),
+					mal.New(mal.WithPublicAPIKey(config.Mal.ClientID)),
 					MAL_DATABASE_PATH,
 				),
 			},

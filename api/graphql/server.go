@@ -121,6 +121,14 @@ type ComplexityRoot struct {
 		Writers          func(childComplexity int) int
 	}
 
+	Config struct {
+		Mal func(childComplexity int) int
+	}
+
+	ConfigMAL struct {
+		ClientID func(childComplexity int) int
+	}
+
 	Entry struct {
 		ID       func(childComplexity int) int
 		Metadata func(childComplexity int) int
@@ -510,6 +518,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuxTV.Writers(childComplexity), true
 
+	case "Config.mal":
+		if e.complexity.Config.Mal == nil {
+			break
+		}
+
+		return e.complexity.Config.Mal(childComplexity), true
+
+	case "ConfigMAL.client_id":
+		if e.complexity.ConfigMAL.ClientID == nil {
+			break
+		}
+
+		return e.complexity.ConfigMAL.ClientID(childComplexity), true
+
 	case "Entry.id":
 		if e.complexity.Entry.ID == nil {
 			break
@@ -846,6 +868,14 @@ type AuxGame {
   directors: [String!]
   programmers: [String!]
   writers: [String!]
+}
+`, BuiltIn: false},
+	{Name: "../config.gql", Input: `type ConfigMAL {
+  client_id: String!
+}
+
+type Config {
+  mal: ConfigMAL
 }
 `, BuiltIn: false},
 	{Name: "../database.gql", Input: `directive @goField(
@@ -3013,6 +3043,95 @@ func (ec *executionContext) _AuxTV_writers(ctx context.Context, field graphql.Co
 func (ec *executionContext) fieldContext_AuxTV_writers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AuxTV",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Config_mal(ctx context.Context, field graphql.CollectedField, obj *model.Config) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Config_mal(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Mal, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigMal)
+	fc.Result = res
+	return ec.marshalOConfigMAL2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐConfigMal(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Config_mal(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Config",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "client_id":
+				return ec.fieldContext_ConfigMAL_client_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigMAL", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigMAL_client_id(ctx context.Context, field graphql.CollectedField, obj *model.ConfigMal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigMAL_client_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigMAL_client_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigMAL",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -6844,6 +6963,81 @@ func (ec *executionContext) _AuxTV(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var configImplementors = []string{"Config"}
+
+func (ec *executionContext) _Config(ctx context.Context, sel ast.SelectionSet, obj *model.Config) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Config")
+		case "mal":
+			out.Values[i] = ec._Config_mal(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configMALImplementors = []string{"ConfigMAL"}
+
+func (ec *executionContext) _ConfigMAL(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigMal) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configMALImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigMAL")
+		case "client_id":
+			out.Values[i] = ec._ConfigMAL_client_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var entryImplementors = []string{"Entry"}
 
 func (ec *executionContext) _Entry(ctx context.Context, sel ast.SelectionSet, obj *model.Entry) graphql.Marshaler {
@@ -8130,6 +8324,13 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOConfigMAL2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐConfigMal(ctx context.Context, sel ast.SelectionSet, v *model.ConfigMal) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigMAL(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCorpusType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusTypeᚄ(ctx context.Context, v interface{}) ([]model.CorpusType, error) {

@@ -1,0 +1,7 @@
+type ConfigMAL {
+  client_id: String!
+}
+
+type Config {
+  mal: ConfigMAL
+}

@@ -20,10 +20,10 @@ type O struct {
 	auth      client.AuthType
 }
 
-func WithPublicAPIKey() O {
+func WithPublicAPIKey(client_id string) O {
 	return O{
 		transport: t{
-			cid: CLIENT_ID,
+			cid: client_id,
 		},
 		auth: client.AuthTypePublic,
 	}

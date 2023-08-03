@@ -110,6 +110,14 @@ type AuxTv struct {
 
 func (AuxTv) IsAux() {}
 
+type Config struct {
+	Mal *ConfigMal `json:"mal,omitempty"`
+}
+
+type ConfigMal struct {
+	ClientID string `json:"client_id"`
+}
+
 type Entry struct {
 	ID       string    `json:"id"`
 	Metadata *Metadata `json:"metadata"`
