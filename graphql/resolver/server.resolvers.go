@@ -52,19 +52,44 @@ func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*mo
 	}
 
 	entries, _ := r.DB.Entry.List(ctx, input)
-	/*
-		data := []*model.APIData{}
-		for _, api := range input.Apis {
-			d, err := r.DB.APIData.List(ctx, input)
-			if err != nil {
-				return nil, err
+	lookup := map[model.APIType]map[string]bool{}
+	for _, e := range entries {
+		for _, d := range e.Metadata.Sources {
+			if lookup[d.API] == nil {
+				lookup[d.API] = map[string]bool{}
 			}
-			data = append(data, d...)
+			lookup[d.API][d.ID] = true
+		}
+	}
+
+	// Query all APIs.
+	data := []*model.APIData{}
+	for _, api := range input.Apis {
+		d, err := r.DB.APIData[api].List(ctx, input)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, d...)
+	}
+
+	var pseudo []*model.Entry
+	for _, d := range data {
+		// Deduplicate data.
+		if l := lookup[d.API]; l != nil {
+			if _, ok := l[d.ID]; ok {
+				continue
+			}
 		}
 
-		// Remove duplicates
-	*/
-	return entries, nil
+		pseudo = append(pseudo, &model.Entry{
+			ID: "",
+			Metadata: &model.Metadata{
+				Sources: []*model.APIData{d},
+			},
+		})
+	}
+
+	return append(entries, pseudo...), nil
 }
 
 // Mutation returns graph.MutationResolver implementation.

@@ -43,7 +43,12 @@ func (db *APIData) Get(ctx context.Context, id string) (*model.APIData, error) {
 }
 
 func (db *APIData) List(ctx context.Context, query *model.ListInput) ([]*model.APIData, error) {
-	return db.client.List(ctx, query)
+	for _, c := range query.Corpora {
+		if _, ok := db.client.Corpora()[c]; ok {
+			return db.client.List(ctx, query)
+		}
+	}
+	return nil, nil
 }
 
 func (db *APIData) dump(fn string) error {
