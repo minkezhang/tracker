@@ -72,6 +72,7 @@ func (c *MAL) List(ctx context.Context, query *model.ListInput) ([]*model.APIDat
 		return nil, nil
 	}
 
+	// TODO(minkezhang): Handle paging.
 	d, err := c.manga.List(ctx, query)
 	if err != nil {
 		return nil, nil

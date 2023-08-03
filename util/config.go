@@ -8,7 +8,9 @@ import (
 func GenerateConfig(c *model.Config) {
 	if c.Mal == nil {
 		c.Mal = &model.ConfigMal{
-			ClientID: mal.CLIENT_ID,
+			ClientID:         mal.CLIENT_ID,
+			PopularityCutoff: 1500,
+			SearchMaxResults: 50,
 		}
 	}
 }

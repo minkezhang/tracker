@@ -58,6 +58,7 @@ type PartialAPIData struct {
 	ID        string         `json:"id"`
 	Queued    bool           `json:"queued"`
 	Cached    bool           `json:"cached"`
+	Corpus    CorpusType     `json:"corpus"`
 	Completed bool           `json:"completed"`
 	Score     *float64       `json:"score,omitempty"`
 	Titles    []*Title       `json:"titles,omitempty"`

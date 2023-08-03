@@ -25,6 +25,7 @@ func TestMarshalAPIData(t *testing.T) {
 			{
 				"api": "",
 				"id": "hello-world",
+				"corpus": "",
 				"queued": false,
 				"cached": false,
 				"completed": false,
@@ -43,6 +44,7 @@ func TestMarshalAPIData(t *testing.T) {
 			{
 				"api": "",
 				"id": "",
+				"corpus": "",
 				"queued": false,
 				"cached": false,
 				"completed": false,
@@ -64,6 +66,7 @@ func TestMarshalAPIData(t *testing.T) {
 			{
 				"api": "",
 				"id": "",
+				"corpus": "",
 				"queued": false,
 				"cached": false,
 				"completed": false,
@@ -85,6 +88,7 @@ func TestMarshalAPIData(t *testing.T) {
 			{
 				"api": "",
 				"id": "",
+				"corpus": "",
 				"queued": false,
 				"cached": false,
 				"completed": false,
@@ -106,6 +110,7 @@ func TestMarshalAPIData(t *testing.T) {
 			{
 				"api": "",
 				"id": "",
+				"corpus": "",
 				"queued": false,
 				"cached": false,
 				"completed": false,

@@ -126,7 +126,9 @@ type ComplexityRoot struct {
 	}
 
 	ConfigMAL struct {
-		ClientID func(childComplexity int) int
+		ClientID         func(childComplexity int) int
+		PopularityCutoff func(childComplexity int) int
+		SearchMaxResults func(childComplexity int) int
 	}
 
 	Entry struct {
@@ -532,6 +534,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigMAL.ClientID(childComplexity), true
 
+	case "ConfigMAL.popularity_cutoff":
+		if e.complexity.ConfigMAL.PopularityCutoff == nil {
+			break
+		}
+
+		return e.complexity.ConfigMAL.PopularityCutoff(childComplexity), true
+
+	case "ConfigMAL.search_max_results":
+		if e.complexity.ConfigMAL.SearchMaxResults == nil {
+			break
+		}
+
+		return e.complexity.ConfigMAL.SearchMaxResults(childComplexity), true
+
 	case "Entry.id":
 		if e.complexity.Entry.ID == nil {
 			break
@@ -872,6 +888,8 @@ type AuxGame {
 `, BuiltIn: false},
 	{Name: "../config.gql", Input: `type ConfigMAL {
   client_id: String!
+  popularity_cutoff: Int!
+  search_max_results: Int!
 }
 
 type Config {
@@ -3091,6 +3109,10 @@ func (ec *executionContext) fieldContext_Config_mal(ctx context.Context, field g
 			switch field.Name {
 			case "client_id":
 				return ec.fieldContext_ConfigMAL_client_id(ctx, field)
+			case "popularity_cutoff":
+				return ec.fieldContext_ConfigMAL_popularity_cutoff(ctx, field)
+			case "search_max_results":
+				return ec.fieldContext_ConfigMAL_search_max_results(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigMAL", field.Name)
 		},
@@ -3137,6 +3159,94 @@ func (ec *executionContext) fieldContext_ConfigMAL_client_id(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigMAL_popularity_cutoff(ctx context.Context, field graphql.CollectedField, obj *model.ConfigMal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigMAL_popularity_cutoff(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PopularityCutoff, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigMAL_popularity_cutoff(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigMAL",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigMAL_search_max_results(ctx context.Context, field graphql.CollectedField, obj *model.ConfigMal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigMAL_search_max_results(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SearchMaxResults, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigMAL_search_max_results(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigMAL",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -7015,6 +7125,16 @@ func (ec *executionContext) _ConfigMAL(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "popularity_cutoff":
+			out.Values[i] = ec._ConfigMAL_popularity_cutoff(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "search_max_results":
+			out.Values[i] = ec._ConfigMAL_search_max_results(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7863,6 +7983,21 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface
 
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

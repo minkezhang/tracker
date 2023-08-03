@@ -115,7 +115,9 @@ type Config struct {
 }
 
 type ConfigMal struct {
-	ClientID string `json:"client_id"`
+	ClientID         string `json:"client_id"`
+	PopularityCutoff int    `json:"popularity_cutoff"`
+	SearchMaxResults int    `json:"search_max_results"`
 }
 
 type Entry struct {
