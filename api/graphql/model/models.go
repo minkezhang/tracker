@@ -20,6 +20,7 @@ type Tracker interface {
 type APIData struct {
 	API       APIType        `json:"api"`
 	ID        string         `json:"id"`
+	Corpus    CorpusType     `json:"corpus"`
 	Queued    bool           `json:"queued"`
 	Cached    bool           `json:"cached"`
 	Completed bool           `json:"completed"`
@@ -110,17 +111,17 @@ type AuxTv struct {
 func (AuxTv) IsAux() {}
 
 type Entry struct {
-	Corpus   CorpusType `json:"corpus"`
-	ID       string     `json:"id"`
-	Metadata *Metadata  `json:"metadata"`
+	ID       string    `json:"id"`
+	Metadata *Metadata `json:"metadata"`
 }
 
 type ListInput struct {
-	ID     *string     `json:"id,omitempty"`
-	Corpus *CorpusType `json:"corpus,omitempty"`
-	Title  *string     `json:"title,omitempty"`
-	Apis   []APIType   `json:"apis,omitempty"`
-	Nsfw   *bool       `json:"nsfw,omitempty"`
+	ID      *string      `json:"id,omitempty"`
+	Corpus  *CorpusType  `json:"corpus,omitempty"`
+	Title   *string      `json:"title,omitempty"`
+	Corpora []CorpusType `json:"corpora,omitempty"`
+	Apis    []APIType    `json:"apis,omitempty"`
+	Nsfw    *bool        `json:"nsfw,omitempty"`
 }
 
 type Metadata struct {

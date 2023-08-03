@@ -28,11 +28,26 @@ func New(o O) *MAL {
 			Transport: o.transport,
 		},
 	)
-	return &MAL{
-		Base: *client.New(model.APITypeAPIMal, o.auth),
 
-		manga: NewManga(c, o.auth),
-		anime: NewAnime(c, o.auth),
+	manga := NewManga(c, o.auth)
+	anime := NewAnime(c, o.auth)
+	var corpora []model.CorpusType
+	for c := range manga.Corpora() {
+		corpora = append(corpora, c)
+	}
+	for c := range anime.Corpora() {
+		corpora = append(corpora, c)
+	}
+
+	return &MAL{
+		Base: *client.New(client.O{
+			API:     model.APITypeAPIMal,
+			Auth:    o.auth,
+			Corpora: corpora,
+		}),
+
+		manga: manga,
+		anime: anime,
 	}
 }
 

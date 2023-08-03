@@ -7,19 +7,33 @@ import (
 	"github.com/minkezhang/truffle/api/graphql/model"
 )
 
+type O struct {
+	API     model.APIType
+	Auth    AuthType
+	Corpora []model.CorpusType
+}
+
 type Base struct {
-	api  model.APIType
-	auth AuthType
+	api     model.APIType
+	auth    AuthType
+	corpora map[model.CorpusType]bool
 }
 
-func New(api model.APIType, auth AuthType) *Base {
-	return &Base{
-		auth: auth,
+func New(o O) *Base {
+	c := &Base{
+		api:     o.API,
+		auth:    o.Auth,
+		corpora: map[model.CorpusType]bool{},
 	}
+	for _, corpus := range o.Corpora {
+		c.corpora[corpus] = true
+	}
+	return c
 }
 
-func (c Base) API() model.APIType { return c.api }
-func (c Base) Auth() AuthType     { return c.auth }
+func (c Base) API() model.APIType                 { return c.api }
+func (c Base) Auth() AuthType                     { return c.auth }
+func (c Base) Corpora() map[model.CorpusType]bool { return c.corpora }
 
 func (c Base) Put(ctx context.Context, d *model.APIData) error {
 	if !c.Auth().Check(AuthTypePrivateWrite) {

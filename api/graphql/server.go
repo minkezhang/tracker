@@ -51,6 +51,7 @@ type ComplexityRoot struct {
 		Aux       func(childComplexity int) int
 		Cached    func(childComplexity int) int
 		Completed func(childComplexity int) int
+		Corpus    func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Providers func(childComplexity int) int
 		Queued    func(childComplexity int) int
@@ -121,7 +122,6 @@ type ComplexityRoot struct {
 	}
 
 	Entry struct {
-		Corpus   func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Metadata func(childComplexity int) int
 	}
@@ -222,6 +222,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.APIData.Completed(childComplexity), true
+
+	case "APIData.corpus":
+		if e.complexity.APIData.Corpus == nil {
+			break
+		}
+
+		return e.complexity.APIData.Corpus(childComplexity), true
 
 	case "APIData.id":
 		if e.complexity.APIData.ID == nil {
@@ -502,13 +509,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuxTV.Writers(childComplexity), true
-
-	case "Entry.corpus":
-		if e.complexity.Entry.Corpus == nil {
-			break
-		}
-
-		return e.complexity.Entry.Corpus(childComplexity), true
 
 	case "Entry.id":
 		if e.complexity.Entry.ID == nil {
@@ -898,7 +898,6 @@ type Title {
 }
 
 type Entry {
-  corpus: CorpusType!
   id: ID!
 
   metadata: Metadata!
@@ -913,6 +912,7 @@ type Metadata {
 type APIData {
   api: APIType!
   id: ID!  # ID is unique to the API.
+  corpus: CorpusType!
 
   queued: Boolean!
   cached: Boolean!
@@ -937,6 +937,7 @@ type APIData {
 
   corpus: CorpusType
   title: String
+  corpora: [CorpusType!]
   apis: [APIType!]
 
   nsfw: Boolean
@@ -1232,6 +1233,50 @@ func (ec *executionContext) fieldContext_APIData_id(ctx context.Context, field g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _APIData_corpus(ctx context.Context, field graphql.CollectedField, obj *model.APIData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_APIData_corpus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Corpus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.CorpusType)
+	fc.Result = res
+	return ec.marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_APIData_corpus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CorpusType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2974,50 +3019,6 @@ func (ec *executionContext) fieldContext_AuxTV_writers(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Entry_corpus(ctx context.Context, field graphql.CollectedField, obj *model.Entry) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Entry_corpus(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Corpus, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.CorpusType)
-	fc.Result = res
-	return ec.marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Entry_corpus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Entry",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type CorpusType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Entry_id(ctx context.Context, field graphql.CollectedField, obj *model.Entry) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Entry_id(ctx, field)
 	if err != nil {
@@ -3155,6 +3156,8 @@ func (ec *executionContext) fieldContext_Metadata_truffle(ctx context.Context, f
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "corpus":
+				return ec.fieldContext_APIData_corpus(ctx, field)
 			case "queued":
 				return ec.fieldContext_APIData_queued(ctx, field)
 			case "cached":
@@ -3220,6 +3223,8 @@ func (ec *executionContext) fieldContext_Metadata_sources(ctx context.Context, f
 				return ec.fieldContext_APIData_api(ctx, field)
 			case "id":
 				return ec.fieldContext_APIData_id(ctx, field)
+			case "corpus":
+				return ec.fieldContext_APIData_corpus(ctx, field)
 			case "queued":
 				return ec.fieldContext_APIData_queued(ctx, field)
 			case "cached":
@@ -3281,8 +3286,6 @@ func (ec *executionContext) fieldContext_Mutation_patch(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "corpus":
-				return ec.fieldContext_Entry_corpus(ctx, field)
 			case "id":
 				return ec.fieldContext_Entry_id(ctx, field)
 			case "metadata":
@@ -3341,8 +3344,6 @@ func (ec *executionContext) fieldContext_Mutation_delete(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "corpus":
-				return ec.fieldContext_Entry_corpus(ctx, field)
 			case "id":
 				return ec.fieldContext_Entry_id(ctx, field)
 			case "metadata":
@@ -3401,8 +3402,6 @@ func (ec *executionContext) fieldContext_Query_list(ctx context.Context, field g
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "corpus":
-				return ec.fieldContext_Entry_corpus(ctx, field)
 			case "id":
 				return ec.fieldContext_Entry_id(ctx, field)
 			case "metadata":
@@ -5873,7 +5872,7 @@ func (ec *executionContext) unmarshalInputListInput(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "corpus", "title", "apis", "nsfw"}
+	fieldsInOrder := [...]string{"id", "corpus", "title", "corpora", "apis", "nsfw"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5907,6 +5906,15 @@ func (ec *executionContext) unmarshalInputListInput(ctx context.Context, obj int
 				return it, err
 			}
 			it.Title = data
+		case "corpora":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("corpora"))
+			data, err := ec.unmarshalOCorpusType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Corpora = data
 		case "apis":
 			var err error
 
@@ -6376,6 +6384,11 @@ func (ec *executionContext) _APIData(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "corpus":
+			out.Values[i] = ec._APIData_corpus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "queued":
 			out.Values[i] = ec._APIData_queued(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6809,11 +6822,6 @@ func (ec *executionContext) _Entry(ctx context.Context, sel ast.SelectionSet, ob
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Entry")
-		case "corpus":
-			out.Values[i] = ec._Entry_corpus(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "id":
 			out.Values[i] = ec._Entry_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -8089,6 +8097,73 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOCorpusType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusTypeᚄ(ctx context.Context, v interface{}) ([]model.CorpusType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.CorpusType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOCorpusType2ᚕgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.CorpusType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCorpusType2githubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOCorpusType2ᚖgithubᚗcomᚋminkezhangᚋtruffleᚋapiᚋgraphqlᚋmodelᚐCorpusType(ctx context.Context, v interface{}) (*model.CorpusType, error) {

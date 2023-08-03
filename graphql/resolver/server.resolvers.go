@@ -6,13 +6,10 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/99designs/gqlgen/graphql"
 	graph "github.com/minkezhang/truffle/api/graphql"
 	"github.com/minkezhang/truffle/api/graphql/model"
 	"github.com/minkezhang/truffle/util"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // Patch is the resolver for the Patch field.
@@ -29,8 +26,7 @@ func (r *mutationResolver) Patch(ctx context.Context, input *model.PatchInput) (
 	m, err := r.DB.Entry.Get(ctx, id)
 	if err != nil {
 		m = &model.Entry{
-			ID:     id,
-			Corpus: *input.Corpus,
+			ID: id,
 		}
 	}
 	if err := util.PatchEntry(m, input); err != nil {
@@ -55,13 +51,20 @@ func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*mo
 		return []*model.Entry{e}, nil
 	}
 
-	return nil, &gqlerror.Error{
-		Path:    graphql.GetPath(ctx),
-		Message: fmt.Sprintf("Search not found: %s", *input.ID),
-		Extensions: map[string]interface{}{
-			"code": 404,
-		},
-	}
+	entries, _ := r.DB.Entry.List(ctx, input)
+	/*
+		data := []*model.APIData{}
+		for _, api := range input.Apis {
+			d, err := r.DB.APIData.List(ctx, input)
+			if err != nil {
+				return nil, err
+			}
+			data = append(data, d...)
+		}
+
+		// Remove duplicates
+	*/
+	return entries, nil
 }
 
 // Mutation returns graph.MutationResolver implementation.

@@ -36,7 +36,14 @@ type Anime struct {
 
 func NewAnime(c *mal.Client, auth client.AuthType) *Anime {
 	return &Anime{
-		Base: *client.New(model.APITypeAPIMal, auth),
+		Base: *client.New(client.O{
+			API:  model.APITypeAPIMal,
+			Auth: auth,
+			Corpora: []model.CorpusType{
+				model.CorpusTypeCorpusAnime,
+				model.CorpusTypeCorpusAnimeFilm,
+			},
+		}),
 
 		client: c,
 	}
@@ -68,6 +75,10 @@ func (c *Anime) APIData(a *mal.Anime) *model.APIData {
 		API:    c.API(),
 		ID:     fmt.Sprintf("anime/%d", a.ID),
 		Cached: true,
+
+		// TODO(minkezhang): Conditionally handle anime films.
+		Corpus: model.CorpusTypeCorpusAnime,
+
 		Titles: []*model.Title{
 			&model.Title{
 				Locale: "en",

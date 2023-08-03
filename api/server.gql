@@ -4,6 +4,7 @@ input ListInput {
 
   corpus: CorpusType
   title: String
+  corpora: [CorpusType!]
   apis: [APIType!]
 
   nsfw: Boolean
@@ -54,9 +55,8 @@ input PatchInput {
   # Optional; if ID is null, create the entry
   id: ID
 
-  corpus: CorpusType
-
   # Custom metadata
+  corpus: CorpusType
   queued: Boolean
   titles: [PatchInputTitle!]
   score: Float

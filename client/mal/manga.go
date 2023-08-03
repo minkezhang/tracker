@@ -37,7 +37,14 @@ type Manga struct {
 
 func NewManga(c *mal.Client, auth client.AuthType) *Manga {
 	return &Manga{
-		Base: *client.New(model.APITypeAPIMal, auth),
+		Base: *client.New(client.O{
+			API:  model.APITypeAPIMal,
+			Auth: auth,
+			Corpora: []model.CorpusType{
+				model.CorpusTypeCorpusManga,
+				model.CorpusTypeCorpusBook,
+			},
+		}),
 
 		client: c,
 	}
@@ -86,6 +93,10 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 		API:    c.API(),
 		ID:     fmt.Sprintf("manga/%d", m.ID),
 		Cached: true,
+
+		// TODO(minkezhang): Conditionally handle light novels.
+		Corpus: model.CorpusTypeCorpusManga,
+
 		Titles: []*model.Title{
 			&model.Title{
 				Locale: "en",

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/minkezhang/truffle/api/graphql/model"
 )
@@ -42,6 +43,26 @@ func (db *Entry) Delete(ctx context.Context, id string) (*model.Entry, error) {
 	e := db.data[id]
 	delete(db.data, id)
 	return e, db.dump(db.fn)
+}
+
+func (db *Entry) List(ctx context.Context, query *model.ListInput) ([]*model.Entry, error) {
+	corpora := map[model.CorpusType]bool{}
+	for _, c := range query.Corpora {
+		corpora[c] = true
+	}
+
+	var matches []*model.Entry
+	for _, e := range db.data {
+		if _, ok := corpora[e.Metadata.Truffle.Corpus]; !ok {
+			continue
+		}
+		for _, t := range e.Metadata.Truffle.Titles {
+			if query.Title != nil && strings.Contains(t.Title, *query.Title) {
+				matches = append(matches, e)
+			}
+		}
+	}
+	return matches, nil
 }
 
 func (db *Entry) dump(fn string) error {

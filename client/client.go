@@ -20,6 +20,7 @@ func (a AuthType) Check(b AuthType) bool { return a&b == b }
 type C interface {
 	Auth() AuthType
 	API() model.APIType
+	Corpora() map[model.CorpusType]bool
 
 	// Get all info from the client.
 	Get(ctx context.Context, id string) (*model.APIData, error)

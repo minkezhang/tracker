@@ -32,7 +32,6 @@ mutation {
     }
   }) {
     id
-    corpus
     metadata {
       truffle {
         ...APIDataParts
@@ -48,6 +47,7 @@ fragment APIDataParts on APIData {
   api
   id
   cached
+  corpus
   titles {
     title
   }

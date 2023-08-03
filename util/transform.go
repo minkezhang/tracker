@@ -8,11 +8,7 @@ import (
 )
 
 func PatchEntry(m *model.Entry, q *model.PatchInput) error {
-	if q.ID == nil {
-		m.Corpus = *q.Corpus
-	}
-
-	if m.Corpus == model.CorpusTypeCorpusNone {
+	if m.Metadata == nil && *q.Corpus == model.CorpusTypeCorpusNone {
 		return fmt.Errorf("mandatory Corpus type is unspecified")
 	}
 
@@ -22,13 +18,14 @@ func PatchEntry(m *model.Entry, q *model.PatchInput) error {
 				API:    model.APITypeAPITruffle,
 				ID:     m.ID,
 				Cached: true,
+				Corpus: *q.Corpus,
 			},
 		}
 	}
 
 	if q.Aux != nil {
 		m.Metadata.Truffle.Aux = nil
-		switch m.Corpus {
+		switch m.Metadata.Truffle.Corpus {
 		case model.CorpusTypeCorpusAnime:
 			m.Metadata.Truffle.Aux = &model.AuxAnime{
 				Studios: q.Aux.Studios,
@@ -96,7 +93,7 @@ func PatchEntry(m *model.Entry, q *model.PatchInput) error {
 	if q.Tracker != nil {
 		t := time.Now()
 		m.Metadata.Truffle.Tracker = nil
-		switch m.Corpus {
+		switch m.Metadata.Truffle.Corpus {
 		case model.CorpusTypeCorpusAnime:
 			m.Metadata.Truffle.Tracker = &model.TrackerAnime{
 				Season:      q.Tracker.Season,
