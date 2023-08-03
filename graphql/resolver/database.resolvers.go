@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
@@ -16,24 +15,21 @@ import (
 // Sources is the resolver for the sources field.
 func (r *metadataResolver) Sources(ctx context.Context, obj *model.Metadata) ([]*model.APIData, error) {
 	var sources []*model.APIData
-	var errs []error
 
 	for _, s := range obj.Sources {
 		db, ok := r.DB.APIData[s.API]
 		if !ok {
-			errs = append(errs, fmt.Errorf("unsupported API: %s", s.API))
-			continue
+			return nil, fmt.Errorf("unsupported API: %s", s.API)
 		}
 
 		t, err := db.Get(ctx, s)
 		if err != nil {
-			errs = append(errs, err)
-			continue
+			return nil, err
 		}
 
 		sources = append(sources, t)
 	}
-	return sources, errors.Join(errs...)
+	return sources, nil
 }
 
 // Metadata returns graph.MetadataResolver implementation.

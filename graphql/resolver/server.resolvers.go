@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
 	"github.com/minkezhang/truffle/api/graphql/model"
@@ -55,16 +56,8 @@ func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*mo
 		return []*model.Entry{e}, nil
 	}
 
-	entries, _ := r.DB.Entry.List(ctx, input)
+	var entries []*model.Entry
 	lookup := map[model.APIType]map[string]bool{}
-	for _, e := range entries {
-		for _, d := range e.Metadata.Sources {
-			if lookup[d.API] == nil {
-				lookup[d.API] = map[string]bool{}
-			}
-			lookup[d.API][d.ID] = true
-		}
-	}
 
 	corpora := map[model.CorpusType]bool{}
 	for _, c := range input.Corpora {
@@ -74,11 +67,29 @@ func (r *queryResolver) List(ctx context.Context, input *model.ListInput) ([]*mo
 	// Query all APIs.
 	data := []*model.APIData{}
 	for _, api := range input.Apis {
-		d, err := r.DB.APIData[api].List(ctx, input)
-		if err != nil {
-			return nil, err
+		// Populate the truffle API differently, and mark all associated
+		// data as potential duplicates.
+		if api == model.APITypeAPITruffle {
+			entries, _ = r.DB.Entry.List(ctx, input)
+			for _, e := range entries {
+				for _, d := range e.Metadata.Sources {
+					if lookup[d.API] == nil {
+						lookup[d.API] = map[string]bool{}
+					}
+					lookup[d.API][d.ID] = true
+				}
+			}
+		} else {
+			db, ok := r.DB.APIData[api]
+			if !ok {
+				return nil, fmt.Errorf("unsupported API: %s", api)
+			}
+			d, err := db.List(ctx, input)
+			if err != nil {
+				return nil, err
+			}
+			data = append(data, d...)
 		}
-		data = append(data, d...)
 	}
 
 	var pseudo []*model.Entry
