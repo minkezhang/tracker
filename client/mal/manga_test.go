@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minkezhang/truffle/client"
+	"github.com/minkezhang/truffle/util"
 	"github.com/nstratos/go-myanimelist/mal"
 )
 
@@ -13,7 +14,7 @@ func TestMangaGet(u *testing.T) {
 	m := NewManga(
 		mal.NewClient(&http.Client{
 			Transport: &t{
-				cid: CLIENT_ID,
+				cid: util.DefaultConfig.MAL.ClientID,
 			},
 		}),
 		client.AuthTypePublic,

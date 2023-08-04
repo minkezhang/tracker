@@ -11,8 +11,8 @@ import (
 	"github.com/minkezhang/truffle/api/graphql/model"
 	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
-	"github.com/minkezhang/truffle/util"
 	"github.com/minkezhang/truffle/graphql/resolver"
+	"github.com/minkezhang/truffle/util"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
 )
