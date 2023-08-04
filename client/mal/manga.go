@@ -8,6 +8,7 @@ import (
 
 	"github.com/minkezhang/truffle/api/graphql/model"
 	"github.com/minkezhang/truffle/client"
+	"github.com/minkezhang/truffle/util"
 	"github.com/nstratos/go-myanimelist/mal"
 )
 
@@ -35,7 +36,7 @@ type Manga struct {
 	client *mal.Client
 }
 
-func NewManga(c *mal.Client, auth client.AuthType) *Manga {
+func NewManga(c *mal.Client, auth client.AuthType, config util.Config) *Manga {
 	return &Manga{
 		Base: *client.New(client.O{
 			API:  model.APITypeAPIMal,
@@ -44,6 +45,7 @@ func NewManga(c *mal.Client, auth client.AuthType) *Manga {
 				model.CorpusTypeCorpusManga,
 				model.CorpusTypeCorpusBook,
 			},
+			Config: config,
 		}),
 
 		client: c,

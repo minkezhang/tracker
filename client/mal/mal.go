@@ -29,8 +29,8 @@ func New(o O) *MAL {
 		},
 	)
 
-	manga := NewManga(c, o.auth)
-	anime := NewAnime(c, o.auth)
+	manga := NewManga(c, o.auth, o.config)
+	anime := NewAnime(c, o.auth, o.config)
 	var corpora []model.CorpusType
 	for c := range manga.Corpora() {
 		corpora = append(corpora, c)
@@ -44,6 +44,7 @@ func New(o O) *MAL {
 			API:     model.APITypeAPIMal,
 			Auth:    o.auth,
 			Corpora: corpora,
+			Config:  o.config,
 		}),
 
 		manga: manga,

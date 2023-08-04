@@ -4,19 +4,22 @@ import (
 	"net/http"
 
 	"github.com/minkezhang/truffle/client"
+	"github.com/minkezhang/truffle/util"
 )
 
 type O struct {
 	transport http.RoundTripper
 	auth      client.AuthType
+	config    util.Config
 }
 
-func WithPublicAPIKey(client_id string) O {
+func FromConfig(c util.Config) O {
 	return O{
 		transport: t{
-			cid: client_id,
+			cid: c.MAL.ClientID,
 		},
-		auth: client.AuthTypePublic,
+		auth:   client.AuthTypePublic,
+		config: c,
 	}
 }
 

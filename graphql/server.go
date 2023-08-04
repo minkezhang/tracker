@@ -37,7 +37,7 @@ func main() {
 			Entry: database.NewEntry(ENTRY_DATABASE_PATH),
 			APIData: map[model.APIType]*database.APIData{
 				model.APITypeAPIMal: database.NewAPIData(
-					mal.New(mal.WithPublicAPIKey(config.MAL.ClientID)),
+					mal.New(mal.FromConfig(*config)),
 					MAL_DATABASE_PATH,
 				),
 			},

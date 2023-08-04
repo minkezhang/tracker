@@ -18,6 +18,7 @@ func TestMangaGet(u *testing.T) {
 			},
 		}),
 		client.AuthTypePublic,
+		*util.DefaultConfig,
 	)
 	_, err := m.Get(context.Background(), "698")
 
