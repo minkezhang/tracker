@@ -11,6 +11,7 @@ import (
 	"github.com/minkezhang/truffle/api/graphql/model"
 	"github.com/minkezhang/truffle/client/mal"
 	"github.com/minkezhang/truffle/database"
+	"github.com/minkezhang/truffle/util"
 	"github.com/minkezhang/truffle/graphql/resolver"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
@@ -29,7 +30,7 @@ func main() {
 		port = defaultPort
 	}
 
-	config := model.DefaultConfig
+	config := util.DefaultConfig
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{
 		DB: &resolver.DB{

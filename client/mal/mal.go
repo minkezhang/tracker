@@ -75,11 +75,11 @@ func (c *MAL) List(ctx context.Context, query *model.ListInput) ([]*model.APIDat
 	// TODO(minkezhang): Handle paging.
 	d, err := c.manga.List(ctx, query)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	e, err := c.anime.List(ctx, query)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	return append(d, e...), nil
 }
