@@ -3,6 +3,7 @@ package mal
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -22,6 +23,18 @@ var (
 		"authors{first_name,last_name}",
 		"my_list_status",
 		"genres",
+	}
+	mangaCorpusLookup = map[string]model.CorpusType{
+		// MAL lists the "novel" type but from experimentation, this is
+		// "light_novel" instead.
+		"light_novel": model.CorpusTypeCorpusBook,
+
+		"manga":     model.CorpusTypeCorpusManga,
+		"one_shot":  model.CorpusTypeCorpusManga,
+		"doujinshi": model.CorpusTypeCorpusManga,
+		"manhua":    model.CorpusTypeCorpusManga,
+		"manhwa":    model.CorpusTypeCorpusManga,
+		"oel":       model.CorpusTypeCorpusManga,
 	}
 
 	mangaQueuedLookup = map[mal.MangaStatus]bool{
@@ -71,7 +84,7 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 		genres = append(genres, g.Name)
 	}
 
-	tags := append(genres, m.MediaType)
+	tags := genres
 	score := m.Mean
 	var t *model.TrackerManga
 
@@ -95,10 +108,7 @@ func (c *Manga) APIData(m *mal.Manga) *model.APIData {
 		API:    c.API(),
 		ID:     fmt.Sprintf("manga/%d", m.ID),
 		Cached: true,
-
-		// TODO(minkezhang): Conditionally handle light novels.
-		Corpus: model.CorpusTypeCorpusManga,
-
+		Corpus: mangaCorpusLookup[m.MediaType],
 		Titles: []*model.Title{
 			&model.Title{
 				Locale: "en",
@@ -138,27 +148,57 @@ func (c *Manga) Get(ctx context.Context, id string) (*model.APIData, error) {
 }
 
 func (c *Manga) List(ctx context.Context, query *model.ListInput) ([]*model.APIData, error) {
-	opts := []mal.Option{
-		mal.Fields(mangaFields),
-		mal.Limit(1),
-	}
-	var nsfw bool
-	if query.Mal != nil {
-		nsfw = query.Mal.Nsfw
-	}
-	opts = append(opts, mal.NSFW(nsfw))
-
 	var q string
 	if query.Title != nil {
 		q = *query.Title
 	}
-	ds, resp, err := c.client.Manga.List(ctx, q, opts...)
+
+	f := func(r *mal.Response) ([]mal.Manga, *mal.Response, error) {
+		// Handle EOF case.
+		if r != nil && r.NextOffset == 0 {
+			return nil, nil, nil
+		}
+
+		var offset int
+		if r != nil {
+			offset = r.NextOffset
+		}
+
+		var nsfw bool
+		if query.Mal != nil {
+			nsfw = query.Mal.Nsfw
+		}
+
+		ds, r, err := c.client.Manga.List(
+			ctx,
+			q,
+			mangaFields,
+			mal.Limit(math.Min(100, float64(c.Config().MAL.SearchMaxResults))),
+			mal.Offset(offset),
+			mal.NSFW(nsfw),
+		)
+		return ds, r, err
+	}
+
+	var ds []mal.Manga
+
+	var page []mal.Manga
+	var r *mal.Response
+	var err error
+	for page, r, err = f(nil); err == nil && page != nil && len(ds) <= c.Config().MAL.SearchMaxResults; page, r, err = f(r) {
+		ds = append(ds, page...)
+	}
 	if err != nil {
-		return nil, fmt.Errorf("cannot query %s: %d", c.API(), resp.StatusCode)
+		return nil, err
 	}
 
 	var data []*model.APIData
 	for _, d := range ds {
+		// Trim obscure series.
+		if popularity := c.Config().MAL.PopularityCutoff; popularity >= 0 && d.Popularity >= popularity {
+			continue
+		}
+
 		data = append(data, c.APIData(&d))
 	}
 	return data, nil

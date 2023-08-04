@@ -3,6 +3,7 @@ package mal
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/minkezhang/truffle/api/graphql/model"
@@ -21,6 +22,13 @@ var (
 		"studios",
 		"genres",
 		"my_list_status",
+	}
+	animeCorpusLookup = map[string]model.CorpusType{
+		"tv":      model.CorpusTypeCorpusAnime,
+		"ova":     model.CorpusTypeCorpusAnime,
+		"ona":     model.CorpusTypeCorpusAnime,
+		"special": model.CorpusTypeCorpusAnime,
+		"movie":   model.CorpusTypeCorpusAnimeFilm,
 	}
 
 	animeQueuedLookup = map[mal.AnimeStatus]bool{
@@ -63,7 +71,7 @@ func (c *Anime) APIData(a *mal.Anime) *model.APIData {
 		genres = append(genres, g.Name)
 	}
 
-	tags := append(genres, a.MediaType)
+	tags := genres
 	score := a.Mean
 
 	if c.Auth().Check(client.AuthTypePrivateRead) {
@@ -77,10 +85,7 @@ func (c *Anime) APIData(a *mal.Anime) *model.APIData {
 		API:    c.API(),
 		ID:     fmt.Sprintf("anime/%d", a.ID),
 		Cached: true,
-
-		// TODO(minkezhang): Conditionally handle anime films.
-		Corpus: model.CorpusTypeCorpusAnime,
-
+		Corpus: animeCorpusLookup[a.MediaType],
 		Titles: []*model.Title{
 			&model.Title{
 				Locale: "en",
@@ -119,26 +124,56 @@ func (c *Anime) Get(ctx context.Context, id string) (*model.APIData, error) {
 
 func (c *Anime) List(ctx context.Context, query *model.ListInput) ([]*model.APIData, error) {
 	var q string
-	opts := []mal.Option{
-		mal.Fields(animeFields),
-		mal.Limit(1),
-	}
-	var nsfw bool
-	if query.Mal != nil {
-		nsfw = query.Mal.Nsfw
-	}
-	opts = append(opts, mal.NSFW(nsfw))
-
 	if query.Title != nil {
 		q = *query.Title
 	}
-	ds, resp, err := c.client.Anime.List(ctx, q, opts...)
+
+	f := func(r *mal.Response) ([]mal.Anime, *mal.Response, error) {
+		// Handle EOF case.
+		if r != nil && r.NextOffset == 0 {
+			return nil, nil, nil
+		}
+
+		var offset int
+		if r != nil {
+			offset = r.NextOffset
+		}
+
+		var nsfw bool
+		if query.Mal != nil {
+			nsfw = query.Mal.Nsfw
+		}
+
+		ds, r, err := c.client.Anime.List(
+			ctx,
+			q,
+			animeFields,
+			mal.Limit(math.Min(100, float64(c.Config().MAL.SearchMaxResults))),
+			mal.Offset(offset),
+			mal.NSFW(nsfw),
+		)
+		return ds, r, err
+	}
+
+	var ds []mal.Anime
+
+	var page []mal.Anime
+	var r *mal.Response
+	var err error
+	for page, r, err = f(nil); err == nil && page != nil && len(ds) <= c.Config().MAL.SearchMaxResults; page, r, err = f(r) {
+		ds = append(ds, page...)
+	}
 	if err != nil {
-		return nil, fmt.Errorf("cannot query %s: %d", c.API(), resp.StatusCode)
+		return nil, err
 	}
 
 	var data []*model.APIData
 	for _, d := range ds {
+		// Trim obscure series.
+		if popularity := c.Config().MAL.PopularityCutoff; popularity >= 0 && d.Popularity >= popularity {
+			continue
+		}
+
 		data = append(data, c.APIData(&d))
 	}
 	return data, nil
