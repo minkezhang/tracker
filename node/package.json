@@ -1,0 +1,11 @@
+{
+  "name": "truffle",
+  "version": "0.0.1",
+  "description": "Frontend package for the truffle lib",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "Minke Zhang (minke.zhang@gmail.com)",
+  "license": "Apache-2.0"
+}
