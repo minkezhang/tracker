@@ -7,7 +7,10 @@ const config: CodegenConfig = {
   ],
   generates: {
     './src/graphql/': {
-      preset: 'client'
+      plugins: ['typescript'],
+      config: {
+        avoidOptionals: true
+      }
     }
   }
 }
