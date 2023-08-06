@@ -4,8 +4,12 @@
   "description": "Frontend package for the truffle lib",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "start": "node index.js"
   },
   "author": "Minke Zhang (minke.zhang@gmail.com)",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
 }
