@@ -5,11 +5,11 @@
 ### Install
 
 ```bash
-npm instal
+npm install
 ```
 
 ### Generate GQL and Transpile TS
 
 ```bash
-npm run compile
+npm run build
 ```
