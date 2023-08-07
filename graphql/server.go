@@ -13,6 +13,7 @@ import (
 	"github.com/minkezhang/truffle/database"
 	"github.com/minkezhang/truffle/graphql/resolver"
 	"github.com/minkezhang/truffle/util"
+	"github.com/rs/cors"
 
 	graph "github.com/minkezhang/truffle/api/graphql"
 )
@@ -32,7 +33,7 @@ func main() {
 
 	config := util.DefaultConfig
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{
+	h := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{
 		DB: &resolver.DB{
 			Entry: database.NewEntry(ENTRY_DATABASE_PATH),
 			APIData: map[model.APIType]*database.APIData{
@@ -45,7 +46,12 @@ func main() {
 	}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+
+	http.Handle("/query", cors.New(cors.Options{
+		AllowedOrigins: []string{
+			"http://localhost:3000",
+		},
+	}).Handler(h))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
