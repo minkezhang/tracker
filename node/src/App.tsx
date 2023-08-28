@@ -4,7 +4,7 @@ import './App.css';
 
 import { useQuery, gql } from '@apollo/client';
 import * as types from './graphql/graphql';
-import { Entry } from './Entry';
+import * as entry from './Entry';
 
 const _Q = gql(`
   query {
@@ -34,7 +34,7 @@ function F() {
     return <p>Loading...</p>
   }
   return (
-    <div>{ data.list.map((x: types.Entry) => Entry({e: x})) }</div>
+    <div>{ data.list.map((x: types.Entry) => entry.ApiData({ data: (new entry.E(x)).default()})) }</div>
   )
 }
 
