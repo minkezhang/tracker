@@ -4,6 +4,7 @@ import './App.css';
 
 import { useQuery, gql } from '@apollo/client';
 import * as types from './graphql/graphql';
+import { Entry } from './Entry';
 
 const _Q = gql(`
   query {
@@ -27,27 +28,13 @@ const _Q = gql(`
   }
 `)
 
-function RenderEntry(e: types.Entry) {
-  let t = ""
-  if (e.metadata.truffle && e.metadata.truffle.titles) {
-    t = e.metadata.truffle.titles[0].title
-  } else if (e.metadata.sources) {
-    if (e.metadata.sources[0].titles) {
-      t = e.metadata.sources[0].titles[0].title
-    }
-  }
-  return (
-    <div key='{ e.id }'>{ t }</div>
-  )
-}
-
 function F() {
   const { loading, error, data } = useQuery(_Q);
   if (loading) {
     return <p>Loading...</p>
   }
   return (
-    <div>{ data.list.map(RenderEntry) }</div>
+    <div>{ data.list.map((x: types.Entry) => Entry({e: x})) }</div>
   )
 }
 
