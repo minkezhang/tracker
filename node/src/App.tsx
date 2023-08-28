@@ -19,6 +19,10 @@ const _Q = gql(`
     }) {
       metadata {
         sources {
+          api
+          corpus
+          id
+          score
           titles {
             title
           }

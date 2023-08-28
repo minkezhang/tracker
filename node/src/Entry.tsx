@@ -83,11 +83,13 @@ export class E {
     }
 
     for (var s of this.sources) {
-      d.api = d.api == types.ApiType.ApiNone ? s.api : d.api;
+      if (d.api == types.ApiType.ApiNone && s.api != null) {
+        d.api = s.api;
+        d.id = s.id;
+      }
       d.cached = d.cached || s.cached;
       d.completed = d.completed || s.completed;
-      d.corpus = d.corpus == types.CorpusType.CorpusNone ? s.corpus : d.corpus;
-      d.id = s.api == types.ApiType.ApiTruffle ? s.id : d.id;
+      d.corpus = d.corpus == types.CorpusType.CorpusNone && s.api != null ? s.corpus : d.corpus;
       d.queued = d.queued || s.queued;
       d.score = d.score == 0 && s.score != null ? s.score : d.score;
     }
@@ -114,9 +116,13 @@ function Title(props: any) {
 export function ApiData(props: any) {
   const { data } = props;
 
+  console.log(data);
   return (
     <div key='{data.id}'>
       <Title data={data}></Title>
+      <p>ID: { data.api.split('_')[1].toLowerCase() }:{ data.id }</p>
+      <p>Corpus: { data.corpus.split('_')[1].toLowerCase() }</p>
+      <p>Score: { data.score }</p>
     </div>
   );
 }
