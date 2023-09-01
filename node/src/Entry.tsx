@@ -98,9 +98,7 @@ export class E {
   }
 }
 
-function Title(props: any) {
-  const { data } = props;
-
+function Title({ data } : { data: types.ApiData }) {
   if (data.titles != null && data.titles.length > 0) {
     return (
       <div key='{data.id}'>
@@ -113,10 +111,7 @@ function Title(props: any) {
   );
 }
 
-export function ApiData(props: any) {
-  const { data } = props;
-
-  console.log(data);
+export function ApiData({ data } : { data: types.ApiData }) {
   return (
     <div key='{data.id}'>
       <Title data={data}></Title>
