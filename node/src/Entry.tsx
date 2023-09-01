@@ -101,7 +101,7 @@ export class E {
 function Title({ data } : { data: types.ApiData }) {
   if (data.titles != null && data.titles.length > 0) {
     return (
-      <div key='{data.id}'>
+      <div key='{ data.id }'>
         <h2>{ data.titles[0].title }</h2>
       </div>
     );
@@ -113,7 +113,7 @@ function Title({ data } : { data: types.ApiData }) {
 
 export function ApiData({ data } : { data: types.ApiData }) {
   return (
-    <div key='{data.id}'>
+    <div key='{ data.id }'>
       <Title data={data}></Title>
       <p>ID: { data.api.split('_')[1].toLowerCase() }:{ data.id }</p>
       <p>Corpus: { data.corpus.split('_')[1].toLowerCase() }</p>
