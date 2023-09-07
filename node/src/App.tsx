@@ -1,6 +1,5 @@
 import React from 'react';
 import logo from './logo.svg';
-import './App.css';
 
 import { useQuery, gql } from '@apollo/client';
 import * as types from './graphql/graphql';
@@ -46,11 +45,7 @@ function F() {
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <F />
-      </header>
-    </div>
+    <F />
   );
 }
 
