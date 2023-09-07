@@ -115,10 +115,10 @@ export function ApiData({ data } : { data: types.ApiData }) {
   return (
     <div key='{ data.id }' className="container mx-auto bg-gray-200 rounded-xl shadow border p-8 m-10">
       <div className="shrink-0">
-      <Title data={data}></Title>
-      <p>ID: { data.api.split('_')[1].toLowerCase() }:{ data.id }</p>
-      <p>Corpus: { data.corpus.split('_')[1].toLowerCase() }</p>
-      <p>Score: { data.score }</p>
+        <Title data={data}></Title>
+        <p>ID: { data.api.split('_')[1].toLowerCase() }:{ data.id }</p>
+        <p>Corpus: { data.corpus.split('_')[1].toLowerCase() }</p>
+        <p>Score: { data.score }</p>
       </div>
     </div>
   );
