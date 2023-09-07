@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useQuery, gql } from '@apollo/client';
-import * as types from '../graphql/graphql';
+import * as types from '../../graphql/graphql';
 
 export class E {
   sources: types.ApiData[]

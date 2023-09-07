@@ -2,7 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 
 import { useQuery, gql } from '@apollo/client';
-import * as types from './graphql/graphql';
+import * as types from '../graphql/graphql';
 import * as entry from './Entry';
 
 const _Q = gql(`
